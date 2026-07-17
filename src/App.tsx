@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, Settings, Mail, Clock, Globe } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
@@ -17,21 +17,115 @@ interface QuizHistoryItem {
   topic: string;
 }
 
+interface QuizStats {
+  score: string;
+  topicWeaknesses: string[];
+  history: QuizHistoryItem[];
+}
+
+interface SessionIdentity {
+  authenticated: boolean;
+  displayName: string;
+  source: "pangolin" | "direct";
+}
+
+const PROGRESS_STORAGE_KEY = "watchguard-study-progress-v1";
+const DEFAULT_QUIZ_STATS: QuizStats = {
+  score: "0%",
+  topicWeaknesses: [],
+  history: []
+};
+
+function loadSavedProgress(): { quizStats: QuizStats; completedLabs: string[] } {
+  try {
+    const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (!saved) return { quizStats: DEFAULT_QUIZ_STATS, completedLabs: [] };
+
+    const parsed = JSON.parse(saved);
+    if (!parsed?.quizStats || !Array.isArray(parsed.completedLabs)) {
+      return { quizStats: DEFAULT_QUIZ_STATS, completedLabs: [] };
+    }
+
+    return parsed;
+  } catch {
+    return { quizStats: DEFAULT_QUIZ_STATS, completedLabs: [] };
+  }
+}
+
+function getPlatformLabel() {
+  const userAgent = navigator.userAgent;
+  if (/Windows/i.test(userAgent)) return "Windows";
+  if (/Android/i.test(userAgent)) return "Android";
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return "iOS";
+  if (/Macintosh|Mac OS X/i.test(userAgent)) return "macOS";
+  if (/Linux/i.test(userAgent)) return "Linux";
+  return "Browser";
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("chat");
-  
-  // Unified certification study statistics
-  const [quizStats, setQuizStats] = useState<{
-    score: string;
-    topicWeaknesses: string[];
-    history: QuizHistoryItem[];
-  }>({
-    score: "0%",
-    topicWeaknesses: [],
-    history: []
+  const savedProgress = useMemo(loadSavedProgress, []);
+  const [quizStats, setQuizStats] = useState<QuizStats>(savedProgress.quizStats);
+  const [completedLabs, setCompletedLabs] = useState<string[]>(savedProgress.completedLabs);
+  const [sessionIdentity, setSessionIdentity] = useState<SessionIdentity>({
+    authenticated: false,
+    displayName: "Local browser",
+    source: "direct"
   });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [now, setNow] = useState(() => new Date());
 
-  const [completedLabs, setCompletedLabs] = useState<string[]>([]);
+  const locale = navigator.language || "en-US";
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
+  const platform = getPlatformLabel();
+  const localTime = useMemo(
+    () => new Intl.DateTimeFormat(locale, {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short"
+    }).format(now),
+    [locale, now]
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/session", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Session lookup failed");
+        return response.json();
+      })
+      .then((session: SessionIdentity) => setSessionIdentity(session))
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          setSessionIdentity({ authenticated: false, displayName: "Local browser", source: "direct" });
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(new Date()), 30_000);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.clearInterval(clock);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ quizStats, completedLabs }));
+  }, [quizStats, completedLabs]);
 
   const handleScoreUpdated = (record: { score: string; topicWeaknesses: string[]; history: QuizHistoryItem[] }) => {
     setQuizStats(record);
@@ -54,7 +148,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-watchguard-dark text-gray-100 flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-watchguard-dark text-gray-100 flex flex-col font-sans">
       
       {/* Top Professional Navigation Console Bar */}
       <header className="bg-watchguard-gray border-b border-watchguard-border shadow-xl z-20">
@@ -81,15 +175,22 @@ export default function App() {
           <div className="flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
             <div className="flex items-center space-x-1.5">
               <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span className="font-mono">PDT (UTC-7) Zone</span>
+              <span className="font-mono" title={timeZone}>{localTime}</span>
             </div>
             <div className="hidden sm:flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-              <Mail className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span className="font-mono">Juliendumitrescu@gmail.com</span>
+              <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
+              <span
+                className="font-mono"
+                title={sessionIdentity.authenticated ? "Identity provided by Pangolin SSO" : "Direct browser session"}
+              >
+                {sessionIdentity.displayName}
+              </span>
             </div>
             <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-              <Globe className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span className="font-mono">Local Daemon Active</span>
+              <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
+              <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
+                {isOnline ? `${locale} • ${platform}` : "Browser offline"}
+              </span>
             </div>
           </div>
         </div>

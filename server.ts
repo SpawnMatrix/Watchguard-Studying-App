@@ -13,9 +13,36 @@ import {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
+const PORT = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
 app.use(express.json());
+
+function cleanIdentityHeader(value: string | undefined) {
+  return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
+}
+
+function toDisplayName(value: string) {
+  const accountName = value.includes("@") ? value.split("@", 1)[0] : value;
+  return accountName.replace(/[._-]+/g, " ").trim();
+}
+
+// Pangolin forwards authenticated user details through Remote-* headers.
+// This endpoint is display-only; forwarded identity must never be used here as
+// application authorization because the service is also reachable on the LAN.
+app.get("/api/session", (req, res) => {
+  const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
+  const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
+  const remoteEmail = cleanIdentityHeader(req.get("Remote-Email"));
+  const forwardedIdentity = remoteName || remoteUser || remoteEmail;
+
+  res.set("Cache-Control", "private, no-store");
+  res.json({
+    authenticated: Boolean(forwardedIdentity),
+    displayName: forwardedIdentity ? toDisplayName(forwardedIdentity) : "Local browser",
+    source: forwardedIdentity ? "pangolin" : "direct"
+  });
+});
 
 // Feature flag status endpoint
 app.get("/api/features", (req, res) => {

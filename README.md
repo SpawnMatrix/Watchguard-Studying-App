@@ -33,8 +33,8 @@ This uses almost zero overhead and runs directly on a bare Debian/Ubuntu Linux c
    # Install prerequisite packages
    apt install -y curl git build-essential
 
-   # Install Node.js 18.x LTS (using NodeSource)
-   curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+   # Install Node.js 22.x LTS (using NodeSource)
+   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
    apt install -y nodejs
    ```
 
@@ -127,12 +127,14 @@ The portal uses standard Node environment variables. Modify `.env` in the root f
 | :--- | :--- | :--- |
 | `PORT` | `3000` | The physical port the container or express server listens on. |
 | `NODE_ENV` | `production` | Set to `production` or `development`. |
-| `ENABLE_AI_FEATURES` | `true` | Toggle to `false` to disable the Gemini API entirely. The applet automatically switches into a 100% offline, local-fallback mode with zero internet dependencies. |
+| `ENABLE_AI_FEATURES` | `false` | Toggle to `true` to enable Gemini. By default the app runs in its local-fallback mode and makes no Gemini API calls. |
 | `GEMINI_API_KEY` | `""` | Optional. If `ENABLE_AI_FEATURES` is true, paste your free Google Gemini API Key here to enable intelligent exam coaching. |
 
 ---
 
 ## 🛡️ Reverse Proxy Integration (TLS/SSL)
+
+When Pangolin Platform SSO protects the resource, the header automatically displays the signed-in user's forwarded display name. Direct LAN access falls back to `Local browser`; forwarded identity is display-only and is not used for application authorization. The time, timezone, locale, platform, and connectivity indicators are derived from the current browser instead of being hardcoded.
 
 For local home labs, we highly recommend setting up an **Nginx Proxy Manager (NPM)** LXC or VM to assign a secure Local SSL certificate (e.g., Let's Encrypt or Wildcard certificate):
 

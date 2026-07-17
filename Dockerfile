@@ -1,12 +1,12 @@
 # Multi-stage Docker build for lightweight production images
 # Stage 1: Build stage
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY . .
 
@@ -14,13 +14,13 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Minimalist Production Runner Stage
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /usr/src/app
 
 # Only copy required build outputs and package manifest
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
 
