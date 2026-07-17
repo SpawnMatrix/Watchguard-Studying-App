@@ -1,0 +1,6 @@
+{
+  "name": "WatchGuard Certified Training Portal",
+  "description": "Enterprise-grade local tutor and simulation engine for Network Security Essentials for Locally-Managed Fireboxes certification training.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
