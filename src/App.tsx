@@ -7,7 +7,7 @@ import PerformanceDashboard from "./components/PerformanceDashboard";
 import NetworkSimulator from "./components/NetworkSimulator";
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "chat" | "quiz" | "labs" | "admin";
+type Tab = "chat" | "quiz" | "labs" | "sandbox" | "admin";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -49,6 +49,7 @@ export default function App() {
     { id: "chat", label: "General Study Q&A", icon: Bot },
     { id: "quiz", label: "Adaptive Quiz Engine", icon: Trophy },
     { id: "labs", label: "Hands-on Lab Guides", icon: Layers },
+    { id: "sandbox", label: "Interactive FSM Sandbox", icon: Terminal },
     { id: "admin", label: "Manager & Performance reports", icon: BarChart3 }
   ];
 
@@ -94,65 +95,57 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Study Arena Grid */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 overflow-hidden">
+      {/* Main Study Arena Layout (Expanded Unified Container) */}
+      <main className="flex-1 max-w-7xl mx-auto w-full p-6 flex flex-col space-y-6 overflow-hidden">
         
-        {/* Core Interactive Learning Stage (Tab Panel) */}
-        <section className="xl:col-span-8 flex flex-col space-y-5 h-full overflow-hidden">
-          
-          {/* Tab Navigation Tray */}
-          <nav className="flex items-center space-x-1 bg-watchguard-gray/80 p-1 rounded-xl border border-watchguard-border">
-            {tabsConfig.map((t) => {
-              const Icon = t.icon;
-              const isActive = activeTab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id as Tab)}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 text-xs font-semibold rounded-lg transition-all select-none cursor-pointer ${
-                    isActive 
-                      ? "bg-watchguard-orange text-white border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10" 
-                      : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray/40"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{t.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Active Learning Component Panel */}
-          <div className="flex-1 h-full min-h-[480px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.15 }}
-                className="h-full"
+        {/* Tab Navigation Tray */}
+        <nav className="flex items-center space-x-1 bg-watchguard-gray/80 p-1 rounded-xl border border-watchguard-border w-full">
+          {tabsConfig.map((t) => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id as Tab)}
+                className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 text-xs font-semibold rounded-lg transition-all select-none cursor-pointer ${
+                  isActive 
+                    ? "bg-watchguard-orange text-white border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10" 
+                    : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray/40"
+                }`}
               >
-                {activeTab === "chat" && <GeneralChat />}
-                {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
-                {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
-                {activeTab === "admin" && (
-                  <PerformanceDashboard 
-                    score={quizStats.score} 
-                    topicWeaknesses={quizStats.topicWeaknesses} 
-                    history={quizStats.history}
-                    completedLabs={completedLabs}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </section>
+                <Icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-        {/* Real-time Engineering Console & Simulator Stage (Right Panel) */}
-        <aside className="xl:col-span-4 h-full">
-          <NetworkSimulator />
-        </aside>
+        {/* Active Learning Component Panel */}
+        <div className="flex-1 w-full min-h-[500px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.15 }}
+              className="h-full"
+            >
+              {activeTab === "chat" && <GeneralChat />}
+              {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
+              {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
+              {activeTab === "sandbox" && <NetworkSimulator />}
+              {activeTab === "admin" && (
+                <PerformanceDashboard 
+                  score={quizStats.score} 
+                  topicWeaknesses={quizStats.topicWeaknesses} 
+                  history={quizStats.history}
+                  completedLabs={completedLabs}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
 
       {/* Global Security Footer */}
