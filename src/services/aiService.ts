@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { examQuestions } from "../data/questions";
 
 dotenv.config();
 
@@ -108,14 +109,16 @@ export async function evaluateQuizAnswer(
   question: string,
   options: string[],
   selectedAnswer: string,
-  correctAnswer: string
+  correctAnswer: string,
+  questionId?: number,
+  selectedOptions?: string[]
 ): Promise<{
   isCorrect: boolean;
   detailedExplanation: string;
   weaknessCategory: string;
 }> {
   if (!isAIFeaturesEnabled()) {
-    return getLocalQuizFallback(selectedAnswer, correctAnswer);
+    return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 
   try {
@@ -157,7 +160,7 @@ Verified Correct Option: "${correctAnswer}"`,
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
     console.warn("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
-    return getLocalQuizFallback(selectedAnswer, correctAnswer);
+    return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 }
 
@@ -351,21 +354,42 @@ To get click-by-click guides, try asking about one of these core curriculum topi
   };
 }
 
-function getLocalQuizFallback(selectedAnswer: string, correctAnswer: string) {
-  const isCorrect = selectedAnswer === correctAnswer;
+function getLocalQuizFallback(
+  selectedAnswer: string,
+  correctAnswer: string,
+  questionId?: number,
+  selectedOptions?: string[]
+) {
+  let isCorrect = selectedAnswer === correctAnswer;
+  let topic = "Policies";
+
+  if (questionId !== undefined && selectedOptions !== undefined) {
+    const q = examQuestions.find(x => x.id === questionId);
+    if (q) {
+      topic = q.topic;
+      const correctList = q.correctAnswers;
+      if (q.isMultiSelect) {
+        isCorrect = selectedOptions.length === correctList.length &&
+          selectedOptions.every(ans => correctList.includes(ans));
+      } else {
+        isCorrect = selectedOptions.length === 1 && selectedOptions[0] === correctList[0];
+      }
+    }
+  }
+
   return {
     isCorrect,
     detailedExplanation: `**[LOCAL DAEMON AUDIT REVIEW]**
 
 Technician selected: **"${selectedAnswer}"**.
-Syllabus verified correct: **"${correctAnswer}"**.
+${isCorrect ? "✅ This is correct!" : `❌ This is incorrect. The correct answer(s) should be: ${questionId !== undefined ? (examQuestions.find(x => x.id === questionId)?.correctAnswers || [correctAnswer]).join(", ") : correctAnswer}.`}
 
 **WatchGuard Core Architectural Principles:**
 1. **Zonal Separation:** All locally-managed Fireboxes enforce strict routing zones. Interface 1 (Eth1) is Trusted by default with subnet 10.0.1.1/24, Eth0 is External, and Eth2 is Optional (often used as DMZ zones).
 2. **Policy Precedence:** The Firebox processes policies sequentially from top to bottom. Specific rules (such as single host/port mappings) always take precedence over general rules (such as Any-Trusted to Any-External).
 3. **Layer 7 Inspection:** Proxies operate at the Application layer, intercepting connection handshakes and parsing body contents to enforce RFC standards. Packet filters bypass deeper contents, focusing purely on speed.
 4. **Disaster Recovery:** A Backup Image (.fxi) is unique to the physical Firebox hardware that created it, containing feature keys, certificates, passwords, and the configuration file. It cannot be restored on different hardware, unlike a raw Configuration (.xml) file.`,
-    weaknessCategory: "Policies"
+    weaknessCategory: topic
   };
 }
 

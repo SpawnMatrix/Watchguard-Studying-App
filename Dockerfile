@@ -1,36 +1,33 @@
-# Multi-stage Dockerfile for high efficiency
-# Stage 1: Build & Compile stage
+# Multi-stage Docker build for lightweight production images
+# Stage 1: Build stage
 FROM node:18-alpine AS builder
-WORKDIR /app
 
-# Install build dependencies
+WORKDIR /usr/src/app
+
 COPY package*.json ./
+
 RUN npm ci
 
-# Copy full application code
 COPY . .
 
-# Build React frontend assets and compile the CJS backend server via esbuild
+# Compile frontend static assets and compile backend production server
 RUN npm run build
 
-# Remove development dependencies
-RUN npm prune --production
+# Stage 2: Minimalist Production Runner Stage
+FROM node:18-alpine
 
-# Stage 2: Minimalist Production Runner
-FROM node:18-alpine AS runner
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Ensure security defaults
+# Only copy required build outputs and package manifest
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /usr/src/app/dist ./dist
+
+# Standard production environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy necessary production assets and bundles
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-
-# Expose server listener port
 EXPOSE 3000
 
-# Run standalone server
 CMD ["npm", "run", "start"]

@@ -1,16 +1,19 @@
-version: '3.8'
-
 services:
-  watchguard-training-portal:
+  watchguard-study-portal:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: watchguard-training-portal
+    container_name: watchguard-study-portal
     restart: unless-stopped
     ports:
       - "3000:3000"
-    env_file:
-      - .env
     environment:
       - PORT=3000
       - NODE_ENV=production
+      - ENABLE_AI_FEATURES=true
+      - GEMINI_API_KEY=your_gemini_api_key_here
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

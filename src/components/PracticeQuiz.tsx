@@ -16,8 +16,11 @@ interface PracticeQuizProps {
 }
 
 export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
-  const [questions, setQuestions] = useState<Question[]>(examQuestions);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  // Start with a random question from the pool of 100+ questions
+  const [currentQuestion, setCurrentQuestion] = useState<Question>(() => {
+    return examQuestions[Math.floor(Math.random() * examQuestions.length)];
+  });
+  const [seenQuestionIds, setSeenQuestionIds] = useState<number[]>(() => [currentQuestion.id]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [evaluation, setEvaluation] = useState<{ isCorrect: boolean; detailedExplanation: string; weaknessCategory: string } | null>(null);
@@ -26,8 +29,6 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   // Tracked Session Analytics
   const [quizHistory, setQuizHistory] = useState<QuizHistoryItem[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
-
-  const currentQuestion = questions[currentIdx];
 
   const handleOptionToggle = (option: string) => {
     if (isSubmitted) return;
@@ -56,9 +57,11 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          questionId: currentQuestion.id,
           question: currentQuestion.question,
           options: currentQuestion.options,
           selectedAnswer: currentQuestion.isMultiSelect ? selectedOptions.join(", ") : selectedOptions[0],
+          selectedOptions: selectedOptions,
           correctAnswer: currentQuestion.correctAnswer
         })
       });
@@ -108,16 +111,65 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     setSelectedOptions([]);
     setIsSubmitted(false);
     setEvaluation(null);
-    if (currentIdx + 1 < questions.length) {
-      setCurrentIdx(prev => prev + 1);
+
+    // 1. Find all unseen questions
+    const unseen = examQuestions.filter(q => !seenQuestionIds.includes(q.id));
+    let nextQ: Question;
+
+    if (unseen.length === 0) {
+      // If all 100 questions are seen, we reset the seen pool to allow a new lap
+      const nextRandom = examQuestions[Math.floor(Math.random() * examQuestions.length)];
+      nextQ = nextRandom;
+      setSeenQuestionIds([nextRandom.id]);
     } else {
-      // Reached end, display score page or loop back
-      setCurrentIdx(0);
+      // Adaptive Algorithm:
+      // Check performance on different topics from quizHistory to pick next topic to focus on
+      const topicMetrics: Record<string, { total: number; correct: number }> = {};
+      quizHistory.forEach(h => {
+        if (!topicMetrics[h.topic]) {
+          topicMetrics[h.topic] = { total: 0, correct: 0 };
+        }
+        topicMetrics[h.topic].total += 1;
+        if (h.isCorrect) topicMetrics[h.topic].correct += 1;
+      });
+
+      // Filter to topics with accuracy below 75%
+      const weakTopics = Object.entries(topicMetrics)
+        .map(([topic, stats]) => ({
+          topic,
+          accuracy: stats.correct / stats.total,
+          total: stats.total
+        }))
+        .filter(item => item.accuracy < 0.75)
+        .sort((a, b) => a.accuracy - b.accuracy) // lowest accuracy first
+        .map(item => item.topic);
+
+      let found = false;
+      // Try to find an unseen question from weak topics
+      for (const topic of weakTopics) {
+        const candidates = unseen.filter(q => q.topic === topic);
+        if (candidates.length > 0) {
+          nextQ = candidates[Math.floor(Math.random() * candidates.length)];
+          setSeenQuestionIds(prev => [...prev, nextQ.id]);
+          found = true;
+          break;
+        }
+      }
+
+      // If no weak-topic unseen questions exist, pick any random unseen question
+      if (!found) {
+        nextQ = unseen[Math.floor(Math.random() * unseen.length)];
+        setSeenQuestionIds(prev => [...prev, nextQ.id]);
+      }
     }
+
+    setCurrentQuestion(nextQ!);
   };
 
   const handleReset = () => {
-    setCurrentIdx(0);
+    const firstQ = examQuestions[Math.floor(Math.random() * examQuestions.length)];
+    setCurrentQuestion(firstQ);
+    setSeenQuestionIds([firstQ.id]);
     setSelectedOptions([]);
     setIsSubmitted(false);
     setEvaluation(null);
@@ -137,7 +189,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   }, {} as Record<string, { total: number; correct: number }>);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full font-sans">
       {/* Active Examination Frame */}
       <div className="lg:col-span-2 flex flex-col bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl h-full">
         {/* Header bar */}
@@ -147,7 +199,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
             <h2 className="font-display font-semibold text-white">NSE Essentials Quiz</h2>
           </div>
           <div className="flex items-center space-x-3 text-xs font-mono">
-            <span className="text-gray-400">Question {currentIdx + 1} of {questions.length}</span>
+            <span className="text-gray-400">Question {quizHistory.length + 1} (Adaptive Mode)</span>
             <span className="px-2.5 py-1 bg-watchguard-dark rounded text-watchguard-orange border border-watchguard-border">
               {currentQuestion.topic}
             </span>
@@ -184,9 +236,8 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
               }
               if (isSubmitted) {
                 // If this option is correct, highlight green
-                const qCorrect = currentQuestion.correctAnswer;
-                // For demo simplified matching
-                const isThisCorrect = qCorrect.includes(opt) || opt === qCorrect;
+                const qCorrect = currentQuestion.correctAnswers || [currentQuestion.correctAnswer];
+                const isThisCorrect = qCorrect.includes(opt);
                 
                 if (isThisCorrect) {
                   optionStyle = "bg-green-500/10 border-green-500 text-green-400";
@@ -269,7 +320,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
               onClick={handleNext}
               className="flex items-center space-x-2 bg-watchguard-orange hover:bg-watchguard-orange/95 px-4 py-2.5 rounded-lg text-white font-semibold transition-all border border-watchguard-orange/40"
             >
-              <span>{currentIdx + 1 === questions.length ? "Finish & Loop Back" : "Next Exam Question"}</span>
+              <span>Next Exam Question</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           )}
@@ -298,7 +349,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
             <div className="p-3 bg-watchguard-dark rounded-lg border border-watchguard-border text-center">
               <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">Completed</div>
               <div className="text-2xl font-display font-bold text-white mt-1">
-                {quizHistory.length} / {questions.length}
+                {quizHistory.length} / {examQuestions.length}
               </div>
             </div>
           </div>

@@ -44,9 +44,9 @@ app.post("/api/chat", async (req, res) => {
 });
 
 app.post("/api/quiz/evaluate", async (req, res) => {
-  const { question, options, selectedAnswer, correctAnswer } = req.body;
+  const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body;
   try {
-    const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer);
+    const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer, questionId, selectedOptions);
     res.json({
       ...data,
       isDemoMode: !isAIFeaturesEnabled()
