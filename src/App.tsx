@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked } from "lucide-react";
+import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
@@ -66,8 +66,16 @@ function getPlatformLabel() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("chat");
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    return (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") || "dark";
+  });
   const savedProgress = useMemo(loadSavedProgress, []);
   const [quizStats, setQuizStats] = useState<QuizStats>(savedProgress.quizStats);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("watchguard-portal-theme", theme);
+  }, [theme]);
   const [completedLabs, setCompletedLabs] = useState<string[]>(savedProgress.completedLabs);
   const [sessionIdentity, setSessionIdentity] = useState<SessionIdentity>({
     authenticated: false,
@@ -174,27 +182,43 @@ export default function App() {
             </div>
           </div>
 
-          {/* Connected Session Telemetry Details */}
-          <div className="flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
-            <div className="flex items-center space-x-1.5">
-              <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span className="font-mono" title={timeZone}>{localTime}</span>
+          {/* Connected Session Telemetry Details & Mode Toggle */}
+          <div className="flex items-center gap-3.5 flex-wrap md:flex-nowrap">
+            <div className="flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
+              <div className="flex items-center space-x-1.5">
+                <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
+                <span className="font-mono" title={timeZone}>{localTime}</span>
+              </div>
+              <div className="hidden sm:flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
+                <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
+                <span
+                  className="font-mono"
+                  title={sessionIdentity.authenticated ? "Identity provided by Pangolin SSO" : "Direct browser session"}
+                >
+                  {sessionIdentity.email || sessionIdentity.displayName}
+                </span>
+              </div>
+              <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
+                <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
+                <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
+                  {isOnline ? `${locale} • ${platform}` : "Browser offline"}
+                </span>
+              </div>
             </div>
-            <div className="hidden sm:flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-              <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span
-                className="font-mono"
-                title={sessionIdentity.authenticated ? "Identity provided by Pangolin SSO" : "Direct browser session"}
-              >
-                {sessionIdentity.email || sessionIdentity.displayName}
-              </span>
-            </div>
-            <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-              <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
-              <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
-                {isOnline ? `${locale} • ${platform}` : "Browser offline"}
-              </span>
-            </div>
+
+            {/* SvelteKit-Style Premium Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex items-center justify-center w-9 h-9 rounded-xl border border-watchguard-border bg-watchguard-dark/60 hover:border-watchguard-orange hover:bg-watchguard-lightgray/40 text-gray-400 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg shadow-black/25 relative overflow-hidden group active:scale-95 cursor-pointer"
+              title={theme === "dark" ? "Activate Light Theme" : "Activate Dark Theme"}
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-watchguard-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 text-watchguard-orange group-hover:rotate-45 transition-transform duration-500" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-400 group-hover:-rotate-12 transition-transform duration-500" />
+              )}
+            </button>
           </div>
         </div>
       </header>
