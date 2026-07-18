@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Share2, HelpCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface QuizHistoryItem {
@@ -29,12 +29,103 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem("watchguard_custom_gemini_api_key") || "");
+  const [showKey, setShowKey] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [globalAIEnabled, setGlobalAIEnabledState] = useState(true);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [adminIsSuccess, setAdminIsSuccess] = useState(false);
+
+  // Fetch current global features on mount
+  useEffect(() => {
+    const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+    fetch("/api/features", {
+      headers: { "X-Gemini-API-Key": customKey }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.globalAIEnabled !== undefined) {
+          setGlobalAIEnabledState(data.globalAIEnabled);
+        }
+      })
+      .catch(err => console.error("Failed to query initial feature status", err));
+  }, []);
+
+  const handleSaveCustomKey = (val: string) => {
+    setUserCustomKey(val);
+    if (val.trim()) {
+      localStorage.setItem("watchguard_custom_gemini_api_key", val.trim());
+    } else {
+      localStorage.removeItem("watchguard_custom_gemini_api_key");
+    }
+  };
+
+  const handleClearCustomKey = () => {
+    setUserCustomKey("");
+    localStorage.removeItem("watchguard_custom_gemini_api_key");
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword })
+      });
+      if (response.ok) {
+        setIsAdminLoggedIn(true);
+        setAdminIsSuccess(true);
+        setAdminMessage("Admin session verified. Control gates opened.");
+      } else {
+        const err = await response.json();
+        setAdminMessage(err.message || "Invalid Admin Credentials.");
+      }
+    } catch (err: any) {
+      setAdminMessage("Communication with gateway failed.");
+    }
+  };
+
+  const handleToggleGlobalAI = async () => {
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+    try {
+      const targetState = !globalAIEnabled;
+      const response = await fetch("/api/admin/toggle-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword, globalAIEnabled: targetState })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalAIEnabledState(data.globalAIEnabled);
+        setAdminIsSuccess(true);
+        setAdminMessage(`Global AI feature successfully toggled ${data.globalAIEnabled ? "ON" : "OFF"}.`);
+      } else {
+        setAdminMessage("Failed to toggle global AI state.");
+      }
+    } catch (err: any) {
+      setAdminMessage("Communication failure while toggling state.");
+    }
+  };
+
   const handleGenerateReport = async () => {
     setIsLoading(true);
     try {
+      const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      if (customKey) {
+        headers["X-Gemini-API-Key"] = customKey;
+      }
+
       const response = await fetch("/api/admin/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           sessionHistory: {
             quizScore: score,
@@ -153,6 +244,142 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
             <span>{isLoading ? "Running Deep Audit Analysis..." : "Compile & Run Audit Analysis"}</span>
             <ChevronRight className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+
+      {/* Security Gateway AI Console (Admin and User Override panel) */}
+      <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-watchguard-border pb-3 flex-wrap gap-2">
+          <div className="flex items-center space-x-2">
+            <Settings className="w-4 h-4 text-watchguard-orange" />
+            <h3 className="font-display font-semibold text-white">Security Gateway AI Console</h3>
+          </div>
+          <div className="flex items-center space-x-1.5 text-[10px] font-mono">
+            <span className="text-gray-400">Tutor Features:</span>
+            {globalAIEnabled ? (
+              <span className="text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 uppercase tracking-wide font-bold">
+                Online
+              </span>
+            ) : (
+              <span className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-wide font-bold">
+                Offline
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column: Student Custom Key Override */}
+          <div className="space-y-3.5">
+            <div>
+              <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
+                <Key className="w-3.5 h-3.5 text-watchguard-orange" />
+                <span>Custom Gemini API Key Override</span>
+              </h4>
+              <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
+                Want to run your own unlimited AI endpoints? Provide your own Google Gemini API key to override administrator resource control gates. This key is saved locally in your browser.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="relative">
+                <input
+                  type={showKey ? "text" : "password"}
+                  value={userCustomKey}
+                  onChange={(e) => handleSaveCustomKey(e.target.value)}
+                  placeholder="AI Studio API Key (AI_...) or Gemini Key"
+                  className="w-full bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg pl-3 pr-10 py-2.5 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-all cursor-pointer"
+                >
+                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {userCustomKey && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-green-400 font-mono">✓ API key active locally</span>
+                  <button
+                    onClick={handleClearCustomKey}
+                    className="text-[10px] text-red-400 hover:text-red-300 transition-all font-mono underline bg-transparent border-0 cursor-pointer"
+                  >
+                    Clear Override Key
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Admin AI Toggle */}
+          <div className="space-y-3.5 border-t md:border-t-0 md:border-l border-watchguard-border pt-4 md:pt-0 md:pl-6">
+            <div>
+              <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
+                <Lock className="w-3.5 h-3.5 text-watchguard-orange" />
+                <span>Administrator Bypass Console</span>
+              </h4>
+              <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
+                Authorize with your admin password to toggle AI features globally. This shuts off server-sponsored Gemini calls, saving operational quota cost.
+              </p>
+            </div>
+
+            {!isAdminLoggedIn ? (
+              <form onSubmit={handleAdminLogin} className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    placeholder="Admin Bypass Password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="flex-1 bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-watchguard-orange hover:bg-watchguard-orange/95 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all border border-watchguard-orange/40 cursor-pointer"
+                  >
+                    Authenticate
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5">
+                  <span className="text-xs text-gray-300 font-mono">Global Tutoring State:</span>
+                  <button
+                    onClick={handleToggleGlobalAI}
+                    className={`text-xs font-semibold px-4 py-1.5 rounded-md transition-all border cursor-pointer ${
+                      globalAIEnabled
+                        ? "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                        : "bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
+                    }`}
+                  >
+                    {globalAIEnabled ? "Toggle Global AI OFF" : "Toggle Global AI ON"}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-green-400 font-mono">✓ Authorized Session</span>
+                  <button
+                    onClick={() => {
+                      setIsAdminLoggedIn(false);
+                      setAdminPassword("");
+                      setAdminMessage("");
+                    }}
+                    className="text-[10px] text-gray-400 hover:text-white transition-all font-mono underline bg-transparent border-0 cursor-pointer"
+                  >
+                    Lock Session
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {adminMessage && (
+              <p className={`text-[10px] font-mono ${adminIsSuccess ? "text-green-400" : "text-red-400"}`}>
+                {adminMessage}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

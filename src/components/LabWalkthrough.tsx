@@ -59,9 +59,17 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     const activeStep = activeLab.steps[activeStepIdx];
 
     try {
+      const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      if (customKey) {
+        headers["X-Gemini-API-Key"] = customKey;
+      }
+
       const response = await fetch("/api/lab/diagnostic", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           labName: activeLab.name,
           stepTitle: activeStep.title,

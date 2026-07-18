@@ -4,8 +4,24 @@ import { examQuestions } from "../data/questions";
 
 dotenv.config();
 
+let globalAIEnabled = true;
+
+export function setGlobalAIEnabled(enabled: boolean) {
+  globalAIEnabled = enabled;
+}
+
+export function getGlobalAIEnabled(): boolean {
+  return globalAIEnabled;
+}
+
 // Check if AI features are toggled on and the API key is present
-export function isAIFeaturesEnabled(): boolean {
+export function isAIFeaturesEnabled(customApiKey?: string): boolean {
+  if (customApiKey && customApiKey.trim() !== "") {
+    return true;
+  }
+  if (!globalAIEnabled) {
+    return false;
+  }
   const enabled = process.env.ENABLE_AI_FEATURES !== "false";
   const apiKey = process.env.GEMINI_API_KEY;
   const isKeyValid = apiKey && apiKey !== "" && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "undefined";
@@ -15,10 +31,24 @@ export function isAIFeaturesEnabled(): boolean {
 // Lazy-initialized Gemini Client
 let aiClient: GoogleGenAI | null = null;
 
-function getAIClient(): GoogleGenAI {
-  if (!isAIFeaturesEnabled()) {
+function getAIClient(customApiKey?: string): GoogleGenAI {
+  const keyToUse = (customApiKey && customApiKey.trim() !== "") ? customApiKey.trim() : process.env.GEMINI_API_KEY;
+  
+  if (!keyToUse || keyToUse === "" || keyToUse === "MY_GEMINI_API_KEY" || keyToUse === "undefined") {
     throw new Error("AI features are disabled or GEMINI_API_KEY is not configured.");
   }
+
+  if (customApiKey && customApiKey.trim() !== "") {
+    return new GoogleGenAI({
+      apiKey: customApiKey.trim(),
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+  }
+
   if (!aiClient) {
     aiClient = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
@@ -35,17 +65,17 @@ function getAIClient(): GoogleGenAI {
 /**
  * Chat Support with Fallbacks
  */
-export async function generateChatResponse(prompt: string, history: any[]): Promise<{
+export async function generateChatResponse(prompt: string, history: any[], customApiKey?: string): Promise<{
   message: string;
   requiresExternalLookup: boolean;
   suggestedSearchTerms: string;
 }> {
-  if (!isAIFeaturesEnabled()) {
+  if (!isAIFeaturesEnabled(customApiKey)) {
     return getLocalChatFallback(prompt);
   }
 
   try {
-    const ai = getAIClient();
+    const ai = getAIClient(customApiKey);
     const systemInstruction = `You are a Level 2/3 WatchGuard Systems Engineer mentoring a junior technician preparing for the WatchGuard Certified Network Security Essentials (NSE) exam (Fireware v12.9.2+).
 Always frame answers in verified default settings:
 - Interface 0 (Eth0): External (DHCP Client)
@@ -111,18 +141,19 @@ export async function evaluateQuizAnswer(
   selectedAnswer: string,
   correctAnswer: string,
   questionId?: number,
-  selectedOptions?: string[]
+  selectedOptions?: string[],
+  customApiKey?: string
 ): Promise<{
   isCorrect: boolean;
   detailedExplanation: string;
   weaknessCategory: string;
 }> {
-  if (!isAIFeaturesEnabled()) {
+  if (!isAIFeaturesEnabled(customApiKey)) {
     return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 
   try {
-    const ai = getAIClient();
+    const ai = getAIClient(customApiKey);
     const systemInstruction = `You are a WatchGuard Certified Exam Auditor evaluating a technician's response to an NSE training question.
 Analyze the user's selected answer versus the correct answer.
 Generate a response in JSON format. Provide:
@@ -171,18 +202,19 @@ export async function diagnoseLabFailure(
   labName: string,
   stepTitle: string,
   stepInstruction: string,
-  technicianIssue: string
+  technicianIssue: string,
+  customApiKey?: string
 ): Promise<{
   analysis: string;
   suggestedCommand: string;
   simulatedLogs: string[];
 }> {
-  if (!isAIFeaturesEnabled()) {
+  if (!isAIFeaturesEnabled(customApiKey)) {
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 
   try {
-    const ai = getAIClient();
+    const ai = getAIClient(customApiKey);
     const systemInstruction = `You are a WatchGuard FSM Diagnostic Assistant helping a technician troubleshoot a failed lab setup.
 Provide:
 1. 'analysis': A logical step-by-step diagnostic breakdown citing standard tools like Policy Checker, Traffic Monitor, or TCP Dump.
@@ -230,19 +262,19 @@ Technician described issue: "${technicianIssue}"`,
 /**
  * Executive Auditor Analysis with Fallbacks
  */
-export async function analyzeCertificationPerformance(sessionHistory: any): Promise<{
+export async function analyzeCertificationPerformance(sessionHistory: any, customApiKey?: string): Promise<{
   readinessScore: string;
   strengths: string[];
   criticalVulnerabilities: string[];
   recommendedLabs: string[];
   summary: string;
 }> {
-  if (!isAIFeaturesEnabled()) {
+  if (!isAIFeaturesEnabled(customApiKey)) {
     return getLocalPerformanceFallback(sessionHistory);
   }
 
   try {
-    const ai = getAIClient();
+    const ai = getAIClient(customApiKey);
     const systemInstruction = `You are a WatchGuard Certified Readiness Auditor.
 Analyze the user's mock training logs (quiz and lab completion records) to generate a professional auditor performance report.
 Output must be in JSON format:

@@ -53,9 +53,17 @@ export default function GeneralChat() {
     setIsLoading(true);
 
     try {
+      const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      if (customKey) {
+        headers["X-Gemini-API-Key"] = customKey;
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           prompt: text,
           history: messages.slice(-10) // Send recent context

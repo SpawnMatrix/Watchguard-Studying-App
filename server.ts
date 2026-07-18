@@ -7,7 +7,9 @@ import {
   generateChatResponse,
   evaluateQuizAnswer,
   diagnoseLabFailure,
-  analyzeCertificationPerformance
+  analyzeCertificationPerformance,
+  getGlobalAIEnabled,
+  setGlobalAIEnabled
 } from "./src/services/aiService";
 
 dotenv.config();
@@ -46,19 +48,43 @@ app.get("/api/session", (req, res) => {
 
 // Feature flag status endpoint
 app.get("/api/features", (req, res) => {
+  const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   res.json({
-    enableAIFeatures: isAIFeaturesEnabled()
+    enableAIFeatures: isAIFeaturesEnabled(customApiKey),
+    globalAIEnabled: getGlobalAIEnabled()
   });
+});
+
+// Admin Configuration Toggle
+app.post("/api/admin/toggle-ai", (req, res) => {
+  const { globalAIEnabled: targetEnabled, password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  if (password !== adminPass) {
+    return res.status(403).json({ success: false, message: "Invalid admin password" });
+  }
+  setGlobalAIEnabled(!!targetEnabled);
+  res.json({ success: true, globalAIEnabled: getGlobalAIEnabled() });
+});
+
+// Admin Password Login (Verification)
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  if (password !== adminPass) {
+    return res.status(403).json({ success: false, message: "Invalid admin password" });
+  }
+  res.json({ success: true });
 });
 
 // API Endpoints
 app.post("/api/chat", async (req, res) => {
   const { prompt, history } = req.body;
+  const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
-    const data = await generateChatResponse(prompt, history);
+    const data = await generateChatResponse(prompt, history, customApiKey);
     res.json({
       ...data,
-      isDemoMode: !isAIFeaturesEnabled()
+      isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
     console.error("Chat API failed:", error);
@@ -72,11 +98,12 @@ app.post("/api/chat", async (req, res) => {
 
 app.post("/api/quiz/evaluate", async (req, res) => {
   const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body;
+  const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
-    const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer, questionId, selectedOptions);
+    const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer, questionId, selectedOptions, customApiKey);
     res.json({
       ...data,
-      isDemoMode: !isAIFeaturesEnabled()
+      isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
     console.error("Quiz Evaluate API failed:", error);
@@ -90,11 +117,12 @@ app.post("/api/quiz/evaluate", async (req, res) => {
 
 app.post("/api/lab/diagnostic", async (req, res) => {
   const { labName, stepTitle, stepInstruction, technicianIssue } = req.body;
+  const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
-    const data = await diagnoseLabFailure(labName, stepTitle, stepInstruction, technicianIssue);
+    const data = await diagnoseLabFailure(labName, stepTitle, stepInstruction, technicianIssue, customApiKey);
     res.json({
       ...data,
-      isDemoMode: !isAIFeaturesEnabled()
+      isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
     console.error("Lab Diagnostic API failed:", error);
@@ -108,11 +136,12 @@ app.post("/api/lab/diagnostic", async (req, res) => {
 
 app.post("/api/admin/analyze", async (req, res) => {
   const { sessionHistory } = req.body;
+  const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
-    const data = await analyzeCertificationPerformance(sessionHistory);
+    const data = await analyzeCertificationPerformance(sessionHistory, customApiKey);
     res.json({
       ...data,
-      isDemoMode: !isAIFeaturesEnabled()
+      isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
     console.error("Admin Analyze API failed:", error);
