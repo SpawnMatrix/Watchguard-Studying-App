@@ -4,7 +4,24 @@ import { examQuestions } from "../data/questions";
 
 dotenv.config();
 
-let globalAIEnabled = true;
+let globalAIEnabled = false;
+
+let adminEmails = ["Juliendumitrescu@gmail.com"];
+
+export function getAdminEmails(): string[] {
+  return adminEmails;
+}
+
+export function addAdminEmail(email: string) {
+  const clean = email.trim();
+  if (clean && !adminEmails.includes(clean)) {
+    adminEmails.push(clean);
+  }
+}
+
+export function removeAdminEmail(email: string) {
+  adminEmails = adminEmails.filter(e => e.toLowerCase() !== email.trim().toLowerCase());
+}
 
 export function setGlobalAIEnabled(enabled: boolean) {
   globalAIEnabled = enabled;

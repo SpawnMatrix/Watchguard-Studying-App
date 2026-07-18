@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe } from "lucide-react";
+import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
 import PerformanceDashboard from "./components/PerformanceDashboard";
 import NetworkSimulator from "./components/NetworkSimulator";
+import FlashcardStudio from "./components/FlashcardStudio";
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "chat" | "quiz" | "labs" | "sandbox" | "admin";
+type Tab = "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -26,6 +27,7 @@ interface QuizStats {
 interface SessionIdentity {
   authenticated: boolean;
   displayName: string;
+  email?: string;
   source: "pangolin" | "direct";
 }
 
@@ -140,11 +142,12 @@ export default function App() {
   };
 
   const tabsConfig = [
-    { id: "chat", label: "General Study Q&A", icon: Bot },
-    { id: "quiz", label: "Adaptive Quiz Engine", icon: Trophy },
-    { id: "labs", label: "Hands-on Lab Guides", icon: Layers },
-    { id: "sandbox", label: "Interactive FSM Sandbox", icon: Terminal },
-    { id: "admin", label: "Manager & Performance reports", icon: BarChart3 }
+    { id: "chat", label: "Study Q&A Desk", icon: Bot },
+    { id: "quiz", label: "Practice Quiz", icon: Trophy },
+    { id: "labs", label: "Lab Exercises", icon: Layers },
+    { id: "flashcards", label: "Flashcards Studio", icon: BookMarked },
+    { id: "sandbox", label: "FSM Sandbox", icon: Terminal },
+    { id: "admin", label: "Admin Panel", icon: BarChart3 }
   ];
 
   return (
@@ -183,7 +186,7 @@ export default function App() {
                 className="font-mono"
                 title={sessionIdentity.authenticated ? "Identity provided by Pangolin SSO" : "Direct browser session"}
               >
-                {sessionIdentity.displayName}
+                {sessionIdentity.email || sessionIdentity.displayName}
               </span>
             </div>
             <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
@@ -235,6 +238,7 @@ export default function App() {
               {activeTab === "chat" && <GeneralChat />}
               {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
               {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
+              {activeTab === "flashcards" && <FlashcardStudio />}
               {activeTab === "sandbox" && <NetworkSimulator />}
               {activeTab === "admin" && (
                 <PerformanceDashboard 
@@ -242,6 +246,7 @@ export default function App() {
                   topicWeaknesses={quizStats.topicWeaknesses} 
                   history={quizStats.history}
                   completedLabs={completedLabs}
+                  sessionEmail={sessionIdentity.email}
                 />
               )}
             </motion.div>

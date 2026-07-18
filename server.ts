@@ -9,7 +9,10 @@ import {
   diagnoseLabFailure,
   analyzeCertificationPerformance,
   getGlobalAIEnabled,
-  setGlobalAIEnabled
+  setGlobalAIEnabled,
+  getAdminEmails,
+  addAdminEmail,
+  removeAdminEmail
 } from "./src/services/aiService";
 
 dotenv.config();
@@ -35,13 +38,14 @@ function toDisplayName(value: string) {
 app.get("/api/session", (req, res) => {
   const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
   const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
-  const remoteEmail = cleanIdentityHeader(req.get("Remote-Email"));
+  const remoteEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
   const forwardedIdentity = remoteName || remoteUser || remoteEmail;
 
   res.set("Cache-Control", "private, no-store");
   res.json({
     authenticated: Boolean(forwardedIdentity),
     displayName: forwardedIdentity ? toDisplayName(forwardedIdentity) : "Local browser",
+    email: remoteEmail,
     source: forwardedIdentity ? "pangolin" : "direct"
   });
 });
@@ -51,7 +55,8 @@ app.get("/api/features", (req, res) => {
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   res.json({
     enableAIFeatures: isAIFeaturesEnabled(customApiKey),
-    globalAIEnabled: getGlobalAIEnabled()
+    globalAIEnabled: getGlobalAIEnabled(),
+    adminEmails: getAdminEmails()
   });
 });
 
@@ -59,8 +64,11 @@ app.get("/api/features", (req, res) => {
 app.post("/api/admin/toggle-ai", (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD || "admin123";
-  if (password !== adminPass) {
-    return res.status(403).json({ success: false, message: "Invalid admin password" });
+  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
+  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
+
+  if (password !== adminPass && !isEmailAdmin) {
+    return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
   res.json({ success: true, globalAIEnabled: getGlobalAIEnabled() });
@@ -70,10 +78,56 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD || "admin123";
-  if (password !== adminPass) {
-    return res.status(403).json({ success: false, message: "Invalid admin password" });
+  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
+  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
+
+  if (password !== adminPass && !isEmailAdmin) {
+    return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
-  res.json({ success: true });
+  res.json({ success: true, emails: getAdminEmails() });
+});
+
+// Admin Emails List (Getter)
+app.get("/api/admin/emails", (req, res) => {
+  res.json({ emails: getAdminEmails() });
+});
+
+// Add Admin Email (Google SSO style)
+app.post("/api/admin/emails/add", (req, res) => {
+  const { email, password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
+  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
+
+  if (password !== adminPass && !isEmailAdmin) {
+    return res.status(403).json({ success: false, message: "Unauthorized admin access" });
+  }
+
+  if (!email || !email.includes("@")) {
+    return res.status(400).json({ success: false, message: "Invalid email format" });
+  }
+
+  addAdminEmail(email);
+  res.json({ success: true, emails: getAdminEmails() });
+});
+
+// Remove Admin Email
+app.post("/api/admin/emails/remove", (req, res) => {
+  const { email, password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
+  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
+
+  if (password !== adminPass && !isEmailAdmin) {
+    return res.status(403).json({ success: false, message: "Unauthorized admin access" });
+  }
+
+  if (email.toLowerCase() === "juliendumitrescu@gmail.com") {
+    return res.status(400).json({ success: false, message: "Cannot remove primary administrator" });
+  }
+
+  removeAdminEmail(email);
+  res.json({ success: true, emails: getAdminEmails() });
 });
 
 // API Endpoints

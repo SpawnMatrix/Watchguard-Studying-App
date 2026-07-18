@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff, UserPlus, Trash2, Users } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface QuizHistoryItem {
@@ -15,9 +15,16 @@ interface PerformanceDashboardProps {
   topicWeaknesses: string[];
   history: QuizHistoryItem[];
   completedLabs: string[];
+  sessionEmail?: string;
 }
 
-export default function PerformanceDashboard({ score, topicWeaknesses, history, completedLabs }: PerformanceDashboardProps) {
+export default function PerformanceDashboard({ 
+  score, 
+  topicWeaknesses, 
+  history, 
+  completedLabs,
+  sessionEmail = "Juliendumitrescu@gmail.com"
+}: PerformanceDashboardProps) {
   const [report, setReport] = useState<{
     readinessScore: string;
     strengths: string[];
@@ -33,12 +40,22 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
   const [showKey, setShowKey] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [globalAIEnabled, setGlobalAIEnabledState] = useState(true);
+  const [globalAIEnabled, setGlobalAIEnabledState] = useState(false);
+  const [adminEmailsList, setAdminEmailsList] = useState<string[]>(["Juliendumitrescu@gmail.com"]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
   const [adminMessage, setAdminMessage] = useState("");
   const [adminIsSuccess, setAdminIsSuccess] = useState(false);
 
+  // Dynamic authorization check:
+  // Either they entered the correct bypass password OR their session email is in the admin list
+  const isAuthorizedAdmin = useMemo(() => {
+    if (isAdminLoggedIn) return true;
+    if (!sessionEmail) return false;
+    return adminEmailsList.some(email => email.toLowerCase() === sessionEmail.toLowerCase());
+  }, [isAdminLoggedIn, sessionEmail, adminEmailsList]);
+
   // Fetch current global features on mount
-  useEffect(() => {
+  const fetchFeatures = () => {
     const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
     fetch("/api/features", {
       headers: { "X-Gemini-API-Key": customKey }
@@ -48,8 +65,15 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
         if (data.globalAIEnabled !== undefined) {
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
+        if (data.adminEmails) {
+          setAdminEmailsList(data.adminEmails);
+        }
       })
       .catch(err => console.error("Failed to query initial feature status", err));
+  };
+
+  useEffect(() => {
+    fetchFeatures();
   }, []);
 
   const handleSaveCustomKey = (val: string) => {
@@ -79,7 +103,8 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
       if (response.ok) {
         setIsAdminLoggedIn(true);
         setAdminIsSuccess(true);
-        setAdminMessage("Admin session verified. Control gates opened.");
+        setAdminMessage("Admin password validated. Control gates opened.");
+        fetchFeatures();
       } else {
         const err = await response.json();
         setAdminMessage(err.message || "Invalid Admin Credentials.");
@@ -105,10 +130,76 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
         setAdminIsSuccess(true);
         setAdminMessage(`Global AI feature successfully toggled ${data.globalAIEnabled ? "ON" : "OFF"}.`);
       } else {
-        setAdminMessage("Failed to toggle global AI state.");
+        const err = await response.json();
+        setAdminMessage(err.message || "Failed to toggle global AI state.");
       }
     } catch (err: any) {
       setAdminMessage("Communication failure while toggling state.");
+    }
+  };
+
+  const handleAddAdminEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim() || !newAdminEmail.includes("@")) {
+      setAdminMessage("Please enter a valid Gmail / Email address.");
+      setAdminIsSuccess(false);
+      return;
+    }
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+
+    try {
+      const response = await fetch("/api/admin/emails/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newAdminEmail.trim(), password: adminPassword })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAdminEmailsList(data.emails);
+        setNewAdminEmail("");
+        setAdminIsSuccess(true);
+        setAdminMessage(`"${newAdminEmail.trim()}" successfully added to authorized admin list.`);
+      } else {
+        const err = await response.json();
+        setAdminMessage(err.message || "Failed to add admin email.");
+      }
+    } catch (err) {
+      setAdminMessage("Failed to communicate with admin API.");
+    }
+  };
+
+  const handleRemoveAdminEmail = async (emailToRemove: string) => {
+    if (emailToRemove.toLowerCase() === "juliendumitrescu@gmail.com") {
+      alert("Primary administrator cannot be removed.");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to remove "${emailToRemove}" from administrators?`)) {
+      return;
+    }
+
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+
+    try {
+      const response = await fetch("/api/admin/emails/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToRemove, password: adminPassword })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAdminEmailsList(data.emails);
+        setAdminIsSuccess(true);
+        setAdminMessage(`"${emailToRemove}" successfully removed from authorized administrators.`);
+      } else {
+        const err = await response.json();
+        setAdminMessage(err.message || "Failed to remove admin email.");
+      }
+    } catch (err) {
+      setAdminMessage("Failed to communicate with admin API.");
     }
   };
 
@@ -252,9 +343,14 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
         <div className="flex items-center justify-between border-b border-watchguard-border pb-3 flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Settings className="w-4 h-4 text-watchguard-orange" />
-            <h3 className="font-display font-semibold text-white">Security Gateway AI Console</h3>
+            <h3 className="font-display font-semibold text-white">Administration Control Console</h3>
           </div>
-          <div className="flex items-center space-x-1.5 text-[10px] font-mono">
+          <div className="flex items-center space-x-2.5 text-[10px] font-mono">
+            <span className="text-gray-400">Current User:</span>
+            <span className="text-watchguard-orange bg-watchguard-orange/10 px-2 py-0.5 rounded border border-watchguard-orange/20 font-bold">
+              {sessionEmail}
+            </span>
+            <span className="text-gray-500">•</span>
             <span className="text-gray-400">Tutor Features:</span>
             {globalAIEnabled ? (
               <span className="text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 uppercase tracking-wide font-bold">
@@ -262,7 +358,7 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
               </span>
             ) : (
               <span className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-wide font-bold">
-                Offline
+                Offline (Q&A mode)
               </span>
             )}
           </div>
@@ -270,7 +366,7 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column: Student Custom Key Override */}
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             <div>
               <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
                 <Key className="w-3.5 h-3.5 text-watchguard-orange" />
@@ -313,19 +409,24 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
             </div>
           </div>
 
-          {/* Right Column: Admin AI Toggle */}
-          <div className="space-y-3.5 border-t md:border-t-0 md:border-l border-watchguard-border pt-4 md:pt-0 md:pl-6">
+          {/* Right Column: Admin AI Toggle & SSO Emails */}
+          <div className="space-y-4 border-t md:border-t-0 md:border-l border-watchguard-border pt-4 md:pt-0 md:pl-6">
             <div>
               <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
                 <Lock className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span>Administrator Bypass Console</span>
+                <span>Administrator Bypass & Security Rules</span>
               </h4>
               <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
-                Authorize with your admin password to toggle AI features globally. This shuts off server-sponsored Gemini calls, saving operational quota cost.
+                {isAuthorizedAdmin ? (
+                  <span className="text-green-400 font-medium">✓ Auto-authenticated via Admin Email List (Google SSO match!)</span>
+                ) : (
+                  <span>Authenticate using password bypass or request an administrator to add your Gmail address below.</span>
+                )}
               </p>
             </div>
 
-            {!isAdminLoggedIn ? (
+            {/* If NOT authorized, show password login */}
+            {!isAuthorizedAdmin && (
               <form onSubmit={handleAdminLogin} className="space-y-2">
                 <div className="flex gap-2">
                   <input
@@ -343,10 +444,18 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
                   </button>
                 </div>
               </form>
-            ) : (
-              <div className="space-y-2.5">
+            )}
+
+            {/* If Authorized (either by SSO email or password), show all control sliders */}
+            {isAuthorizedAdmin && (
+              <div className="space-y-4">
+                
+                {/* AI Toggle State */}
                 <div className="flex items-center justify-between bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5">
-                  <span className="text-xs text-gray-300 font-mono">Global Tutoring State:</span>
+                  <div className="space-y-0.5">
+                    <span className="text-xs text-white font-mono block">Global AI Features</span>
+                    <span className="text-[10px] text-gray-400 font-sans block">Default: Offline (Q&A only)</span>
+                  </div>
                   <button
                     onClick={handleToggleGlobalAI}
                     className={`text-xs font-semibold px-4 py-1.5 rounded-md transition-all border cursor-pointer ${
@@ -355,27 +464,78 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
                         : "bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
                     }`}
                   >
-                    {globalAIEnabled ? "Toggle Global AI OFF" : "Toggle Global AI ON"}
+                    {globalAIEnabled ? "Toggle OFF" : "Toggle ON"}
                   </button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-green-400 font-mono">✓ Authorized Session</span>
-                  <button
-                    onClick={() => {
-                      setIsAdminLoggedIn(false);
-                      setAdminPassword("");
-                      setAdminMessage("");
-                    }}
-                    className="text-[10px] text-gray-400 hover:text-white transition-all font-mono underline bg-transparent border-0 cursor-pointer"
-                  >
-                    Lock Session
-                  </button>
+
+                {/* Google SSO Admin Emails List Management */}
+                <div className="space-y-2.5 bg-watchguard-dark border border-watchguard-border rounded-lg p-3">
+                  <div className="flex items-center space-x-2 border-b border-watchguard-border/60 pb-2">
+                    <Users className="w-3.5 h-3.5 text-watchguard-orange" />
+                    <span className="text-xs text-white font-semibold font-mono">SSO Authorized Admin Emails</span>
+                  </div>
+
+                  {/* List of emails */}
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                    {adminEmailsList.map((email) => (
+                      <div key={email} className="flex items-center justify-between text-xs py-1 px-2 bg-watchguard-gray/50 rounded border border-watchguard-border/40">
+                        <span className="font-mono text-gray-300">{email}</span>
+                        {email.toLowerCase() !== "juliendumitrescu@gmail.com" ? (
+                          <button
+                            onClick={() => handleRemoveAdminEmail(email)}
+                            className="p-1 text-red-400 hover:text-red-300 bg-transparent border-0 cursor-pointer"
+                            title="Remove Administrator"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        ) : (
+                          <span className="text-[9px] text-watchguard-orange font-mono uppercase font-bold">Owner</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add email Form */}
+                  <form onSubmit={handleAddAdminEmail} className="flex gap-2 pt-1.5 border-t border-watchguard-border/40">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Add user's gmail (e.g. user@gmail.com)"
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      className="flex-1 bg-watchguard-gray border border-watchguard-border text-xs text-white rounded px-2.5 py-1.5 outline-none focus:border-watchguard-orange/50 font-mono"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-watchguard-orange/20 border border-watchguard-orange/40 hover:bg-watchguard-orange/30 text-watchguard-orange text-xs font-semibold px-2.5 rounded transition-all cursor-pointer flex items-center space-x-1"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
+                  </form>
                 </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-green-400 font-mono">✓ Authorized Admin Access Active</span>
+                  {isAdminLoggedIn && (
+                    <button
+                      onClick={() => {
+                        setIsAdminLoggedIn(false);
+                        setAdminPassword("");
+                        setAdminMessage("");
+                      }}
+                      className="text-[10px] text-gray-400 hover:text-white transition-all font-mono underline bg-transparent border-0 cursor-pointer"
+                    >
+                      Lock Manual Session
+                    </button>
+                  )}
+                </div>
+
               </div>
             )}
 
             {adminMessage && (
-              <p className={`text-[10px] font-mono ${adminIsSuccess ? "text-green-400" : "text-red-400"}`}>
+              <p className={`text-[10px] font-mono mt-2 ${adminIsSuccess ? "text-green-400" : "text-red-400"}`}>
                 {adminMessage}
               </p>
             )}
@@ -404,13 +564,6 @@ export default function PerformanceDashboard({ score, topicWeaknesses, history, 
                 <p className="text-[10px] font-mono text-gray-500 mt-0.5">Syllabus compliance audit • Fireware OS v12.9.2+</p>
               </div>
               <div className="flex items-center space-x-3">
-                <button 
-                  onClick={() => window.print()}
-                  className="p-2 bg-watchguard-dark hover:bg-watchguard-lightgray rounded text-gray-400 hover:text-white transition-all border border-watchguard-border"
-                  title="Print Audit"
-                >
-                  <Printer className="w-4 h-4" />
-                </button>
                 <div className="text-right">
                   <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">Readiness Score</span>
                   <div className="text-xl font-display font-bold text-watchguard-orange">{report.readinessScore}</div>
