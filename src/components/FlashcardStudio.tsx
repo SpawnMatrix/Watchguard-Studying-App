@@ -120,6 +120,78 @@ const HIGH_YIELD_FLASHCARDS: Flashcard[] = [
     keyConcept: "Multi-WAN Modes",
     examTip: "SD-WAN policies are used to route application-specific traffic based on performance metrics (latency, jitter, packet loss), overriding default Multi-WAN modes.",
     officialReference: "About Multi-WAN Methods"
+  },
+  {
+    id: 13,
+    category: "Routing",
+    question: "How does SD-WAN evaluate active link quality to dynamically route outbound traffic?",
+    answer: "SD-WAN uses Link Monitors to measure real-time link statistics including: latency, jitter, and packet loss.\n\nBy comparing these active measurements against configured thresholds, the Firebox can dynamically route voice, video, or critical database traffic to the best performing interface, overriding standard Multi-WAN rules.",
+    keyConcept: "SD-WAN Quality Metrics",
+    examTip: "VoIP traffic usually has strict jitter (< 20ms) and latency (< 150ms) requirements. SD-WAN is the exact tool to enforce these levels.",
+    officialReference: "Configure SD-WAN Actions"
+  },
+  {
+    id: 14,
+    category: "Routing",
+    question: "Which dynamic routing protocols are supported natively on WatchGuard Fireboxes?",
+    answer: "• OSPF: Link-state interior routing protocol, highly popular for mid-to-large business networks.\n• BGP v4: Path-vector exterior gateway protocol, ideal for multihomed connections with multiple ISPs.\n• RIP v1/v2: Legacy interior distance-vector routing protocol based on hop counts.",
+    keyConcept: "Dynamic Routing Protocols",
+    examTip: "To enable dynamic routing, you must write a Zebra configuration routing script directly in the Firebox configuration.",
+    officialReference: "About Dynamic Routing"
+  },
+  {
+    id: 15,
+    category: "VPN",
+    question: "What is a major administrative advantage of Virtual Interface BOVPN over Policy-Based BOVPN?",
+    answer: "A Virtual Interface BOVPN creates a logical virtual interface (bvpn1) that behaves like a physical port.\n\nThis allows administrators to configure standard static routes, run dynamic routing protocols (OSPF), or include the tunnel in SD-WAN actions. Policy-Based BOVPN requires hardcoded local-and-remote network selectors for every rule, which is difficult to scale.",
+    keyConcept: "Virtual Interface BOVPN Flexibility",
+    examTip: "For modern redundant branch office networks with automated failovers, Virtual Interface BOVPN is the standard recommendation.",
+    officialReference: "About Virtual Interface BOVPN"
+  },
+  {
+    id: 16,
+    category: "Policies",
+    question: "Compare Gateway AntiVirus (GAV) and APT Blocker in threat scanning.",
+    answer: "• Gateway AntiVirus: Uses a local engine with signature databases to detect known files on-the-fly as they stream through proxies (HTTP, FTP, SMTP).\n• APT Blocker: Scans for unknown malware and zero-day threats. It calculates file hashes and uploads unrecognized executables/documents to a cloud-based sandbox for behavioral analysis.",
+    keyConcept: "Layered Malware Protection",
+    examTip: "Signature-based blocks are fast but only catch known threats. Sandbox analyses (APT Blocker) catch brand new zero-day threats but take a few minutes.",
+    officialReference: "WatchGuard APT Blocker Overview"
+  },
+  {
+    id: 17,
+    category: "Policies",
+    question: "What is DNSWatch, and how does it secure client internet lookups?",
+    answer: "DNSWatch is a subscription service that intercepts DNS queries and forwards them to WatchGuard's secure cloud DNS servers.\n\nIt compares requested domains against known malicious feeds. If a threat is found, it redirects the client to a safe educational block page rather than resolving the malicious IP.",
+    keyConcept: "DNS-Level Threat Interception",
+    examTip: "DNSWatch operates globally for the network and doesn't require importing local certificates like HTTPS Content Inspection does.",
+    officialReference: "About DNSWatch"
+  },
+  {
+    id: 18,
+    category: "Diagnostics",
+    question: "Which port does a Firebox use to forward security logs to a centralized WatchGuard Log Server or Dimension database?",
+    answer: "TCP Port 4115.\n\nThis proprietary communication channel is secure and encrypted. For standard Syslog to third-party collectors, the Firebox uses standard UDP/TCP Port 514.",
+    keyConcept: "Centralized Log Server Port",
+    examTip: "Make sure that port 4115 is allowed outbound on any perimeter devices between the Firebox and your logging target.",
+    officialReference: "Configure Logging on the Firebox"
+  },
+  {
+    id: 19,
+    category: "Setup",
+    question: "How do Active/Passive and Active/Active FireCluster deployments differ in interface load balancing?",
+    answer: "• Active/Passive: The master Firebox processes all traffic while the backup synchronizes states. Only one device is active at any time.\n• Active/Active: Both Fireboxes process traffic simultaneously. The master load-balances incoming WAN connections to the backup unit using multicast ARP, expanding total bandwidth capabilities.",
+    keyConcept: "FireCluster Cluster Modes",
+    examTip: "Active/Active requires network switches that support static multicast ARP entries to prevent network packet flooding.",
+    officialReference: "About FireCluster"
+  },
+  {
+    id: 20,
+    category: "Setup",
+    question: "Explain the difference between saving a backup XML configuration and an FXI Flash Backup Image.",
+    answer: "• XML Config File: Contains only the plain text configuration settings. It is model-independent and can be used to migrate policies to newer Firebox models.\n• FXI Flash Backup Image: A comprehensive bit-level snapshot of the Firebox's flash memory. It includes the exact Fireware OS, active certificates, feature licenses, and configurations. It is strictly hardware-model-specific.",
+    keyConcept: "XML Configs vs. FXI Images",
+    examTip: "Use XML configuration files for migrations between different hardware models, and FXI backup images for fast disaster recovery on identical hardware.",
+    officialReference: "Backup and Restore Firebox Configuration"
   }
 ];
 

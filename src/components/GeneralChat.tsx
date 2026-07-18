@@ -101,6 +101,126 @@ const LOCAL_QA_DATABASE: QAItem[] = [
     answer: "The **Policy Checker** is a diagnostic utility that allows you to simulate a packet by entering: \n- Source IP address / Interface\n- Destination IP address\n- Destination Port\n- Protocol (TCP, UDP, etc.)\n\nThe tool immediately returns **which specific security policy** in the active Firebox configuration matches that traffic pattern, indicating whether the packet would be Allowed, Denied, or Dropped. This is invaluable for troubleshooting shadow policies.",
     keywords: ["policy checker", "simulator", "traffic", "matching", "fsm", "diagnostic", "troubleshoot"],
     refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/fsm/diagnostic_tasks_policy_check_fsm_c.html"
+  },
+  {
+    id: 11,
+    category: "Routing",
+    question: "Which dynamic routing protocols does Fireware support?",
+    answer: "WatchGuard Fireware supports three primary industry-standard dynamic routing protocols, as well as multicast routing:\n\n• **OSPF (Open Shortest Path First)**: A link-state protocol ideal for medium-to-large internal network routing. Configured using dynamic routing scripts in Policy Manager.\n• **BGP v4 (Border Gateway Protocol)**: A path-vector protocol used for external routing and multihoming with Internet Service Providers.\n• **RIP v1/v2 (Routing Information Protocol)**: A legacy distance-vector protocol using hop counts.\n\nTo enable dynamic routing, you write a standard Zebra configuration syntax file under Network > Dynamic Routing.",
+    keywords: ["dynamic routing", "ospf", "bgp", "rip", "zebra", "routing protocol", "multicast"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/routing/dynamic_routing_about_c.html"
+  },
+  {
+    id: 12,
+    category: "Routing",
+    question: "What are the four Multi-WAN configuration modes on a Firebox?",
+    answer: "If you have multiple external interfaces configured, you can select from four Multi-WAN modes:\n\n• **Routing Table**: The Firebox routes connections based on standard metrics and static route definitions in its local routing table.\n• **Round-Robin**: Distributes outbound connections across active WAN links based on relative interface weights.\n• **Failover**: Routes all outbound traffic through the primary WAN interface. Traffic automatically switches to the backup interface only if the primary link monitor fails.\n• **Interface Overflow**: Sends traffic through the primary interface until it reaches a user-defined bandwidth threshold, then overflows new connections onto the next interface.",
+    keywords: ["multi-wan", "round robin", "failover", "overflow", "routing table", "isp", "redundancy"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/multi-wan/multi_wan_methods_c.html"
+  },
+  {
+    id: 13,
+    category: "Routing",
+    question: "How does SD-WAN differ from Multi-WAN, and how does it measure link quality?",
+    answer: "• **Multi-WAN** is a global setting that determines general connection routing across all WAN interfaces.\n• **SD-WAN** is a granular policy-based routing override. It tests specific interfaces for performance-based parameters such as **latency**, **jitter**, and **packet loss**.\n\nIf an active link drops below your specified thresholds, SD-WAN dynamically reroutes high-priority traffic (like VoIP or video calls) over a healthy interface. SD-WAN relies on **Link Monitors** configured to ping trusted public targets (like Google DNS or Cloudflare) to continuously gauge packet metrics.",
+    keywords: ["sd-wan", "latency", "jitter", "packet loss", "link monitor", "voip", "metrics"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/sd-wan/sd-wan_about_c.html"
+  },
+  {
+    id: 14,
+    category: "VPN",
+    question: "What are the key technical and port differences between Mobile VPN types?",
+    answer: "WatchGuard supports four distinct client-to-site VPN types with different network characteristics:\n\n• **Mobile VPN with IKEv2**: Fast, stable, supports native OS clients (Windows/Mac/iOS). Relies on **UDP ports 500 and 4500**.\n• **Mobile VPN with SSL**: Best for bypassing restrictive firewalls because it wraps traffic in standard SSL/TLS tunnels. Relies on **TCP port 443** (default fallback is 443, highly customizable).\n• **Mobile VPN with L2TP**: Native OS support, encapsulated in IPSec. Uses **UDP ports 500, 4500, and 1701**.\n• **Mobile VPN with IPSec (Legacy)**: Proprietary WatchGuard IPSec client. Uses **UDP ports 500 and 4500, and IP protocol 50 (ESP)**.",
+    keywords: ["mobile vpn", "ikev2", "ssl", "l2tp", "ipsec", "ports", "443", "4500", "500"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/mvpn/mvpn_comparison_c.html"
+  },
+  {
+    id: 15,
+    category: "VPN",
+    question: "What is the structural difference between Virtual Interface BOVPN and Policy-Based BOVPN?",
+    answer: "• **Policy-Based BOVPN**: Binds secure communication strictly to static policies. Traffic is defined by explicit local/remote IP pairs matching the gateway selectors. Perfect Forward Secrecy (PFS) is applied directly on the policy action.\n• **Virtual Interface BOVPN**: Creates a logical virtual tunnel interface (e.g., `bvpn1`). Because it behaves like a standard physical interface, you can route traffic over it using static routes, dynamic routing (OSPF), or SD-WAN. This is much more flexible and is the modern standard for hub-and-spoke mesh topologies.",
+    keywords: ["virtual interface", "bovpn", "policy-based", "bvpn", "static route", "tunnel", "mesh"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/bovpn/manual/bovpn_virtual_interface_about_c.html"
+  },
+  {
+    id: 16,
+    category: "Policies",
+    question: "What actions can you configure for WebBlocker categories, and how can they be overridden?",
+    answer: "WebBlocker allows you to filter web requests using a cloud-hosted URL database. For each category (e.g., Gambling, Hacking), you can assign one of four actions:\n\n• **Allow**: Permit the connection.\n• **Deny**: Block the request and display a standard custom blocked page.\n• **Drop**: Silently close the TCP connection with no response to the browser.\n• **Warn**: Display a splash warning page, but allow the user to click 'Continue' to access the site.\n\n• **Override Password**: You can configure a master override password, which allows authorized users to temporarily bypass blocked pages by entering the administrative credentials on the screen.",
+    keywords: ["webblocker", "deny", "drop", "warn", "override", "password", "categories"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/services/wb/webblocker_about_c.html"
+  },
+  {
+    id: 17,
+    category: "Policies",
+    question: "How do Gateway AntiVirus, IntelligentAV, and APT Blocker compare?",
+    answer: "These security subscriptions represent layered defense mechanics for malware scanning on a Firebox:\n\n• **Gateway AntiVirus (GAV)**: Relies on traditional signature matching. Scans files traversing HTTP, FTP, SMTP proxies on-the-fly against a local cache of known virus definitions.\n• **IntelligentAV (IAV)**: Uses a local, machine-learning-based artificial intelligence engine to identify new and zero-day files without relying on strict signature releases.\n• **APT Blocker**: Advanced Persistent Threat blocker. For files matching high-risk signatures or unknown binaries, it uploads the file to a secure cloud-hosted **Next-Gen Sandbox**, executing the code in simulated virtual environments to analyze runtime behavior.",
+    keywords: ["gateway antivirus", "gav", "intelligentav", "apt blocker", "sandbox", "malware", "signature"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/services/apt/apt_blocker_about_c.html"
+  },
+  {
+    id: 18,
+    category: "Policies",
+    question: "What is DNSWatch, and how is it different from DNS-Proxy?",
+    answer: "• **DNS-Proxy**: An application layer gateway policy that inspects outgoing DNS traffic (port 53). It verifies that DNS packets strictly follow RFC standards, intercepts malicious domain lookups, and can rewrite responses to block dangerous IPs locally.\n• **DNSWatch**: A cloud-managed subscription service. When enabled, the Firebox intercepts outbound DNS queries and forwards them to WatchGuard's secure DNSWatch servers. These servers check domains against a real-time feed of phishing and malicious domains, automatically redirecting users to a safe educational site if a threat is matched.",
+    keywords: ["dnswatch", "dns-proxy", "dns", "phishing", "domain lookup", "rfc", "dns redirection"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/services/dnswatch/dnswatch_about_c.html"
+  },
+  {
+    id: 19,
+    category: "Diagnostics",
+    question: "What is Threat Detection and Response (TDR), and what role do Host Sensors play?",
+    answer: "Threat Detection and Response (TDR) is a security platform that correlates security events from your Firebox with local data collected from end-user devices.\n\n• **Host Sensors**: Lightweight agents installed on workstations and servers on your network. They track internal registry adjustments, local process launches, and binary behaviors.\n• **Correlator**: The TDR cloud service analyzes network logs alongside host reports, scoring events. If an endpoint is infected with ransomware, TDR can automatically direct the Host Sensor to quarantine the process, block the IP, or roll back encrypted files.",
+    keywords: ["tdr", "threat detection", "host sensor", "correlator", "endpoint", "quarantine"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/services/tdr/tdr_about_c.html"
+  },
+  {
+    id: 20,
+    category: "Diagnostics",
+    question: "How do Firebox Logging, Syslog, and Dimension servers integrate?",
+    answer: "The Firebox generates real-time logs that can be offloaded for historical reporting and compliance. Outbound logging options include:\n\n• **WatchGuard Log Server / Dimension**: A dedicated, secure database server. The Firebox forwards logs using encrypted proprietary streams on **TCP Port 4115**.\n• **Syslog**: Standard RFC 5424 protocol. The Firebox can mirror traffic monitors to an external Syslog receiver over standard UDP/TCP Port 514.\n\n• **FSM Traffic Monitor**: Shows real-time lines running on the Firebox. These are volatile; long-term analytical graphing, user dashboards, and historical searching require a centralized WatchGuard Dimension or Cloud instance.",
+    keywords: ["logging", "dimension", "syslog", "log server", "traffic monitor", "4115", "514"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/logging/logs_dimension_about_c.html"
+  },
+  {
+    id: 21,
+    category: "Setup",
+    question: "What is the difference between Active/Passive and Active/Active FireCluster High Availability?",
+    answer: "FireCluster allows you to group two physical Fireboxes of the same exact model into a high-availability cluster:\n\n• **Active/Passive**: One master device handles 100% of the active traffic. The second backup device stays synchronized over dedicated HA links. If the master fails, the passive device inherits virtual MACs instantly with zero dropped sessions.\n• **Active/Active**: Both devices actively inspect traffic simultaneously. The master device receives external packets and load-balances them to the backup device using multicast. This increases total processing throughput, but requires a switch that correctly handles static multicast ARP tables.",
+    keywords: ["firecluster", "active passive", "active active", "high availability", "multicast", "failover", "cluster"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/firecluster/firecluster_about_c.html"
+  },
+  {
+    id: 22,
+    category: "Setup",
+    question: "What is a Feature Key, and how do you activate subscription services on a Firebox?",
+    answer: "A **Feature Key** is a signed text file that defines the licensed features, node limits, and security subscription expiration dates for a specific Firebox serial number.\n\n• On startup, you must activate your Firebox on the WatchGuard portal to generate this key.\n• To import, you paste the text directly into the Firebox Web UI or Policy Manager.\n• If a security subscription (like GAV or WebBlocker) expires, the Firebox will block or bypass scans based on your 'Error Action' rules, and won't download updated threat signatures until a renewed Feature Key is imported.",
+    keywords: ["feature key", "serial number", "activation", "license", "expiration", "renew"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/initial_setup/feature_key_import_c.html"
+  },
+  {
+    id: 23,
+    category: "Setup",
+    question: "How do backups on a Firebox work, and what is the difference between FXI and XML files?",
+    answer: "Firebox recovery and backup configurations are handled in two different formats:\n\n• **XML Configuration File**: Saves only the network, policy, and routing configurations. It is model-independent, meaning you can export an XML file from an older model (like a T35) and import it onto a newer model (like a T40) to migrate policies.\n• **FXI Flash Backup Image**: An exact bit-by-bit recovery snapshot of the entire Firebox, including the operating system (Fireware OS version), active feature keys, local certificates, and configuration. These are strictly model-specific and can only be restored on the exact same hardware model.",
+    keywords: ["backup", "fxi", "xml", "restore", "migration", "flash image", "recovery"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/initial_setup/backup_and_restore_c.html"
+  },
+  {
+    id: 24,
+    category: "Setup",
+    question: "Which authentication servers can a Firebox integrate with for security policies and VPNs?",
+    answer: "To enforce user-specific policies or VPN logins, the Firebox can validate credentials against several authentication engines:\n\n• **Firebox-DB**: A local database stored on the Firebox itself. Ideal for small environments.\n• **RADIUS**: Integrates with external enterprise servers. Uses UDP ports 1812 (authentication) and 1813 (accounting).\n• **Active Directory / LDAP**: Connects to Windows Domain Controllers to validate domain user groups directly.\n• **SAML (Security Assertion Markup Language)**: Used to integrate with Single Sign-On (SSO) providers like Okta, Azure AD, or Duo for multi-factor security.",
+    keywords: ["authentication", "radius", "active directory", "ldap", "firebox-db", "saml", "sso"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/authentication/auth_servers_about_c.html"
+  },
+  {
+    id: 25,
+    category: "Diagnostics",
+    question: "What core diagnostic tools are available in Firebox System Manager (FSM) Diagnostic Tasks?",
+    answer: "If you encounter network packet issues, the **FSM Diagnostic Tasks** utility provides four main terminal-equivalent programs running directly on the Firebox CPU:\n\n• **Ping**: Tests ICMP echo response to verify Layer 3 connectivity to local or internet nodes.\n• **Traceroute**: Maps each router hop to trace the path packets take through the WAN interface.\n• **DNS Lookup**: Queries local or external DNS servers to test resolving fully qualified domain names.\n• **TCP Dump**: Captures physical interface packets. You can filter by host, port, or protocol, and export the file in **PCAP format** to open and analyze in Wireshark.",
+    keywords: ["diagnostic tasks", "ping", "traceroute", "dns lookup", "tcp dump", "pcap", "wireshark"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/fsm/diagnostic_tasks_fsm_c.html"
   }
 ];
 
