@@ -221,8 +221,31 @@ const LOCAL_QA_DATABASE: QAItem[] = [
     answer: "If you encounter network packet issues, the **FSM Diagnostic Tasks** utility provides four main terminal-equivalent programs running directly on the Firebox CPU:\n\n• **Ping**: Tests ICMP echo response to verify Layer 3 connectivity to local or internet nodes.\n• **Traceroute**: Maps each router hop to trace the path packets take through the WAN interface.\n• **DNS Lookup**: Queries local or external DNS servers to test resolving fully qualified domain names.\n• **TCP Dump**: Captures physical interface packets. You can filter by host, port, or protocol, and export the file in **PCAP format** to open and analyze in Wireshark.",
     keywords: ["diagnostic tasks", "ping", "traceroute", "dns lookup", "tcp dump", "pcap", "wireshark"],
     refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/fsm/diagnostic_tasks_fsm_c.html"
+  },
+  {
+    id: 26,
+    category: "Setup",
+    question: "How do I downgrade Fireware OS without losing settings?",
+    answer: "The safest and recommended method to downgrade Fireware OS is to **restore a saved backup image (.fxi)** that was created for the device *before* the last Fireware OS upgrade. Downgrading via the Web UI upgrade feature with an older .sysa-dl file usually results in the configuration being reset to factory defaults, wiping out your settings.",
+    keywords: ["downgrade", "fireware os", "backup image", "fxi", "restore"],
+    refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/backup_upgrade/downgrade_os_c.html"
+  },
+  {
+    id: 27,
+    category: "Diagnostics",
+    question: "What does the 'Unhandled Internal Packet' message in Traffic Monitor mean?",
+    answer: "This log message indicates that a packet originating from a trusted or optional internal interface was **denied** because it did not match any configured firewall policies that would allow it. By default, if the 'Outgoing' policy is deleted or disabled, all unhandled internal traffic is dropped by the implicit deny rule.",
+    keywords: ["unhandled internal packet", "traffic monitor", "denied", "dropped", "outgoing policy", "implicit deny"]
+  },
+  {
+    id: 28,
+    category: "VPN",
+    question: "What is Perfect Forward Secrecy (PFS) in a BOVPN?",
+    answer: "Perfect Forward Secrecy (PFS) ensures that a new Diffie-Hellman key exchange is performed every time Phase 2 Security Associations (SAs) are rekeyed. This means that if an attacker were to compromise one key, they could only decrypt the small portion of data encrypted with that specific key, not past or future sessions.",
+    keywords: ["pfs", "perfect forward secrecy", "bovpn", "diffie-hellman", "key exchange", "phase 2", "sa"]
   }
 ];
+
 
 export default function GeneralChat() {
   const [messages, setMessages] = useState<Message[]>([

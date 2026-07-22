@@ -1351,8 +1351,84 @@ export const examQuestions: Question[] = [
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
+  },
+  {
+    id: 106,
+    question: "What is the best method to downgrade the version of Fireware OS on your Firebox without losing all device configuration settings? (Select one.)",
+    options: [
+      "Restore a saved backup image that was created for the device before the last Fireware OS upgrade.",
+      "Use the Upgrade OS feature in Fireware Web UI to install the sysa_dl file for an older version.",
+      "Change the OS compatibility setting in Policy Manager to downgrade the device.",
+      "Use the downgrade feature on Policy Manager to select a previous version of Fireware OS."
+    ],
+    correctAnswer: "Restore a saved backup image that was created for the device before the last Fireware OS upgrade.",
+    correctAnswers: ["Restore a saved backup image that was created for the device before the last Fireware OS upgrade."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 107,
+    question: "When you use the Web Setup Wizard or Quick Setup Wizard to configure a Firebox, you must connect your computer to which interface? (Select one.)",
+    options: [
+      "Interface 0",
+      "Interface 1",
+      "Any interface",
+      "Console port"
+    ],
+    correctAnswer: "Interface 1",
+    correctAnswers: ["Interface 1"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 108,
+    question: "Which of these are required to configure a Branch Office VPN (BOVPN) between two Fireboxes? (Select TWO.)",
+    options: [
+      "Both Fireboxes must have static external IP addresses.",
+      "The Pre-Shared Key (PSK) must match on both Fireboxes.",
+      "The Phase 1 and Phase 2 settings must match exactly on both gateways and tunnels.",
+      "Both Fireboxes must be the same hardware model."
+    ],
+    correctAnswer: "The Pre-Shared Key (PSK) must match on both Fireboxes. | The Phase 1 and Phase 2 settings must match exactly on both gateways and tunnels.",
+    correctAnswers: ["The Pre-Shared Key (PSK) must match on both Fireboxes.", "The Phase 1 and Phase 2 settings must match exactly on both gateways and tunnels."],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "BOVPN"
+  },
+  {
+    id: 109,
+    question: "If a user is having trouble accessing a legitimate website and you suspect WebBlocker is the cause, which feature allows them to bypass the block temporarily? (Select one.)",
+    options: [
+      "WebBlocker Exceptions",
+      "WebBlocker Override Password",
+      "Policy Checker",
+      "Traffic Monitor"
+    ],
+    correctAnswer: "WebBlocker Override Password",
+    correctAnswers: ["WebBlocker Override Password"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 110,
+    question: "Which proxy policy should you use to scan inbound email messages for viruses using Gateway AntiVirus? (Select TWO.)",
+    options: [
+      "SMTP-proxy",
+      "POP3-proxy",
+      "IMAP-proxy",
+      "HTTP-proxy"
+    ],
+    correctAnswer: "SMTP-proxy | POP3-proxy",
+    correctAnswers: ["SMTP-proxy", "POP3-proxy"],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "Proxies"
   }
 ];
+
 
 // Helper checks for verifying answers programmatically
 export function verifyAnswer(questionId: number, selected: string[]): { isCorrect: boolean; correctAnswers: string[] } {

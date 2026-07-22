@@ -263,7 +263,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
                   onClick={() => handleOptionToggle(opt)}
                   className={`w-full text-left px-5 py-3.5 rounded-xl border transition-all text-xs sm:text-sm flex items-start space-x-3 ${optionStyle}`}
                 >
-                  <span className="font-mono font-bold text-gray-400 border border-watchguard-border/50 px-2 py-0.5 rounded text-xs mt-0.5 bg-watchguard-dark">
+                  <span className="font-mono font-bold text-gray-400 border border-watchguard-border/50 px-2.5 py-1 rounded text-xs mt-0.5 bg-watchguard-dark shadow-sm">
                     {optLetter}
                   </span>
                   <span className="flex-1 mt-0.5 leading-relaxed">{opt}</span>
@@ -295,7 +295,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
                   )}
                   <span className="text-xs text-gray-400">| Category: {evaluation.weaknessCategory}</span>
                 </div>
-                <div className="text-gray-300 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap font-sans mt-2">
                   {evaluation.detailedExplanation.split("\n").map((line, idx) => (
                     <p key={idx} className="my-1">{line}</p>
                   ))}

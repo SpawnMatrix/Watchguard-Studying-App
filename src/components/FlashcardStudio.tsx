@@ -192,8 +192,36 @@ const HIGH_YIELD_FLASHCARDS: Flashcard[] = [
     keyConcept: "XML Configs vs. FXI Images",
     examTip: "Use XML configuration files for migrations between different hardware models, and FXI backup images for fast disaster recovery on identical hardware.",
     officialReference: "Backup and Restore Firebox Configuration"
+  },
+  {
+    id: 11,
+    category: "Security Services",
+    question: "Which feature prevents employees from reaching known malicious domains or phishing sites even if the firewall policy allows outbound DNS?",
+    answer: "DNSWatch. It intercepts outbound DNS requests on port 53 and resolves known malicious domains to a block page instead of the real IP.",
+    keyConcept: "DNSWatch Redirection",
+    examTip: "DNS-proxy enforces protocol structure, but DNSWatch performs the actual reputation checking and phishing redirection.",
+    officialReference: "DNSWatch documentation"
+  },
+  {
+    id: 12,
+    category: "Network Setup",
+    question: "In what mode does the Firebox have the same IP address on both the External and Trusted interfaces?",
+    answer: "Drop-In Mode. In this mode, the Firebox logically bridges the external and trusted networks without performing routing or NAT, allowing you to insert the firewall without changing IP addressing on existing hosts.",
+    keyConcept: "Drop-In Mode",
+    examTip: "Use Drop-In Mode when you cannot change the IP addresses of your internal servers or routers.",
+    officialReference: "Drop-In Mode documentation"
+  },
+  {
+    id: 13,
+    category: "Policies",
+    question: "Which proxy policy action component must be used to block downloads based on file type (e.g., .exe or .zip)?",
+    answer: "HTTP Response > Body Content Types. You define pattern matches (like *.exe) and set the disposition to Deny or Drop.",
+    keyConcept: "Proxy Content Types",
+    examTip: "HTTP Request > URL Paths is for blocking URLs. HTTP Response > Body Content Types is for blocking file downloads.",
+    officialReference: "HTTP Proxy: Content Types"
   }
 ];
+
 
 export default function FlashcardStudio() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");

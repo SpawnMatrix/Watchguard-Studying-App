@@ -355,7 +355,7 @@ export default function NetworkSimulator() {
         {/* Left Hand side: Policy Configurator & Threat lists */}
         <div className="p-4.5 border-r border-watchguard-border space-y-4 bg-watchguard-dark/40 overflow-y-auto max-h-[420px] scrollbar-thin">
           
-          <div className="space-y-1 pb-1 border-b border-watchguard-border/60">
+          <div className="space-y-2 pb-2 border-b border-watchguard-border/60">
             <h4 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-wide">
               <Settings className="w-3.5 h-3.5 text-watchguard-orange" />
               <span>Firebox Security Policy Controller</span>
@@ -440,7 +440,7 @@ export default function NetworkSimulator() {
           {/* Threats (Blocked sites & Blocked ports) */}
           <div className="pt-2 border-t border-watchguard-border/60 grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked IP Sites List</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Blocked IP Sites List</span>
               <div className="space-y-1 max-h-[70px] overflow-y-auto bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
                 {blockedSites.map(site => (
                   <div key={site} className="flex items-center justify-between text-[9px] text-red-400 font-mono">
@@ -466,7 +466,7 @@ export default function NetworkSimulator() {
             </div>
 
             <div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked Port Numbers</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Blocked Port Numbers</span>
               <div className="space-y-1 max-h-[70px] overflow-y-auto bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
                 {blockedPorts.map(port => (
                   <div key={port} className="flex items-center justify-between text-[9px] text-red-400 font-mono">

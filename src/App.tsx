@@ -173,7 +173,7 @@ export default function App() {
               <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent"></div>
             </div>
             <div>
-              <h1 className="font-display font-bold text-white tracking-tight text-lg sm:text-xl">
+              <h1 className="font-display font-bold text-white tracking-tight text-xl sm:text-2xl drop-shadow-md">
                 WatchGuard Certified Network Security Training Portal
               </h1>
               <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">

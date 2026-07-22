@@ -217,5 +217,37 @@ export const watchguardLabs: Lab[] = [
         expectedConsoleAction: "VERIFY_BOVPN"
       }
     ]
+  },
+  {
+    id: 16,
+    name: "Lab 16: Configuring WebBlocker with Exceptions",
+    objectives: "Configure WebBlocker to deny traffic to Gambling and Hacking categories, but create a specific URL exception to allow a known false-positive site.",
+    prerequisites: "Lab 11 completed. WebBlocker Feature Key active.",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "Create a WebBlocker Action",
+        instruction: "In Policy Manager, select Subscription Services > WebBlocker. Click Add to create a new WebBlocker Action. Name it 'Standard-Web-Filter'.",
+        expectedConsoleAction: "CREATE_WEBBLOCKER_ACTION"
+      },
+      {
+        stepNumber: 2,
+        title: "Configure Category Dispositions",
+        instruction: "In the Categories tab, find 'Gambling' and 'Hacking'. Change their Quick Action from 'Allow' to 'Deny'. Ensure the 'Log this action' checkbox is selected so blocks appear in Traffic Monitor.",
+        expectedConsoleAction: "SET_CATEGORY_DENY"
+      },
+      {
+        stepNumber: 3,
+        title: "Add a URL Exception",
+        instruction: "Switch to the Exceptions tab. Click Add. Type the exact URL 'www.example-gambling-research.com' and set the action to 'Allow'. Move this exception to the top of the list if necessary.",
+        expectedConsoleAction: "ADD_WEBBLOCKER_EXCEPTION"
+      },
+      {
+        stepNumber: 4,
+        title: "Apply to HTTP/HTTPS Proxies",
+        instruction: "Open your HTTP-proxy and HTTPS-proxy policies. In their respective Proxy Action settings, locate the WebBlocker dropdown and assign the 'Standard-Web-Filter' action you just created.",
+        expectedConsoleAction: "APPLY_WEBBLOCKER_TO_PROXY"
+      }
+    ]
   }
 ];
