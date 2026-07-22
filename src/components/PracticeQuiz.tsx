@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { useState } from "react";
 import { CheckCircle2, XCircle, ArrowRight, Award, Trophy, Bookmark, BarChart, RotateCcw, AlertCircle, HelpCircle } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
@@ -109,7 +110,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
       });
 
     } catch (error) {
-      console.error("Evaluation error:", error);
+      errorHandler.error("Evaluation error:", error);
     } finally {
       setIsLoading(false);
     }
