@@ -17,6 +17,10 @@ export default function NetworkSimulator() {
   const [newSiteBlock, setNewSiteBlock] = useState("");
   const [newPortBlock, setNewPortBlock] = useState("");
 
+  // O(1) Lookup Sets for Performance
+  const blockedSitesSet = useMemo(() => new Set(blockedSites), [blockedSites]);
+  const blockedPortsSet = useMemo(() => new Set(blockedPorts), [blockedPorts]);
+
   // Interactive Packet Injector Form States
   const [srcZone, setSrcZone] = useState<"trusted" | "dmz" | "external">("trusted");
   const [dstZone, setDstZone] = useState<"trusted" | "dmz" | "external">("external");
@@ -97,11 +101,11 @@ export default function NetworkSimulator() {
     let reason = "Allowed by outbound TCP-UDP packet filters.";
 
     // 1. DEFAULT THREAT PROTECTION (Precedes policies!)
-    if (blockedSites.includes(srcIP) || blockedSites.includes(dstIP)) {
+    if (blockedSitesSet.has(srcIP) || blockedSitesSet.has(dstIP)) {
       status = "Denied";
       matchedPolicy = "Default Threat Protection: Blocked Sites";
       reason = "Dropped immediately because the IP matches an entry in the Blocked Sites list.";
-    } else if (blockedPorts.includes(dstPort)) {
+    } else if (blockedPortsSet.has(dstPort)) {
       status = "Denied";
       matchedPolicy = "Default Threat Protection: Blocked Ports";
       reason = "Dropped immediately because the destination port is in the Blocked Ports database.";
