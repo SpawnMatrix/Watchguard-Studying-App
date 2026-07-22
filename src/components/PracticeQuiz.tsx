@@ -197,7 +197,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   }, {} as Record<string, { total: number; correct: number }>);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full font-sans">
+    <div className="flex flex-col-reverse lg:grid lg:grid-cols-3 gap-6 h-full font-sans">
       {/* Active Examination Frame */}
       <div className="lg:col-span-2 flex flex-col bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl h-full ">
         {/* Header bar */}
