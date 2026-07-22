@@ -9,10 +9,7 @@ import {
   diagnoseLabFailure,
   analyzeCertificationPerformance,
   getGlobalAIEnabled,
-  setGlobalAIEnabled,
-  getAdminEmails,
-  addAdminEmail,
-  removeAdminEmail
+  setGlobalAIEnabled
 } from "./src/services/aiService";
 
 dotenv.config();
@@ -27,25 +24,17 @@ function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
 }
 
-function toDisplayName(value: string) {
-  const accountName = value.includes("@") ? value.split("@", 1)[0] : value;
-  return accountName.replace(/[._-]+/g, " ").trim();
-}
-
 // Pangolin forwards authenticated user details through Remote-* headers.
-// This endpoint is display-only; forwarded identity must never be used here as
-// application authorization because the service is also reachable on the LAN.
+// Report only whether Pangolin authenticated the request. Personal identity
+// headers intentionally stay server-side and are never returned to the app.
 app.get("/api/session", (req, res) => {
   const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
   const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
-  const remoteEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
-  const forwardedIdentity = remoteName || remoteUser || remoteEmail;
+  const forwardedIdentity = remoteName || remoteUser;
 
   res.set("Cache-Control", "private, no-store");
   res.json({
     authenticated: Boolean(forwardedIdentity),
-    displayName: forwardedIdentity ? toDisplayName(forwardedIdentity) : "Local browser",
-    email: remoteEmail,
     source: forwardedIdentity ? "pangolin" : "direct"
   });
 });
@@ -55,8 +44,7 @@ app.get("/api/features", (req, res) => {
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   res.json({
     enableAIFeatures: isAIFeaturesEnabled(customApiKey),
-    globalAIEnabled: getGlobalAIEnabled(),
-    adminEmails: getAdminEmails()
+    globalAIEnabled: getGlobalAIEnabled()
   });
 });
 
@@ -64,10 +52,8 @@ app.get("/api/features", (req, res) => {
 app.post("/api/admin/toggle-ai", (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
-  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
-  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
+  if (!adminPass || password !== adminPass) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
@@ -78,56 +64,11 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
-  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
-  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
+  if (!adminPass || password !== adminPass) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
-  res.json({ success: true, emails: getAdminEmails() });
-});
-
-// Admin Emails List (Getter)
-app.get("/api/admin/emails", (req, res) => {
-  res.json({ emails: getAdminEmails() });
-});
-
-// Add Admin Email (Google SSO style)
-app.post("/api/admin/emails/add", (req, res) => {
-  const { email, password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD;
-  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
-  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
-
-  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
-    return res.status(403).json({ success: false, message: "Unauthorized admin access" });
-  }
-
-  if (!email || !email.includes("@")) {
-    return res.status(400).json({ success: false, message: "Invalid email format" });
-  }
-
-  addAdminEmail(email);
-  res.json({ success: true, emails: getAdminEmails() });
-});
-
-// Remove Admin Email
-app.post("/api/admin/emails/remove", (req, res) => {
-  const { email, password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD;
-  const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
-  const isEmailAdmin = getAdminEmails().includes(requesterEmail);
-
-  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
-    return res.status(403).json({ success: false, message: "Unauthorized admin access" });
-  }
-
-  if (email.toLowerCase() === "juliendumitrescu@gmail.com") {
-    return res.status(400).json({ success: false, message: "Cannot remove primary administrator" });
-  }
-
-  removeAdminEmail(email);
-  res.json({ success: true, emails: getAdminEmails() });
+  res.json({ success: true });
 });
 
 // API Endpoints

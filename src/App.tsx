@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon } from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
@@ -26,12 +26,11 @@ interface QuizStats {
 
 interface SessionIdentity {
   authenticated: boolean;
-  displayName: string;
-  email?: string;
   source: "pangolin" | "direct";
 }
 
 const PROGRESS_STORAGE_KEY = "watchguard-study-progress-v1";
+const PROFILE_STORAGE_KEY = "watchguard-study-profile-name-v1";
 const DEFAULT_QUIZ_STATS: QuizStats = {
   score: "0%",
   topicWeaknesses: [],
@@ -64,13 +63,21 @@ function getPlatformLabel() {
   return "Browser";
 }
 
+function loadProfileName() {
+  return (localStorage.getItem(PROFILE_STORAGE_KEY) || "").replace(/\s+/g, " ").trim().slice(0, 32);
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     return (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") || "dark";
   });
   const savedProgress = useMemo(loadSavedProgress, []);
+  const initialProfileName = useMemo(loadProfileName, []);
   const [quizStats, setQuizStats] = useState<QuizStats>(savedProgress.quizStats);
+  const [profileName, setProfileName] = useState(initialProfileName);
+  const [profileDraft, setProfileDraft] = useState(initialProfileName);
+  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(!initialProfileName);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -79,7 +86,6 @@ export default function App() {
   const [completedLabs, setCompletedLabs] = useState<string[]>(savedProgress.completedLabs);
   const [sessionIdentity, setSessionIdentity] = useState<SessionIdentity>({
     authenticated: false,
-    displayName: "Local browser",
     source: "direct"
   });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -112,7 +118,7 @@ export default function App() {
       .then((session: SessionIdentity) => setSessionIdentity(session))
       .catch((error) => {
         if (error.name !== "AbortError") {
-          setSessionIdentity({ authenticated: false, displayName: "Local browser", source: "direct" });
+          setSessionIdentity({ authenticated: false, source: "direct" });
         }
       });
 
@@ -147,6 +153,23 @@ export default function App() {
     }
     // Switch to admin view automatically to see performance report
     setActiveTab("admin");
+  };
+
+  const handleProfileSave = (event: FormEvent) => {
+    event.preventDefault();
+    const cleanName = profileDraft.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim().slice(0, 32);
+    if (!cleanName) return;
+
+    localStorage.setItem(PROFILE_STORAGE_KEY, cleanName);
+    setProfileName(cleanName);
+    setProfileDraft(cleanName);
+    setIsProfileEditorOpen(false);
+  };
+
+  const handleProfileReset = () => {
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+    setProfileName("");
+    setProfileDraft("");
   };
 
   const tabsConfig = [
@@ -189,15 +212,19 @@ export default function App() {
                 <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
                 <span className="font-mono" title={timeZone}>{localTime}</span>
               </div>
-              <div className="hidden sm:flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileDraft(profileName);
+                  setIsProfileEditorOpen(true);
+                }}
+                className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5 hover:text-white transition-colors cursor-pointer"
+                title="Edit the profile stored in this browser"
+              >
                 <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span
-                  className="font-mono"
-                  title={sessionIdentity.authenticated ? "Identity provided by Pangolin SSO" : "Direct browser session"}
-                >
-                  {sessionIdentity.email || sessionIdentity.displayName}
-                </span>
-              </div>
+                <span className="font-mono">{profileName || "Set your name"}</span>
+                <Pencil className="w-3 h-3 text-gray-500" />
+              </button>
               <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
                 <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
                 <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
@@ -270,7 +297,7 @@ export default function App() {
                   topicWeaknesses={quizStats.topicWeaknesses} 
                   history={quizStats.history}
                   completedLabs={completedLabs}
-                  sessionEmail={sessionIdentity.email}
+                  displayName={profileName || "Local learner"}
                 />
               )}
             </motion.div>
@@ -282,6 +309,94 @@ export default function App() {
       <footer className="bg-watchguard-gray/40 border-t border-watchguard-border py-4.5 px-6 mt-auto text-center text-xs text-gray-500 font-mono">
         <p>© 2026 WatchGuard training portal • Authorized certified technical study engine v12.9.2+</p>
       </footer>
+
+      <AnimatePresence>
+        {isProfileEditorOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="profile-dialog-title"
+              className="w-full max-w-md rounded-2xl border border-watchguard-border bg-watchguard-gray p-6 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            >
+              <div className="mb-5 flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-watchguard-orange/10 text-watchguard-orange border border-watchguard-orange/30">
+                  <UserRound className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 id="profile-dialog-title" className="font-display text-lg font-bold text-white">
+                    {profileName ? "Edit your local profile" : "Choose your study name"}
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                    This name and your learning progress stay in this browser. Your Pangolin email is not displayed or used as your study identity.
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleProfileSave} className="space-y-4">
+                <div>
+                  <label htmlFor="profile-name" className="mb-1.5 block text-xs font-semibold text-gray-300">
+                    Display name
+                  </label>
+                  <input
+                    id="profile-name"
+                    autoFocus
+                    required
+                    maxLength={32}
+                    autoComplete="nickname"
+                    value={profileDraft}
+                    onChange={(event) => setProfileDraft(event.target.value)}
+                    placeholder="For example: Spawn or Julie D."
+                    className="w-full rounded-lg border border-watchguard-border bg-watchguard-dark px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-watchguard-orange"
+                  />
+                  <p className="mt-1.5 text-[10px] font-mono text-gray-500">Browser-only • 32 characters maximum</p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  {profileName ? (
+                    <button
+                      type="button"
+                      onClick={handleProfileReset}
+                      className="text-xs text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                    >
+                      Clear local profile
+                    </button>
+                  ) : <span />}
+                  <div className="flex gap-2">
+                    {profileName && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileDraft(profileName);
+                          setIsProfileEditorOpen(false);
+                        }}
+                        className="rounded-lg border border-watchguard-border px-4 py-2 text-xs font-semibold text-gray-300 hover:bg-watchguard-lightgray/40 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={!profileDraft.trim()}
+                      className="rounded-lg border border-watchguard-orange/40 bg-watchguard-orange px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-watchguard-orange/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                    >
+                      Save profile
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
