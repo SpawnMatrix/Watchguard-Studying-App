@@ -164,3 +164,23 @@ npm run build
 # Start the compiled production build
 npm run start
 ```
+
+---
+
+## 🐋 Automating Homelab Updates with Watchtower
+
+This repository is configured with a **GitHub Action** that automatically builds and publishes a new Docker image to the GitHub Container Registry (`ghcr.io`) whenever changes are pushed to the `main` or `master` branch.
+
+If you are running this app using Docker on your homelab, you can use **Watchtower** to automatically pull the latest image and restart the container, keeping your study portal always up to date!
+
+Add this to your `docker-compose.yml` to enable automatic updates:
+
+```yaml
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 watchguard-study-portal # Checks for updates every 24 hours
+    restart: unless-stopped
+```
