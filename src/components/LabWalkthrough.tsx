@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
 import { watchguardLabs, Lab, LabStep } from "../data/labs";
 import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
 
 interface LabWalkthroughProps {
   onLabCompleted: (labId: number, name: string) => void;
@@ -86,7 +87,7 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
       const diag = await response.json();
       setStuckDiagnosis(diag);
     } catch (error) {
-      errorHandler.error("Diagnostic error:", error);
+      handleError("Diagnostic error", error);
     } finally {
       setIsLoadingDiagnosis(false);
     }

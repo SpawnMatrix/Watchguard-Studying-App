@@ -1,8 +1,26 @@
-import { useState, useRef, useEffect } from "react";
-import { Sparkles, Bot } from "lucide-react";
-import { Message, QAItem } from "../types/chat";
-import AIChatMode from "./AIChatMode";
-import QADeskMode from "./QADeskMode";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Send, Sparkles, Search, Compass, BookOpen, User, Bot, AlertTriangle, ExternalLink, HelpCircle, Layers, CheckCircle, ChevronDown, ChevronUp, Link } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
+
+interface Message {
+  id: string;
+  sender: "user" | "bot";
+  text: string;
+  timestamp: string;
+  requiresExternalLookup?: boolean;
+  suggestedSearchTerms?: string;
+  isDemo?: boolean;
+}
+
+interface QAItem {
+  id: number;
+  question: string;
+  answer: string;
+  category: "Setup" | "Policies" | "Routing" | "VPN" | "Diagnostics";
+  keywords: string[];
+  refLink?: string;
+}
 
 const LOCAL_QA_DATABASE: QAItem[] = [
   {
@@ -251,7 +269,7 @@ export default function GeneralChat() {
           setMode("qa");
         }
       })
-      .catch(err => errorHandler.error("Failed to query initial feature status", err));
+      .catch(err => handleError("Failed to query initial feature status", err));
   }, []);
 
   useEffect(() => {
@@ -310,7 +328,7 @@ export default function GeneralChat() {
 
       setMessages(prev => [...prev, botMsg]);
     } catch (error: any) {
-      errorHandler.error("Chat error:", error);
+      handleError("Chat error", error);
       setMessages(prev => [...prev, {
         id: `err-${Date.now()}`,
         sender: "bot",

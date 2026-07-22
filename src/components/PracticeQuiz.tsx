@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CheckCircle2, XCircle, ArrowRight, Award, Trophy, Bookmark, BarChart, RotateCcw, AlertCircle, HelpCircle } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
 import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -112,7 +113,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
       });
 
     } catch (error) {
-      errorHandler.error("Evaluation error:", error);
+      handleError("Evaluation error", error);
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@ import { errorHandler } from "../utils/errorHandler";
 import React, { useState, useEffect } from "react";
 import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -59,7 +60,7 @@ export default function PerformanceDashboard({
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
       })
-      .catch(err => errorHandler.error("Failed to query initial feature status", err));
+      .catch(err => handleError("Failed to query initial feature status", err));
   };
 
   useEffect(() => {
@@ -160,7 +161,7 @@ export default function PerformanceDashboard({
       const data = await response.json();
       setReport(data);
     } catch (error) {
-      errorHandler.error("Report error:", error);
+      handleError("Report error", error);
     } finally {
       setIsLoading(false);
     }
