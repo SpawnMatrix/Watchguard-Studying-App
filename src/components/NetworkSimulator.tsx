@@ -84,6 +84,16 @@ export default function NetworkSimulator() {
     }
   }, [customProtocol]);
 
+  // Optimized historical packet lookup map
+  const packetLookupMap = useMemo(() => {
+    const map = new Map<string, Packet>();
+    packets.forEach(p => {
+      const key = `${p.srcIP}-${p.dstIP}`;
+      if (!map.has(key)) map.set(key, p);
+    });
+    return map;
+  }, [packets]);
+
   // Core Firebox Packet Processing Engine
   const processPacket = (
     from: "trusted" | "dmz" | "external",
