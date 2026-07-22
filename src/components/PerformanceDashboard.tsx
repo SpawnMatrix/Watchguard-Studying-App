@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { OverviewStats, WeaknessTracker, AuditReportBuilder, AdminConsole, ReportVisualization } from "./dashboard";
+import { errorHandler } from "../utils/errorHandler";
+import React, { useState, useEffect } from "react";
+import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -35,6 +38,97 @@ export default function PerformanceDashboard({
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem("watchguard_custom_gemini_api_key") || "");
+  const [showKey, setShowKey] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [globalAIEnabled, setGlobalAIEnabledState] = useState(false);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [adminIsSuccess, setAdminIsSuccess] = useState(false);
+
+  const isAuthorizedAdmin = isAdminLoggedIn;
+
+  // Fetch current global features on mount
+  const fetchFeatures = () => {
+    const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+    fetch("/api/features", {
+      headers: { "X-Gemini-API-Key": customKey }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.globalAIEnabled !== undefined) {
+          setGlobalAIEnabledState(data.globalAIEnabled);
+        }
+      })
+      .catch(err => handleError("Failed to query initial feature status", err));
+  };
+
+  useEffect(() => {
+    fetchFeatures();
+  }, []);
+
+  const handleSaveCustomKey = (val: string) => {
+    setUserCustomKey(val);
+    if (val.trim()) {
+      localStorage.setItem("watchguard_custom_gemini_api_key", val.trim());
+    } else {
+      localStorage.removeItem("watchguard_custom_gemini_api_key");
+    }
+  };
+
+  const handleClearCustomKey = () => {
+    setUserCustomKey("");
+    localStorage.removeItem("watchguard_custom_gemini_api_key");
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword })
+      });
+      if (response.ok) {
+        setIsAdminLoggedIn(true);
+        setAdminIsSuccess(true);
+        setAdminMessage("Admin password validated. Control gates opened.");
+        fetchFeatures();
+      } else {
+        const err = await response.json();
+        setAdminMessage(err.message || "Invalid Admin Credentials.");
+      }
+    } catch (err: any) {
+      setAdminMessage("Communication with gateway failed.");
+    }
+  };
+
+  const handleToggleGlobalAI = async () => {
+    setAdminMessage("");
+    setAdminIsSuccess(false);
+    try {
+      const targetState = !globalAIEnabled;
+      const response = await fetch("/api/admin/toggle-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword, globalAIEnabled: targetState })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalAIEnabledState(data.globalAIEnabled);
+        setAdminIsSuccess(true);
+        setAdminMessage(`Global AI feature successfully toggled ${data.globalAIEnabled ? "ON" : "OFF"}.`);
+      } else {
+        const err = await response.json();
+        setAdminMessage(err.message || "Failed to toggle global AI state.");
+      }
+    } catch (err: any) {
+      setAdminMessage("Communication failure while toggling state.");
+    }
+  };
+
   const handleGenerateReport = async () => {
     setIsLoading(true);
     try {
@@ -67,7 +161,7 @@ export default function PerformanceDashboard({
       const data = await response.json();
       setReport(data);
     } catch (error) {
-      console.error("Report error:", error);
+      handleError("Report error", error);
     } finally {
       setIsLoading(false);
     }
