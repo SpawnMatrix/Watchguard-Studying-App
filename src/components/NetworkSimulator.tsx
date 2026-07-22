@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Cpu } from "lucide-react";
-import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, Packet } from "./network-simulator";
+import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, Packet, Protocol, Zone } from "./network-simulator";
 
 export default function NetworkSimulator() {
   // Firebox Policy Controller States

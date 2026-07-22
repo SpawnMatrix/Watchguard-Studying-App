@@ -13,3 +13,6 @@ export interface Packet {
   timestamp: string;
   reason: string;
 }
+
+export type Zone = Packet["from"];
+export type Protocol = Packet["protocol"];

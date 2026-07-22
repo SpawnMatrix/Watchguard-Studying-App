@@ -1,4 +1,3 @@
-import { errorHandler } from "../utils/errorHandler";
 import { useState } from "react";
 import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
 import { watchguardLabs, Lab, LabStep } from "../data/labs";
