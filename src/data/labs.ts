@@ -2,7 +2,8 @@ export interface LabStep {
   stepNumber: number;
   title: string;
   instruction: string;
-  expectedConsoleAction?: string; // used for simulator visualization
+  expectedConsoleAction?: string;
+  verification?: string; // used for simulator visualization
 }
 
 export interface Lab {
@@ -217,5 +218,72 @@ export const watchguardLabs: Lab[] = [
         expectedConsoleAction: "VERIFY_BOVPN"
       }
     ]
+  }
+,
+  {
+    id: 12,
+    name: "Lab 12: Configuring VLANs & 802.1Q",
+    objectives: "Create multiple logical broadcast domains to separate Guest and Corporate traffic on the Trusted interface.",
+    prerequisites: "Basic networking knowledge.",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "Configure Interface 1 as VLAN",
+        instruction: "Navigate to Network > Interfaces. Select Interface 1 (Trusted) and change the Interface Type to 'VLAN'.",
+        verification: "Interface 1 must be configured to accept 802.1Q tagged traffic."
+      },
+      {
+        stepNumber: 2,
+        title: "Create VLAN 10",
+        instruction: "Create a new VLAN ID 10 for Corporate traffic, mapped to the Trusted zone with IP 10.0.10.1/24.",
+        verification: "VLAN 10 created and assigned to Trusted."
+      },
+      {
+        stepNumber: 3,
+        title: "Create VLAN 20",
+        instruction: "Create a new VLAN ID 20 for Guest traffic, mapped to the Optional zone with IP 10.0.20.1/24.",
+        verification: "VLAN 20 created and assigned to Optional."
+      },
+      {
+        stepNumber: 4,
+        title: "Assign Tagged VLANs",
+        instruction: "Assign both VLAN 10 and VLAN 20 to Interface 1 as 'Tagged' traffic.",
+        verification: "Interface 1 handles 802.1Q tags for VLAN 10 and 20."
+      }
+    ],
+
+  },
+  {
+    id: 13,
+    name: "Lab 13: AuthPoint MFA Gateway Integration",
+    objectives: "Configure Firebox to use AuthPoint MFA for VPN connections using RADIUS.",
+    prerequisites: "AuthPoint account.",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "Create AuthPoint Resource",
+        instruction: "In AuthPoint, add a new 'Firebox' resource and generate the shared secret.",
+        verification: "AuthPoint resource configured."
+      },
+      {
+        stepNumber: 2,
+        title: "Add RADIUS Server",
+        instruction: "On the Firebox, navigate to Authentication > Servers > RADIUS. Add the AuthPoint Gateway IP address.",
+        verification: "AuthPoint Gateway added as RADIUS server."
+      },
+      {
+        stepNumber: 3,
+        title: "Enter Shared Secret",
+        instruction: "Enter the exact shared secret generated from AuthPoint.",
+        verification: "RADIUS shared secret matches."
+      },
+      {
+        stepNumber: 4,
+        title: "Enable RADIUS in SSL VPN",
+        instruction: "Navigate to VPN > Mobile VPN with SSL > Authentication, and set the default authentication server to RADIUS.",
+        verification: "SSL VPN uses RADIUS (AuthPoint) for primary authentication."
+      }
+    ],
+
   }
 ];

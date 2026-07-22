@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { useState } from "react";
 import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
 import { watchguardLabs, Lab, LabStep } from "../data/labs";
@@ -85,14 +86,14 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
       const diag = await response.json();
       setStuckDiagnosis(diag);
     } catch (error) {
-      console.error("Diagnostic error:", error);
+      errorHandler.error("Diagnostic error:", error);
     } finally {
       setIsLoadingDiagnosis(false);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+    <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-6 h-full">
       {/* Labs Catalog / Left Navigation */}
       <div className="lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full ">
         <h3 className="font-display font-semibold text-white border-b border-watchguard-border pb-3 mb-4 flex items-center space-x-2">

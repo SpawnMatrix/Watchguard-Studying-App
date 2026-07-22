@@ -251,7 +251,7 @@ export default function GeneralChat() {
           setMode("qa");
         }
       })
-      .catch(err => console.error("Failed to query initial feature status", err));
+      .catch(err => errorHandler.error("Failed to query initial feature status", err));
   }, []);
 
   useEffect(() => {
@@ -310,7 +310,7 @@ export default function GeneralChat() {
 
       setMessages(prev => [...prev, botMsg]);
     } catch (error: any) {
-      console.error("Chat error:", error);
+      errorHandler.error("Chat error:", error);
       setMessages(prev => [...prev, {
         id: `err-${Date.now()}`,
         sender: "bot",
