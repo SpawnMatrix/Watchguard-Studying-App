@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { examQuestions } from "../data/questions";
@@ -127,7 +128,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
+    errorHandler.warn("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
     return getLocalChatFallback(prompt);
   }
 }
@@ -190,7 +191,7 @@ Verified Correct Option: "${correctAnswer}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
+    errorHandler.warn("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
     return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 }
@@ -254,7 +255,7 @@ Technician described issue: "${technicianIssue}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
+    errorHandler.warn("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 }
@@ -306,7 +307,7 @@ Output must be in JSON format:
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
+    errorHandler.warn("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
     return getLocalPerformanceFallback(sessionHistory);
   }
 }
