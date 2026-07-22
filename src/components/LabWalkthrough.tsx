@@ -37,6 +37,18 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     setTechnicianIssue("");
   };
 
+  const handleClearSelectedLab = () => {
+    setSelectedLabId(null);
+  };
+
+  const handleToggleStuckMode = () => {
+    setIsStuckMode(!isStuckMode);
+  };
+
+  const handleTechnicianIssueChange = (issue: string) => {
+    setTechnicianIssue(issue);
+  };
+
   const handleStepComplete = () => {
     if (!activeLab) return;
     if (!completedSteps.includes(activeStepIdx)) {
