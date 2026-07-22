@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { examQuestions } from "../data/questions";
@@ -131,7 +132,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleAIError("generateChatResponse", err);
+    errorHandler.warn("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
     return getLocalChatFallback(prompt);
   }
 }
@@ -194,7 +195,7 @@ Verified Correct Option: "${correctAnswer}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleAIError("evaluateQuizAnswer", err);
+    errorHandler.warn("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
     return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 }
@@ -258,28 +259,20 @@ Technician described issue: "${technicianIssue}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleAIError("diagnoseLabFailure", err);
+    errorHandler.warn("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 }
 
-/**
- * Executive Auditor Analysis with Fallbacks
- */
-export async function analyzeCertificationPerformance(sessionHistory: any, customApiKey?: string): Promise<{
+export interface CertificationPerformanceReport {
   readinessScore: string;
   strengths: string[];
   criticalVulnerabilities: string[];
   recommendedLabs: string[];
   summary: string;
-}> {
-  if (!isAIFeaturesEnabled(customApiKey)) {
-    return getLocalPerformanceFallback(sessionHistory);
-  }
+}
 
-  try {
-    const ai = getAIClient(customApiKey);
-    const systemInstruction = `You are a WatchGuard Certified Readiness Auditor.
+const PERFORMANCE_SYSTEM_INSTRUCTION = `You are a WatchGuard Certified Readiness Auditor.
 Analyze the user's mock training logs (quiz and lab completion records) to generate a professional auditor performance report.
 Output must be in JSON format:
 1. 'readinessScore': String percentage representing exam preparedness.
@@ -288,29 +281,42 @@ Output must be in JSON format:
 4. 'recommendedLabs': Array of lab exercises they should do.
 5. 'summary': Executive manager overview.`;
 
+const PERFORMANCE_RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    readinessScore: { type: Type.STRING },
+    strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+    criticalVulnerabilities: { type: Type.ARRAY, items: { type: Type.STRING } },
+    recommendedLabs: { type: Type.ARRAY, items: { type: Type.STRING } },
+    summary: { type: Type.STRING }
+  },
+  required: ["readinessScore", "strengths", "criticalVulnerabilities", "recommendedLabs", "summary"]
+};
+
+/**
+ * Executive Auditor Analysis with Fallbacks
+ */
+export async function analyzeCertificationPerformance(sessionHistory: any, customApiKey?: string): Promise<CertificationPerformanceReport> {
+  if (!isAIFeaturesEnabled(customApiKey)) {
+    return getLocalPerformanceFallback(sessionHistory);
+  }
+
+  try {
+    const ai = getAIClient(customApiKey);
+
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: `User Performance Data: ${JSON.stringify(sessionHistory)}`,
       config: {
-        systemInstruction,
+        systemInstruction: PERFORMANCE_SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            readinessScore: { type: Type.STRING },
-            strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-            criticalVulnerabilities: { type: Type.ARRAY, items: { type: Type.STRING } },
-            recommendedLabs: { type: Type.ARRAY, items: { type: Type.STRING } },
-            summary: { type: Type.STRING }
-          },
-          required: ["readinessScore", "strengths", "criticalVulnerabilities", "recommendedLabs", "summary"]
-        }
+        responseSchema: PERFORMANCE_RESPONSE_SCHEMA
       }
     });
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleAIError("analyzeCertificationPerformance", err);
+    errorHandler.warn("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
     return getLocalPerformanceFallback(sessionHistory);
   }
 }
