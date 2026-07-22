@@ -25,6 +25,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [evaluation, setEvaluation] = useState<{ isCorrect: boolean; detailedExplanation: string; weaknessCategory: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // Tracked Session Analytics
   const [quizHistory, setQuizHistory] = useState<QuizHistoryItem[]>([]);
@@ -51,6 +52,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   const handleSubmit = async () => {
     if (selectedOptions.length === 0 || isSubmitted) return;
     setIsLoading(true);
+    setErrorMsg(null);
 
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
@@ -108,8 +110,9 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         history: nextHistory
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Evaluation error:", error);
+      setErrorMsg(error.message || "An unexpected error occurred during evaluation.");
     } finally {
       setIsLoading(false);
     }
@@ -119,6 +122,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     setSelectedOptions([]);
     setIsSubmitted(false);
     setEvaluation(null);
+    setErrorMsg(null);
 
     // 1. Find all unseen questions
     const unseen = examQuestions.filter(q => !seenQuestionIds.includes(q.id));
@@ -181,6 +185,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     setSelectedOptions([]);
     setIsSubmitted(false);
     setEvaluation(null);
+    setErrorMsg(null);
     setQuizHistory([]);
     setCorrectCount(0);
     onScoreUpdated({ score: "0%", topicWeaknesses: [], history: [] });
@@ -271,6 +276,24 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
               );
             })}
           </div>
+
+          {/* Error Message */}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-start space-x-3"
+              >
+                <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div className="text-red-200 text-sm leading-relaxed">
+                  <p className="font-semibold text-red-400 mb-1">Evaluation Error</p>
+                  <p>{errorMsg}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Detailed evaluation and architecture explanation */}
           <AnimatePresence>
