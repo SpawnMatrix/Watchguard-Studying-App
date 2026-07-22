@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
 import { createServer as createViteServer } from "vite";
 import {
   isAIFeaturesEnabled,
@@ -48,8 +49,17 @@ app.get("/api/features", (req, res) => {
   });
 });
 
+// Rate Limiter for Admin Actions
+const adminRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per `window` (here, per 15 minutes)
+  message: { success: false, message: "Too many attempts, please try again later." },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 // Admin Configuration Toggle
-app.post("/api/admin/toggle-ai", (req, res) => {
+app.post("/api/admin/toggle-ai", adminRateLimiter, (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
@@ -61,7 +71,7 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 });
 
 // Admin Password Login (Verification)
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", adminRateLimiter, (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
