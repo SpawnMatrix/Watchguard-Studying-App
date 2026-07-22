@@ -167,20 +167,25 @@ npm run start
 
 ---
 
-## 🐋 Automating Homelab Updates with Watchtower
+## 🐋 Automated homelab deployment
 
-This repository is configured with a **GitHub Action** that automatically builds and publishes a new Docker image to the GitHub Container Registry (`ghcr.io`) whenever changes are pushed to the `main` or `master` branch.
+The production deployment uses `compose.production.yml` and runs the portal on
+host port `3001` by default. A systemd timer checks the private GitHub `main`
+branch every five minutes. It builds a commit-tagged image, starts it, waits for
+the container health check, and rolls back to the previous image if startup
+fails.
 
-If you are running this app using Docker on your homelab, you can use **Watchtower** to automatically pull the latest image and restart the container, keeping your study portal always up to date!
+Deployment files are in `deploy/docker/`. The Docker host needs a read-only
+GitHub deploy key and an untracked `.env` file containing at least:
 
-Add this to your `docker-compose.yml` to enable automatic updates:
-
-```yaml
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 86400 watchguard-study-portal # Checks for updates every 24 hours
-    restart: unless-stopped
+```dotenv
+WATCHGUARD_HOST_PORT=3001
+ENABLE_AI_FEATURES=false
+GEMINI_API_KEY=
+ADMIN_PASSWORD=replace-with-a-long-random-value
 ```
+
+The GitHub Actions workflow also builds and publishes an amd64 image to GHCR
+after pushes to `main`. The homelab updater builds from its read-only checkout,
+so it does not require a GitHub Packages token and never stores write access to
+the repository.

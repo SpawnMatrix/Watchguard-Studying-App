@@ -1,0 +1,23 @@
+name: watchguard-study
+
+services:
+  watchguard-study-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: watchguard-study-portal:${WATCHGUARD_IMAGE_TAG:-local}
+    container_name: watchguard-study-portal
+    restart: unless-stopped
+    ports:
+      - "${WATCHGUARD_HOST_PORT:-3001}:3000"
+    environment:
+      PORT: "3000"
+      NODE_ENV: production
+      ENABLE_AI_FEATURES: "${ENABLE_AI_FEATURES:-false}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
