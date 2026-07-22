@@ -215,12 +215,16 @@ export default function FlashcardStudio() {
 
   // Filter cards based on category and search query
   const filteredCards = useMemo(() => {
+    const lowerQuery = searchQuery.toLowerCase();
     return HIGH_YIELD_FLASHCARDS.filter(card => {
       const matchesCategory = selectedCategory === "All" || card.category === selectedCategory;
-      const matchesSearch = card.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            card.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            card.keyConcept.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      if (!matchesCategory) return false;
+
+      if (!lowerQuery) return true;
+
+      return card.question.toLowerCase().includes(lowerQuery) ||
+             card.answer.toLowerCase().includes(lowerQuery) ||
+             card.keyConcept.toLowerCase().includes(lowerQuery);
     });
   }, [selectedCategory, searchQuery]);
 
