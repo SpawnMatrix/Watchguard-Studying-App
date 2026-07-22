@@ -1,47 +1,38 @@
 const { performance } = require('perf_hooks');
 
-const packets = [];
-for (let i = 0; i < 10000; i++) {
-  packets.push({
-    srcIP: `192.168.1.${i % 255}`,
-    dstIP: `10.0.0.${i % 255}`,
-    payload: 'test'
-  });
-}
-packets.push({ srcIP: '192.168.10.5', dstIP: '8.8.8.8', payload: 'target' });
+const blockedSites = Array.from({ length: 1000 }, (_, i) => `192.168.1.${i}`);
+const blockedSitesSet = new Set(blockedSites);
 
-const logs = [];
-for (let i = 0; i < 1000; i++) {
-  logs.push(`Allow TCP 192.168.10.5 8.8.8.8 80`);
+const srcIP = '10.0.0.1';
+const dstIP = '192.168.1.999';
+
+function testArray() {
+  let count = 0;
+  for (let i = 0; i < 100000; i++) {
+    if (blockedSites.includes(srcIP) || blockedSites.includes(dstIP)) {
+      count++;
+    }
+  }
+  return count;
 }
 
-// Baseline: linear search
-const startBaseline = performance.now();
-for (const log of logs) {
-  const parts = log.split(" ");
-  const srcIP = parts[2];
-  const dstIP = parts[3];
-  const matched = packets.find(p => p.srcIP === srcIP && p.dstIP === dstIP);
+function testSet() {
+  let count = 0;
+  for (let i = 0; i < 100000; i++) {
+    if (blockedSitesSet.has(srcIP) || blockedSitesSet.has(dstIP)) {
+      count++;
+    }
+  }
+  return count;
 }
-const endBaseline = performance.now();
 
-// Optimized: Map
-const startMapBuild = performance.now();
-const map = new Map();
-for (const p of packets) {
-  map.set(`${p.srcIP}-${p.dstIP}`, p);
-}
-const endMapBuild = performance.now();
+const startArray = performance.now();
+testArray();
+const endArray = performance.now();
 
-const startOptimized = performance.now();
-for (const log of logs) {
-  const parts = log.split(" ");
-  const srcIP = parts[2];
-  const dstIP = parts[3];
-  const matched = map.get(`${srcIP}-${dstIP}`);
-}
-const endOptimized = performance.now();
+const startSet = performance.now();
+testSet();
+const endSet = performance.now();
 
-console.log(`Baseline: ${endBaseline - startBaseline} ms`);
-console.log(`Optimized (Lookup only): ${endOptimized - startOptimized} ms`);
-console.log(`Optimized (Build + Lookup): ${endOptimized - startOptimized + endMapBuild - startMapBuild} ms`);
+console.log(`Array includes: ${endArray - startArray} ms`);
+console.log(`Set has: ${endSet - startSet} ms`);
