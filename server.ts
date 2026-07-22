@@ -63,11 +63,11 @@ app.get("/api/features", (req, res) => {
 // Admin Configuration Toggle
 app.post("/api/admin/toggle-ai", (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const adminPass = process.env.ADMIN_PASSWORD;
   const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
   const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if (password !== adminPass && !isEmailAdmin) {
+  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
@@ -77,11 +77,11 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 // Admin Password Login (Verification)
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const adminPass = process.env.ADMIN_PASSWORD;
   const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
   const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if (password !== adminPass && !isEmailAdmin) {
+  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   res.json({ success: true, emails: getAdminEmails() });
@@ -95,11 +95,11 @@ app.get("/api/admin/emails", (req, res) => {
 // Add Admin Email (Google SSO style)
 app.post("/api/admin/emails/add", (req, res) => {
   const { email, password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const adminPass = process.env.ADMIN_PASSWORD;
   const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
   const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if (password !== adminPass && !isEmailAdmin) {
+  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
     return res.status(403).json({ success: false, message: "Unauthorized admin access" });
   }
 
@@ -114,11 +114,11 @@ app.post("/api/admin/emails/add", (req, res) => {
 // Remove Admin Email
 app.post("/api/admin/emails/remove", (req, res) => {
   const { email, password } = req.body;
-  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  const adminPass = process.env.ADMIN_PASSWORD;
   const requesterEmail = cleanIdentityHeader(req.get("Remote-Email")) || "Juliendumitrescu@gmail.com";
   const isEmailAdmin = getAdminEmails().includes(requesterEmail);
 
-  if (password !== adminPass && !isEmailAdmin) {
+  if ((!adminPass || password !== adminPass) && !isEmailAdmin) {
     return res.status(403).json({ success: false, message: "Unauthorized admin access" });
   }
 

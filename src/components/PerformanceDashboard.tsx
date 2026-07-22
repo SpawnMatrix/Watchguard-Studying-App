@@ -244,9 +244,9 @@ export default function PerformanceDashboard({
   return (
     <div className="space-y-6 h-full overflow-y-auto pr-2">
       {/* Overview Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         {/* Exam Readiness Score */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
+        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
           <div className="space-y-1">
             <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Audited Exam Readiness</span>
             <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
@@ -283,7 +283,7 @@ export default function PerformanceDashboard({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Certification Weakness Tracker / Study Plan */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4">
+        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-5 transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
           <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
             <ShieldAlert className="w-4 h-4 text-watchguard-orange" />
             <h3 className="font-display font-semibold text-white">Critical Weakness Tracker</h3>
@@ -316,7 +316,7 @@ export default function PerformanceDashboard({
         </div>
 
         {/* Audit Report Builder */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-5 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
           <div className="space-y-2.5">
             <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
               <FileText className="w-4 h-4 text-watchguard-orange" />
@@ -339,7 +339,7 @@ export default function PerformanceDashboard({
       </div>
 
       {/* Security Gateway AI Console (Admin and User Override panel) */}
-      <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-5">
+      <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-6 transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
         <div className="flex items-center justify-between border-b border-watchguard-border pb-3 flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Settings className="w-4 h-4 text-watchguard-orange" />
@@ -550,7 +550,7 @@ export default function PerformanceDashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-watchguard-gray border-2 border-watchguard-border rounded-xl p-6 shadow-2xl relative overflow-hidden"
+            className="bg-watchguard-gray border-2 border-watchguard-orange/50 rounded-2xl p-8 shadow-3xl relative overflow-hidden transition-all hover:border-watchguard-orange"
           >
             {/* Glowing background ring */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-watchguard-orange/5 rounded-full blur-3xl pointer-events-none"></div>

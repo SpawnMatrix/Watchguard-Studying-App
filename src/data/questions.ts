@@ -1276,6 +1276,81 @@ export const examQuestions: Question[] = [
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
+  },
+  {
+    id: 101,
+    question: "Which of the following is true regarding BOVPN over TLS? (Select one.)",
+    options: [
+      "It uses UDP port 500 for key exchange.",
+      "It provides a way to pass BOVPN traffic through environments that block IPsec.",
+      "It requires a third-party client installed on all hosts.",
+      "It is only supported on Cloud-Managed Fireboxes."
+    ],
+    correctAnswer: "It provides a way to pass BOVPN traffic through environments that block IPsec.",
+    correctAnswers: ["It provides a way to pass BOVPN traffic through environments that block IPsec."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "BOVPN"
+  },
+  {
+    id: 102,
+    question: "If a user complains they cannot reach a specific public website but other sites work, and you see 'Denied' messages in Traffic Monitor related to WebBlocker, what should you do first to resolve this while maintaining security? (Select one.)",
+    options: [
+      "Disable the WebBlocker service entirely.",
+      "Add a WebBlocker exception for the specific website URL.",
+      "Create a packet filter policy to allow all outbound traffic.",
+      "Change the WebBlocker action for all categories to 'Allow'."
+    ],
+    correctAnswer: "Add a WebBlocker exception for the specific website URL.",
+    correctAnswers: ["Add a WebBlocker exception for the specific website URL."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 103,
+    question: "When configuring a firewall policy, what happens if you select 'Auto-Order' in Policy Manager? (Select one.)",
+    options: [
+      "Policies are arranged alphabetically by name.",
+      "The Firebox sorts policies from most specific to least specific.",
+      "Policies are executed in parallel.",
+      "The default Outgoing policy is moved to the top."
+    ],
+    correctAnswer: "The Firebox sorts policies from most specific to least specific.",
+    correctAnswers: ["The Firebox sorts policies from most specific to least specific."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Policies"
+  },
+  {
+    id: 104,
+    question: "Which Firebox feature allows you to monitor and block applications like BitTorrent or Skype? (Select one.)",
+    options: [
+      "WebBlocker",
+      "Application Control",
+      "Intrusion Prevention Service (IPS)",
+      "Gateway AntiVirus"
+    ],
+    correctAnswer: "Application Control",
+    correctAnswers: ["Application Control"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 105,
+    question: "In what scenario would you use a Drop-In network configuration? (Select one.)",
+    options: [
+      "When you have multiple public IP addresses and want to route them to different internal subnets.",
+      "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
+      "When configuring a high-availability active/active cluster.",
+      "When you need to use NAT for all outbound traffic."
+    ],
+    correctAnswer: "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
+    correctAnswers: ["When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
   }
 ];
 

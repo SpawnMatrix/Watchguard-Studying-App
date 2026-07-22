@@ -199,7 +199,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full font-sans">
       {/* Active Examination Frame */}
-      <div className="lg:col-span-2 flex flex-col bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl h-full">
+      <div className="lg:col-span-2 flex flex-col bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl h-full ">
         {/* Header bar */}
         <div className="flex items-center justify-between px-6 py-4 bg-watchguard-lightgray border-b border-watchguard-border flex-wrap gap-3">
           <div className="flex items-center space-x-2">
@@ -338,7 +338,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
       {/* Weakness Analysis Panel */}
       <div className="space-y-6">
         {/* Scorecard Widget */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4">
+        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4 ">
           <div className="flex items-center justify-between border-b border-watchguard-border pb-3">
             <h3 className="font-display font-semibold text-white flex items-center space-x-2">
               <Award className="w-4 h-4 text-watchguard-orange" />

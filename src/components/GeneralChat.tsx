@@ -356,7 +356,7 @@ export default function GeneralChat() {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-full bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl ">
       
       {/* Mentor Dual-Mode Navigation Header */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-6 py-4 bg-watchguard-lightgray border-b border-watchguard-border gap-3">
