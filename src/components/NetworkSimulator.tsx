@@ -511,7 +511,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Source Interface Zone</label>
                   <select 
                     value={srcZone} 
-                    onChange={e => setSrcZone(e.target.value as any)}
+                    onChange={e => setSrcZone(e.target.value as "trusted" | "dmz" | "external")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="trusted">ETH1 (Trusted)</option>
@@ -525,7 +525,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Destination Zone</label>
                   <select 
                     value={dstZone} 
-                    onChange={e => setDstZone(e.target.value as any)}
+                    onChange={e => setDstZone(e.target.value as "trusted" | "dmz" | "external")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="external">ETH0 (External / WAN)</option>
@@ -541,7 +541,7 @@ export default function NetworkSimulator() {
                   <label className="text-[9px] font-semibold text-gray-500 block">Protocol</label>
                   <select 
                     value={customProtocol} 
-                    onChange={e => setCustomProtocol(e.target.value as any)}
+                    onChange={e => setCustomProtocol(e.target.value as "TCP" | "UDP" | "ICMP" | "HTTPS")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-1 py-1 w-full focus:outline-none"
                   >
                     <option value="TCP">TCP</option>
