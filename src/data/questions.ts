@@ -3,7 +3,7 @@ export interface Question {
   question: string;
   options: string[];
   correctAnswer: string; // Left for backward compatibility/display
-  correctAnswers: string[]; // Absolute source of truth for verification
+  correctAnswers: string[];
   isMultiSelect: boolean;
   correctAnswersCount: number; // For multi-select
   topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring";
@@ -1348,6 +1348,187 @@ export const examQuestions: Question[] = [
     ],
     correctAnswer: "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
     correctAnswers: ["When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  }
+,
+  {
+    id: 106,
+    question: "When configuring AuthPoint MFA, which of these are valid authentication methods for users logging into the Fireware Web UI? (Select TWO.)",
+    options: ["Push notification", "SMS passcodes", "Hardware token (TOTP)", "Voice call verification"],
+    correctAnswer: "Push notification | Hardware token (TOTP)",
+    correctAnswers: ["Push notification", "Hardware token (TOTP)"],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "Security Services"
+  },
+  {
+    id: 107,
+    question: "WatchGuard ThreatSync correlates events from the Firebox and which other endpoint agent to detect and remediate threats? (Select one.)",
+    options: ["AuthPoint Agent", "WatchGuard Endpoint Security (EPDR)", "DNSWatchGO Client", "WatchGuard Mobile VPN Client"],
+    correctAnswer: "WatchGuard Endpoint Security (EPDR)",
+    correctAnswers: ["WatchGuard Endpoint Security (EPDR)"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 108,
+    question: "You want to divide your network into logical broadcast domains to separate the Accounting department from the Sales department on the same physical switch. What fundamental networking concept must be applied? (Select one.)",
+    options: ["VLANs (Virtual Local Area Networks)", "STP (Spanning Tree Protocol)", "LACP (Link Aggregation Control Protocol)", "NAT (Network Address Translation)"],
+    correctAnswer: "VLANs (Virtual Local Area Networks)",
+    correctAnswers: ["VLANs (Virtual Local Area Networks)"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 109,
+    question: "Which layer of the OSI model does the Firebox's standard Packet Filter policy primarily operate on to inspect source/destination IPs and port numbers? (Select TWO.)",
+    options: ["Layer 2 (Data Link)", "Layer 3 (Network)", "Layer 4 (Transport)", "Layer 7 (Application)"],
+    correctAnswer: "Layer 3 (Network) | Layer 4 (Transport)",
+    correctAnswers: ["Layer 3 (Network)", "Layer 4 (Transport)"],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "Policies"
+  },
+  {
+    id: 110,
+    question: "What subnet mask is represented by the CIDR notation /27? (Select one.)",
+    options: ["255.255.255.192", "255.255.255.224", "255.255.255.240", "255.255.255.248"],
+    correctAnswer: "255.255.255.224",
+    correctAnswers: ["255.255.255.224"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Routing"
+  },
+  {
+    id: 111,
+    question: "When configuring a Firebox as a DHCP server, what must you do to ensure a specific printer always receives the same IP address 10.0.1.50? (Select one.)",
+    options: ["Create a 1-to-1 NAT policy for the printer", "Create a static MAC-to-IP address reservation", "Set the IP address as the gateway IP", "Exclude 10.0.1.50 from the DHCP scope and configure nothing else"],
+    correctAnswer: "Create a static MAC-to-IP address reservation",
+    correctAnswers: ["Create a static MAC-to-IP address reservation"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 112,
+    question: "Which common port is utilized by the RDP (Remote Desktop Protocol) service by default, which should be strictly secured or blocked from the external network? (Select one.)",
+    options: ["TCP 22", "TCP 443", "TCP 3389", "UDP 500"],
+    correctAnswer: "TCP 3389",
+    correctAnswers: ["TCP 3389"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Policies"
+  },
+  {
+    id: 113,
+    question: "You want to deploy an SSL VPN. What must be true about the IP address pool you assign to the SSL VPN clients? (Select one.)",
+    options: ["It must be in the exact same subnet as the Trusted interface.", "It must be a publicly routable IP address range.", "It must not overlap with any routed internal networks or remote VPN subnets.", "It must always use the 192.168.113.0/24 subnet regardless of your network topology."],
+    correctAnswer: "It must not overlap with any routed internal networks or remote VPN subnets.",
+    correctAnswers: ["It must not overlap with any routed internal networks or remote VPN subnets."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Mobile VPN"
+  },
+  {
+    id: 114,
+    question: "In a network topology utilizing OSPF (Open Shortest Path First), which routing metric does OSPF use to determine the best path? (Select one.)",
+    options: ["Hop Count", "Cost (based on link bandwidth)", "Delay", "Reliability"],
+    correctAnswer: "Cost (based on link bandwidth)",
+    correctAnswers: ["Cost (based on link bandwidth)"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Routing"
+  },
+  {
+    id: 115,
+    question: "Which of the following describes the difference between an Access port and a Trunk port on a managed switch connected to a Firebox? (Select one.)",
+    options: [
+      "Access ports carry traffic for multiple VLANs using 802.1Q tags, Trunk ports carry traffic for one untagged VLAN.",
+      "Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs.",
+      "Access ports provide power over ethernet (PoE), Trunk ports provide data only.",
+      "Access ports connect to routers, Trunk ports connect to end-user workstations."
+    ],
+    correctAnswer: "Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs.",
+    correctAnswers: ["Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs."],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 116,
+    question: "You enable the Gateway AntiVirus (GAV) service on your HTTP-proxy. Why might GAV fail to scan a downloaded ZIP file? (Select TWO.)",
+    options: [
+      "The ZIP file is password-encrypted.",
+      "The ZIP file exceeds the configured scan size limit.",
+      "The ZIP file contains a recognized executable.",
+      "The ZIP file was downloaded via FTP."
+    ],
+    correctAnswer: "The ZIP file is password-encrypted. | The ZIP file exceeds the configured scan size limit.",
+    correctAnswers: ["The ZIP file is password-encrypted.", "The ZIP file exceeds the configured scan size limit."],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "Security Services"
+  },
+  {
+    id: 117,
+    question: "Which IEEE protocol provides port-based network access control (PNAC) and can be used to authenticate devices before granting them access to the LAN? (Select one.)",
+    options: ["802.11ax", "802.1Q", "802.1X", "802.3ad"],
+    correctAnswer: "802.1X",
+    correctAnswers: ["802.1X"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 118,
+    question: "You are setting up WatchGuard AuthPoint. What component must you install on your local network to integrate AuthPoint with your on-premises Active Directory server? (Select one.)",
+    options: ["AuthPoint Agent for Windows", "AuthPoint Gateway", "WatchGuard AD Helper", "Active Directory Federation Services (ADFS)"],
+    correctAnswer: "AuthPoint Gateway",
+    correctAnswers: ["AuthPoint Gateway"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 119,
+    question: "When analyzing a subnet mask of 255.255.255.128 (/25), how many usable host IP addresses are available in the subnet? (Select one.)",
+    options: ["128", "126", "256", "254"],
+    correctAnswer: "126",
+    correctAnswers: ["126"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Routing"
+  },
+  {
+    id: 120,
+    question: "Which of the following actions can ThreatSync automatically perform if an endpoint is compromised? (Select TWO.)",
+    options: ["Isolate the device from the network", "Kill the malicious process on the endpoint", "Format the endpoint's hard drive", "Uninstall the operating system"],
+    correctAnswer: "Isolate the device from the network | Kill the malicious process on the endpoint",
+    correctAnswers: ["Isolate the device from the network", "Kill the malicious process on the endpoint"],
+    isMultiSelect: true,
+    correctAnswersCount: 2,
+    topic: "Security Services"
+  },
+  {
+    id: 121,
+    question: "To prevent DNS cache poisoning and man-in-the-middle attacks on DNS queries, what security extension can be enabled? (Select one.)",
+    options: ["DNSSEC", "DNSWatch", "DoH (DNS over HTTPS)", "DMARC"],
+    correctAnswer: "DNSSEC",
+    correctAnswers: ["DNSSEC"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Security Services"
+  },
+  {
+    id: 122,
+    question: "You want to combine multiple physical interfaces into a single logical interface to increase bandwidth and provide redundancy. What feature should you configure? (Select one.)",
+    options: ["Multi-WAN", "Link Aggregation (LAG) / LACP", "Bridge Network", "Spanning Tree Protocol (STP)"],
+    correctAnswer: "Link Aggregation (LAG) / LACP",
+    correctAnswers: ["Link Aggregation (LAG) / LACP"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
