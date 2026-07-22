@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { useState } from "react";
 import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
 import { watchguardLabs, Lab, LabStep } from "../data/labs";
@@ -85,7 +86,7 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
       const diag = await response.json();
       setStuckDiagnosis(diag);
     } catch (error) {
-      console.error("Diagnostic error:", error);
+      errorHandler.error("Diagnostic error:", error);
     } finally {
       setIsLoadingDiagnosis(false);
     }

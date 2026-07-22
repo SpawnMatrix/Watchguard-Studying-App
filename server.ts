@@ -24,13 +24,42 @@ function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
 }
 
+function isTrustedProxy(ip: string | undefined): boolean {
+  if (!ip) return false;
+  // Handle IPv4-mapped IPv6 addresses
+  if (ip.startsWith("::ffff:")) ip = ip.substring(7);
+
+  // Loopback
+  if (ip === "127.0.0.1" || ip === "::1") return true;
+
+  // Private IPv4 (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+  if (ip.startsWith("10.")) return true;
+  if (ip.startsWith("192.168.")) return true;
+  if (ip.startsWith("172.")) {
+    const secondOctet = parseInt(ip.split(".")[1], 10);
+    if (secondOctet >= 16 && secondOctet <= 31) return true;
+  }
+
+  // Private IPv6 (Unique Local Addresses: fc00::/7)
+  if (/^[fF][cCdD]/.test(ip)) return true;
+  // Link-local IPv6 (fe80::/10)
+  if (/^[fF][eE][89aAbB]/.test(ip)) return true;
+
+  return false;
+}
+
 // Pangolin forwards authenticated user details through Remote-* headers.
 // Report only whether Pangolin authenticated the request. Personal identity
 // headers intentionally stay server-side and are never returned to the app.
 app.get("/api/session", (req, res) => {
-  const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
-  const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
-  const forwardedIdentity = remoteName || remoteUser;
+  const clientIp = req.socket.remoteAddress;
+  let forwardedIdentity = "";
+
+  if (isTrustedProxy(clientIp)) {
+    const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
+    const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
+    forwardedIdentity = remoteName || remoteUser;
+  }
 
   res.set("Cache-Control", "private, no-store");
   res.json({

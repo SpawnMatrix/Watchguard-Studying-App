@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import { useState } from "react";
 import { CheckCircle2, XCircle, ArrowRight, Award, Trophy, Bookmark, BarChart, RotateCcw, AlertCircle, HelpCircle } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
@@ -110,9 +111,8 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         history: nextHistory
       });
 
-    } catch (error: any) {
-      console.error("Evaluation error:", error);
-      setErrorMsg(error.message || "An unexpected error occurred during evaluation.");
+    } catch (error) {
+      errorHandler.error("Evaluation error:", error);
     } finally {
       setIsLoading(false);
     }

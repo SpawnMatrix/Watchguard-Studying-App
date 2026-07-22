@@ -1,3 +1,4 @@
+import { errorHandler } from "../utils/errorHandler";
 import React, { useState, useEffect } from "react";
 import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -58,7 +59,7 @@ export default function PerformanceDashboard({
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
       })
-      .catch(err => console.error("Failed to query initial feature status", err));
+      .catch(err => errorHandler.error("Failed to query initial feature status", err));
   };
 
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function PerformanceDashboard({
       const data = await response.json();
       setReport(data);
     } catch (error) {
-      console.error("Report error:", error);
+      errorHandler.error("Report error:", error);
     } finally {
       setIsLoading(false);
     }

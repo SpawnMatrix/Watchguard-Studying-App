@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   Terminal, Shield, Cpu, RefreshCw, Layers, CheckCircle, Play, 
   AlertCircle, XCircle, Plus, Trash2, Settings, HelpCircle, ShieldAlert, Zap
@@ -35,6 +35,10 @@ export default function NetworkSimulator() {
   const [blockedPorts, setBlockedPorts] = useState<number[]>([23, 21]); // Block Telnet/FTP
   const [newSiteBlock, setNewSiteBlock] = useState("");
   const [newPortBlock, setNewPortBlock] = useState("");
+
+  // O(1) Lookup Sets for Performance
+  const blockedSitesSet = useMemo(() => new Set(blockedSites), [blockedSites]);
+  const blockedPortsSet = useMemo(() => new Set(blockedPorts), [blockedPorts]);
 
   // Interactive Packet Injector Form States
   const [srcZone, setSrcZone] = useState<"trusted" | "dmz" | "external">("trusted");
@@ -116,11 +120,11 @@ export default function NetworkSimulator() {
     let reason = "Allowed by outbound TCP-UDP packet filters.";
 
     // 1. DEFAULT THREAT PROTECTION (Precedes policies!)
-    if (blockedSites.includes(srcIP) || blockedSites.includes(dstIP)) {
+    if (blockedSitesSet.has(srcIP) || blockedSitesSet.has(dstIP)) {
       status = "Denied";
       matchedPolicy = "Default Threat Protection: Blocked Sites";
       reason = "Dropped immediately because the IP matches an entry in the Blocked Sites list.";
-    } else if (blockedPorts.includes(dstPort)) {
+    } else if (blockedPortsSet.has(dstPort)) {
       status = "Denied";
       matchedPolicy = "Default Threat Protection: Blocked Ports";
       reason = "Dropped immediately because the destination port is in the Blocked Ports database.";
@@ -511,7 +515,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Source Interface Zone</label>
                   <select 
                     value={srcZone} 
-                    onChange={e => setSrcZone(e.target.value as any)}
+                    onChange={e => setSrcZone(e.target.value as "trusted" | "dmz" | "external")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="trusted">ETH1 (Trusted)</option>
@@ -525,7 +529,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Destination Zone</label>
                   <select 
                     value={dstZone} 
-                    onChange={e => setDstZone(e.target.value as any)}
+                    onChange={e => setDstZone(e.target.value as "trusted" | "dmz" | "external")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="external">ETH0 (External / WAN)</option>
@@ -541,7 +545,7 @@ export default function NetworkSimulator() {
                   <label className="text-[9px] font-semibold text-gray-500 block">Protocol</label>
                   <select 
                     value={customProtocol} 
-                    onChange={e => setCustomProtocol(e.target.value as any)}
+                    onChange={e => setCustomProtocol(e.target.value as "TCP" | "UDP" | "ICMP" | "HTTPS")}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-1 py-1 w-full focus:outline-none"
                   >
                     <option value="TCP">TCP</option>
