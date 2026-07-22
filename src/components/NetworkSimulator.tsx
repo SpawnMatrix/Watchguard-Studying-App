@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   Terminal, Shield, Cpu, RefreshCw, Layers, CheckCircle, Play, 
   AlertCircle, XCircle, Plus, Trash2, Settings, HelpCircle, ShieldAlert, Zap
@@ -98,6 +98,16 @@ export default function NetworkSimulator() {
       setCustomPayload("Standard HTTP Web request");
     }
   }, [customProtocol]);
+
+  // Optimized historical packet lookup map
+  const packetLookupMap = useMemo(() => {
+    const map = new Map<string, Packet>();
+    packets.forEach(p => {
+      const key = `${p.srcIP}-${p.dstIP}`;
+      if (!map.has(key)) map.set(key, p);
+    });
+    return map;
+  }, [packets]);
 
   // Core Firebox Packet Processing Engine
   const processPacket = (
@@ -770,7 +780,7 @@ export default function NetworkSimulator() {
                     const parts = log.split(" ");
                     const srcIP = parts[2];
                     const dstIP = parts[3];
-                    const matched = packets.find(p => p.srcIP === srcIP && p.dstIP === dstIP);
+                    const matched = packetLookupMap.get(`${srcIP}-${dstIP}`);
                     if (matched) setInspectedPacket(matched);
                   }}
                   className={`leading-normal break-all font-mono py-1 rounded px-1.5 transition-all cursor-pointer hover:bg-watchguard-lightgray/20 ${
