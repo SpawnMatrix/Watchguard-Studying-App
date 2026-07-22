@@ -354,7 +354,7 @@ export default function App() {
                     autoComplete="nickname"
                     value={profileDraft}
                     onChange={(event) => setProfileDraft(event.target.value)}
-                    placeholder="For example: Spawn or Julie D."
+                    placeholder="For example: Alex or Sam"
                     className="w-full rounded-lg border border-watchguard-border bg-watchguard-dark px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-watchguard-orange"
                   />
                   <p className="mt-1.5 text-[10px] font-mono text-gray-500">Browser-only • 32 characters maximum</p>
