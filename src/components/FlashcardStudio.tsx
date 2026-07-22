@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { BookOpen, RefreshCw, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, HelpCircle, Award, Layers, Volume2, Search, ExternalLink } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AlertCircle } from "lucide-react";
+import FlashcardStudioStats from "./FlashcardStudioStats";
+import FlashcardStudioSidebar from "./FlashcardStudioSidebar";
+import FlashcardStudioCard from "./FlashcardStudioCard";
+import FlashcardStudioControls from "./FlashcardStudioControls";
+import FlashcardStudioResources from "./FlashcardStudioResources";
 
 interface Flashcard {
   id: number;
@@ -274,115 +278,25 @@ export default function FlashcardStudio() {
   return (
     <div className="space-y-6">
       
-      {/* Overview Stat Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        {/* Progress Card */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 flex items-center space-x-4">
-          <div className="p-3 bg-watchguard-orange/15 rounded-xl border border-watchguard-orange/30">
-            <Award className="w-6 h-6 text-watchguard-orange" />
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-end">
-              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold">Exam Mastery Goal</span>
-              <span className="text-sm font-semibold text-white font-mono">{progressPercent}%</span>
-            </div>
-            <div className="w-full bg-watchguard-dark h-2 rounded-full mt-2 overflow-hidden border border-watchguard-border">
-              <div 
-                className="bg-watchguard-orange h-full rounded-full transition-all duration-500" 
-                style={{ width: `${progressPercent}%` }}
-              ></div>
-            </div>
-            <p className="text-[11px] text-gray-400 mt-1.5 font-sans leading-normal">
-              {masteredCount} of {HIGH_YIELD_FLASHCARDS.length} essential NSE topics flagged as mastered.
-            </p>
-          </div>
-        </div>
-
-        {/* Categories Overview */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 flex items-center space-x-4">
-          <div className="p-3 bg-watchguard-orange/15 rounded-xl border border-watchguard-orange/30">
-            <Layers className="w-6 h-6 text-watchguard-orange" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Coded Syllabus Areas</span>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Setup</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Policies</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Routing</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">VPN</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Diagnostics</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Help Portal link */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 flex items-center space-x-4">
-          <div className="p-3 bg-watchguard-orange/15 rounded-xl border border-watchguard-orange/30">
-            <BookOpen className="w-6 h-6 text-watchguard-orange" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Study Guide Links</span>
-            <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-              Based directly on the <strong>locally managed firebox syllabus</strong> for the Network Security Essentials exam.
-            </p>
-            <button 
-              onClick={handleResetProgress}
-              className="text-[10px] text-red-400 hover:text-red-300 underline font-mono bg-transparent border-0 mt-1 px-0 cursor-pointer block"
-            >
-              Reset All Progress
-            </button>
-          </div>
-        </div>
-      </div>
+      <FlashcardStudioStats
+        progressPercent={progressPercent}
+        masteredCount={masteredCount}
+        totalCount={HIGH_YIELD_FLASHCARDS.length}
+        handleResetProgress={handleResetProgress}
+      />
 
       {/* Main Flashcard Interface Arena */}
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-6 shadow-2xl flex flex-col md:flex-row gap-6">
         
-        {/* Left Side: Filter Panels */}
-        <div className="w-full md:w-64 space-y-4 flex-shrink-0">
-          <div>
-            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">Category Filter</h3>
-            <div className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`text-left text-xs px-3.5 py-2 rounded-lg transition-all font-mono whitespace-nowrap cursor-pointer flex-shrink-0 ${
-                    selectedCategory === cat
-                      ? "bg-watchguard-orange text-white border border-watchguard-orange/30 shadow"
-                      : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray"
-                  }`}
-                >
-                  {cat === "All" ? "All Syllabuses" : `${cat} Domain`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">Keyword Search</h3>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search definitions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg pl-8 pr-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
-              />
-              <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            </div>
-          </div>
-
-          {filteredCards.length > 0 && (
-            <div className="bg-watchguard-dark/40 border border-watchguard-border/60 p-3 rounded-lg space-y-1">
-              <span className="text-[10px] font-mono text-gray-500 block">Syllabus Index</span>
-              <p className="text-[11px] text-gray-300 font-sans">
-                Showing {currentIndex + 1} of {filteredCards.length} matching flashcards.
-              </p>
-            </div>
-          )}
-        </div>
+        <FlashcardStudioSidebar
+          categories={categories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filteredCardsLength={filteredCards.length}
+          currentIndex={currentIndex}
+        />
 
         {/* Right Side: Flashcard Display Stage */}
         <div className="flex-1 flex flex-col items-center justify-between min-h-[400px] bg-watchguard-dark/20 rounded-xl border border-watchguard-border/60 p-6 space-y-6">
@@ -409,206 +323,31 @@ export default function FlashcardStudio() {
               </div>
             ) : (
               activeCard && (
-                <div 
-                  id={`flashcard-${activeCard.id}`}
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className="w-full min-h-[260px] bg-watchguard-gray border border-watchguard-border rounded-xl p-6 shadow-2xl relative cursor-pointer select-none overflow-hidden hover:border-watchguard-orange/40 transition-all flex flex-col justify-between"
-                  style={{
-                    perspective: "1000px"
-                  }}
-                >
-                  {/* Decorative background grids */}
-                  <div className="absolute inset-0 bg-[radial-gradient(#1e1e1e_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none"></div>
-
-                  <AnimatePresence mode="wait">
-                    {!isFlipped ? (
-                      <motion.div
-                        key="front"
-                        initial={{ opacity: 0, rotateY: 90 }}
-                        animate={{ opacity: 1, rotateY: 0 }}
-                        exit={{ opacity: 0, rotateY: -90 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex-1 flex flex-col justify-between h-full"
-                      >
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono text-gray-500 font-semibold uppercase">Question Card</span>
-                            <span className="text-xs text-watchguard-orange font-mono font-medium">#{activeCard.id}</span>
-                          </div>
-                          
-                          <h2 className="text-lg font-display font-medium text-white tracking-tight leading-relaxed select-text cursor-text" onClick={(e) => e.stopPropagation()}>
-                            {activeCard.question}
-                          </h2>
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between text-xs text-gray-400 border-t border-watchguard-border/40 pt-4 font-mono">
-                          <span className="flex items-center space-x-1.5">
-                            <RefreshCw className="w-3.5 h-3.5 text-watchguard-orange animate-spin-slow" />
-                            <span>Click card to reveal answer</span>
-                          </span>
-                          <span className="text-gray-500 text-[10px]">Key: {activeCard.keyConcept}</span>
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="back"
-                        initial={{ opacity: 0, rotateY: -90 }}
-                        animate={{ opacity: 1, rotateY: 0 }}
-                        exit={{ opacity: 0, rotateY: 90 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex-1 flex flex-col justify-between h-full"
-                      >
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono text-emerald-400 font-semibold uppercase flex items-center space-x-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Syllabus Verification</span>
-                            </span>
-                            <span className="text-xs text-watchguard-orange font-mono font-medium">#{activeCard.id}</span>
-                          </div>
-
-                          <div className="text-sm text-gray-200 leading-relaxed font-sans whitespace-pre-wrap select-text cursor-text" onClick={(e) => e.stopPropagation()}>
-                            {activeCard.answer}
-                          </div>
-
-                          {activeCard.examTip && (
-                            <div className="bg-watchguard-orange/5 border border-watchguard-orange/20 rounded-lg p-3 space-y-1 select-text cursor-text" onClick={(e) => e.stopPropagation()}>
-                              <span className="text-[10px] font-mono font-bold text-watchguard-orange uppercase tracking-wide block">🔥 HIGHER-YIELD EXAM TIP</span>
-                              <p className="text-xs text-gray-300 leading-relaxed font-sans">
-                                {activeCard.examTip}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between text-xs text-gray-400 border-t border-watchguard-border/40 pt-4 font-mono">
-                          <span className="text-[10px] text-gray-500">Ref: {activeCard.officialReference}</span>
-                          <span className="text-watchguard-orange text-[10px] flex items-center space-x-1">
-                            <span>Click to flip back</span>
-                          </span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <FlashcardStudioCard
+                  activeCard={activeCard}
+                  isFlipped={isFlipped}
+                  setIsFlipped={setIsFlipped}
+                />
               )
             )}
           </div>
 
-          {/* Mastered toggle & Navigation Buttons */}
           {activeCard && (
-            <div className="w-full max-w-xl flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-watchguard-border/40">
-              
-              {/* Mastery toggle */}
-              <button
-                type="button"
-                onClick={() => handleToggleMastered(activeCard.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-mono tracking-wide border cursor-pointer select-none transition-all ${
-                  masteredIds.includes(activeCard.id)
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15"
-                    : "bg-watchguard-lightgray text-gray-400 border-watchguard-border hover:bg-watchguard-lightgray/80 hover:text-white"
-                }`}
-              >
-                <CheckCircle2 className={`w-4 h-4 ${masteredIds.includes(activeCard.id) ? "text-emerald-400" : "text-gray-500"}`} />
-                <span>{masteredIds.includes(activeCard.id) ? "Mastered Topic ✓" : "Mark as Mastered"}</span>
-              </button>
-
-              {/* Slider Arrows */}
-              <div className="flex items-center space-x-3.5">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  className="p-2.5 bg-watchguard-lightgray hover:bg-watchguard-lightgray/80 text-gray-300 hover:text-white rounded-lg border border-watchguard-border hover:border-watchguard-orange/40 transition-all cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs text-gray-400 font-mono">
-                  {currentIndex + 1} / {filteredCards.length}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="p-2.5 bg-watchguard-lightgray hover:bg-watchguard-lightgray/80 text-gray-300 hover:text-white rounded-lg border border-watchguard-border hover:border-watchguard-orange/40 transition-all cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-            </div>
+            <FlashcardStudioControls
+              activeCardId={activeCard.id}
+              masteredIds={masteredIds}
+              handleToggleMastered={handleToggleMastered}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              currentIndex={currentIndex}
+              filteredCardsLength={filteredCards.length}
+            />
           )}
 
         </div>
       </div>
 
-      {/* Recommended study curriculum resources */}
-      <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
-          <BookOpen className="w-4 h-4 text-watchguard-orange" />
-          <h3 className="font-display font-semibold text-white">WatchGuard NSE Official Reference Catalog</h3>
-        </div>
-        <p className="text-xs text-gray-400 leading-relaxed font-sans">
-          To prepare to **PASS** your WatchGuard Network Security exam (Locally-Managed Fireboxes), use these highly recommended study materials, curated video tutorials, and interactive reference sets.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Official Help Center</span>
-              <h4 className="text-xs font-semibold text-white">WatchGuard Fireware Help Docs</h4>
-              <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Comprehensive configuration manuals covering proxies, Mobile VPNs, Multi-WAN failovers, and Policy Manager rules.
-              </p>
-            </div>
-            <a 
-              href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/overview/firebox_overview.html"
-              target="_blank"
-              rel="referrer noopener"
-              className="inline-flex items-center space-x-1.5 text-[10px] text-watchguard-orange hover:underline font-mono"
-            >
-              <span>Explore Official Manuals</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Video Tutorials</span>
-              <h4 className="text-xs font-semibold text-white">WatchGuard Video Training Academy</h4>
-              <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Visual step-by-step videos and walkthroughs on setting up SNAT, certificate trust imports, and branch office tunnels.
-              </p>
-            </div>
-            <a 
-              href="https://www.watchguard.com/wgrd-training/learning-paths"
-              target="_blank"
-              rel="referrer noopener"
-              className="inline-flex items-center space-x-1.5 text-[10px] text-watchguard-orange hover:underline font-mono"
-            >
-              <span>Watch Video Academy</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Quizlet Study Sets</span>
-              <h4 className="text-xs font-semibold text-white">High-Yield Exam Prep Sets</h4>
-              <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Review verified flashcards on Quizlet prepared by engineers studying for the Network Security Essentials certification.
-              </p>
-            </div>
-            <a 
-              href="https://quizlet.com/search?query=watchguard-certified-network-security&type=all"
-              target="_blank"
-              rel="referrer noopener"
-              className="inline-flex items-center space-x-1.5 text-[10px] text-watchguard-orange hover:underline font-mono"
-            >
-              <span>Search Quizlet Prep Sets</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      </div>
+      <FlashcardStudioResources />
 
     </div>
   );
