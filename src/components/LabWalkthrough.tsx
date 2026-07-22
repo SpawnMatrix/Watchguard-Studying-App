@@ -94,7 +94,7 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
       {/* Labs Catalog / Left Navigation */}
-      <div className="lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full">
+      <div className="lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full ">
         <h3 className="font-display font-semibold text-white border-b border-watchguard-border pb-3 mb-4 flex items-center space-x-2">
           <Layers className="w-4 h-4 text-watchguard-orange" />
           <span>NSE Lab Catalog</span>
@@ -129,7 +129,7 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
       </div>
 
       {/* Lab Simulation & Guidance Engine / Right Stage */}
-      <div className="lg:col-span-8 flex flex-col h-full bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl">
+      <div className="lg:col-span-8 flex flex-col h-full bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl ">
         {!selectedLabId ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
             <div className="p-4 bg-watchguard-orange/5 border border-watchguard-orange/15 rounded-full">

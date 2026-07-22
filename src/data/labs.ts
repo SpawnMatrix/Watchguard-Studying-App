@@ -179,5 +179,43 @@ export const watchguardLabs: Lab[] = [
         expectedConsoleAction: "ENABLE_AUTH_PORTAL_REDIRECT"
       }
     ]
+  },
+  {
+    id: 15,
+    name: "Lab 15: Configuring Branch Office VPN (BOVPN)",
+    objectives: "Configure a Branch Office VPN (BOVPN) between a local Firebox and a remote Firebox to allow secure communication between the two trusted networks.",
+    prerequisites: "Lab 1 completed. A remote Firebox IP address and Pre-Shared Key.",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "Create the BOVPN Gateway",
+        instruction: "In Policy Manager, select VPN > Branch Office Gateways. Click Add. Enter a Gateway Name. In the Credential Method tab, enter the Pre-Shared Key. In the Gateway Endpoints tab, click Add to define the Local Gateway (your external IP) and Remote Gateway (the remote Firebox external IP).",
+        expectedConsoleAction: "CREATE_BOVPN_GATEWAY"
+      },
+      {
+        stepNumber: 2,
+        title: "Configure Phase 1 Settings",
+        instruction: "In the Phase 1 Settings tab of the BOVPN Gateway, verify the default settings or match the remote gateway's settings (e.g., Main Mode, SHA2-256, AES-256, Diffie-Hellman Group 14). Click OK.",
+        expectedConsoleAction: "CONFIGURE_PHASE_1"
+      },
+      {
+        stepNumber: 3,
+        title: "Create the BOVPN Tunnel",
+        instruction: "Select VPN > Branch Office Tunnels. Click Add. Select the Gateway you just created from the drop-down list. In the Addresses tab, click Add to define the Local IP (your trusted network, e.g., 10.0.1.0/24) and Remote IP (the remote trusted network, e.g., 10.0.2.0/24).",
+        expectedConsoleAction: "CREATE_BOVPN_TUNNEL"
+      },
+      {
+        stepNumber: 4,
+        title: "Configure Phase 2 Settings",
+        instruction: "In the Phase 2 Settings tab of the BOVPN Tunnel, verify the default settings or match the remote tunnel's settings (e.g., ESP, SHA2-256, AES-256, Enable PFS). Click OK.",
+        expectedConsoleAction: "CONFIGURE_PHASE_2"
+      },
+      {
+        stepNumber: 5,
+        title: "Save and Verify",
+        instruction: "Save the configuration to the Firebox. Open Firebox System Manager (FSM) and go to the Front Panel tab to verify the BOVPN tunnel status. Expand the Branch Office VPN section and look for active tunnel connections.",
+        expectedConsoleAction: "VERIFY_BOVPN"
+      }
+    ]
   }
 ];
