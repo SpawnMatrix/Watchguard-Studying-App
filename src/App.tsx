@@ -1,11 +1,34 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
-import GeneralChat from "./components/GeneralChat";
-import PracticeQuiz from "./components/PracticeQuiz";
-import LabWalkthrough from "./components/LabWalkthrough";
-import PerformanceDashboard from "./components/PerformanceDashboard";
-import NetworkSimulator from "./components/NetworkSimulator";
-import FlashcardStudio from "./components/FlashcardStudio";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  lazy,
+  Suspense,
+  type FormEvent,
+} from "react";
+import {
+  Bot,
+  Trophy,
+  Layers,
+  BarChart3,
+  ShieldCheck,
+  Terminal,
+  UserRound,
+  Clock,
+  Globe,
+  BookMarked,
+  Sun,
+  Moon,
+  Pencil,
+} from "lucide-react";
+const GeneralChat = lazy(() => import("./components/GeneralChat"));
+const PracticeQuiz = lazy(() => import("./components/PracticeQuiz"));
+const LabWalkthrough = lazy(() => import("./components/LabWalkthrough"));
+const PerformanceDashboard = lazy(
+  () => import("./components/PerformanceDashboard"),
+);
+const NetworkSimulator = lazy(() => import("./components/NetworkSimulator"));
+const FlashcardStudio = lazy(() => import("./components/FlashcardStudio"));
 import { motion, AnimatePresence } from "motion/react";
 
 type Tab = "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
@@ -34,10 +57,13 @@ const PROFILE_STORAGE_KEY = "watchguard-study-profile-name-v1";
 const DEFAULT_QUIZ_STATS: QuizStats = {
   score: "0%",
   topicWeaknesses: [],
-  history: []
+  history: [],
 };
 
-function loadSavedProgress(): { quizStats: QuizStats; completedLabs: string[] } {
+function loadSavedProgress(): {
+  quizStats: QuizStats;
+  completedLabs: string[];
+} {
   try {
     const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
     if (!saved) return { quizStats: DEFAULT_QUIZ_STATS, completedLabs: [] };
@@ -64,43 +90,56 @@ function getPlatformLabel() {
 }
 
 function loadProfileName() {
-  return (localStorage.getItem(PROFILE_STORAGE_KEY) || "").replace(/\s+/g, " ").trim().slice(0, 32);
+  return (localStorage.getItem(PROFILE_STORAGE_KEY) || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 32);
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") || "dark";
+    return (
+      (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") ||
+      "dark"
+    );
   });
   const savedProgress = useMemo(loadSavedProgress, []);
   const initialProfileName = useMemo(loadProfileName, []);
-  const [quizStats, setQuizStats] = useState<QuizStats>(savedProgress.quizStats);
+  const [quizStats, setQuizStats] = useState<QuizStats>(
+    savedProgress.quizStats,
+  );
   const [profileName, setProfileName] = useState(initialProfileName);
   const [profileDraft, setProfileDraft] = useState(initialProfileName);
-  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(!initialProfileName);
+  const [isProfileEditorOpen, setIsProfileEditorOpen] =
+    useState(!initialProfileName);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("watchguard-portal-theme", theme);
   }, [theme]);
-  const [completedLabs, setCompletedLabs] = useState<string[]>(savedProgress.completedLabs);
+  const [completedLabs, setCompletedLabs] = useState<string[]>(
+    savedProgress.completedLabs,
+  );
   const [sessionIdentity, setSessionIdentity] = useState<SessionIdentity>({
     authenticated: false,
-    source: "direct"
+    source: "direct",
   });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [now, setNow] = useState(() => new Date());
 
   const locale = navigator.language || "en-US";
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
+  const timeZone =
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
   const platform = getPlatformLabel();
   const localTime = useMemo(
-    () => new Intl.DateTimeFormat(locale, {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short"
-    }).format(now),
-    [locale, now]
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }).format(now),
+    [locale, now],
   );
 
   useEffect(() => {
@@ -109,7 +148,7 @@ export default function App() {
     fetch("/api/session", {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
-      signal: controller.signal
+      signal: controller.signal,
     })
       .then((response) => {
         if (!response.ok) throw new Error("Session lookup failed");
@@ -140,16 +179,23 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ quizStats, completedLabs }));
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({ quizStats, completedLabs }),
+    );
   }, [quizStats, completedLabs]);
 
-  const handleScoreUpdated = (record: { score: string; topicWeaknesses: string[]; history: QuizHistoryItem[] }) => {
+  const handleScoreUpdated = (record: {
+    score: string;
+    topicWeaknesses: string[];
+    history: QuizHistoryItem[];
+  }) => {
     setQuizStats(record);
   };
 
-  const handleLabCompleted = (labId: number, name: string) => {
+  const handleLabCompleted = (_labId: number, name: string) => {
     if (!completedLabs.includes(name)) {
-      setCompletedLabs(prev => [...prev, name]);
+      setCompletedLabs((prev) => [...prev, name]);
     }
     // Switch to admin view automatically to see performance report
     setActiveTab("admin");
@@ -157,7 +203,11 @@ export default function App() {
 
   const handleProfileSave = (event: FormEvent) => {
     event.preventDefault();
-    const cleanName = profileDraft.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim().slice(0, 32);
+    const cleanName = profileDraft
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 32);
     if (!cleanName) return;
 
     localStorage.setItem(PROFILE_STORAGE_KEY, cleanName);
@@ -178,16 +228,14 @@ export default function App() {
     { id: "labs", label: "Lab Exercises", icon: Layers },
     { id: "flashcards", label: "Flashcards Studio", icon: BookMarked },
     { id: "sandbox", label: "FSM Sandbox", icon: Terminal },
-    { id: "admin", label: "Admin Panel", icon: BarChart3 }
+    { id: "admin", label: "Admin Panel", icon: BarChart3 },
   ];
 
   return (
     <div className="min-h-screen bg-watchguard-dark text-gray-100 flex flex-col font-sans">
-      
       {/* Top Professional Navigation Console Bar */}
       <header className="bg-watchguard-gray border-b border-watchguard-border shadow-xl z-20">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          
           {/* Brand and Certification Metadata */}
           <div className="flex items-center space-x-3.5">
             <div className="w-10 h-10 bg-watchguard-orange rounded-xl flex items-center justify-center border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10 relative overflow-hidden">
@@ -210,7 +258,9 @@ export default function App() {
             <div className="flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
               <div className="flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span className="font-mono" title={timeZone}>{localTime}</span>
+                <span className="font-mono" title={timeZone}>
+                  {localTime}
+                </span>
               </div>
               <button
                 type="button"
@@ -220,14 +270,22 @@ export default function App() {
                 }}
                 className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5 hover:text-white transition-colors cursor-pointer"
                 title="Edit the profile stored in this browser"
+                aria-label="Edit Profile"
               >
                 <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span className="font-mono">{profileName || "Set your name"}</span>
+                <span className="font-mono">
+                  {profileName || "Set your name"}
+                </span>
                 <Pencil className="w-3 h-3 text-gray-500" />
               </button>
               <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-                <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
-                <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
+                <Globe
+                  className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`}
+                />
+                <span
+                  className="font-mono"
+                  title={`${timeZone} • ${sessionIdentity.source} session`}
+                >
                   {isOnline ? `${locale} • ${platform}` : "Browser offline"}
                 </span>
               </div>
@@ -237,7 +295,12 @@ export default function App() {
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="flex items-center justify-center w-9 h-9 rounded-xl border border-watchguard-border bg-watchguard-dark/60 hover:border-watchguard-orange hover:bg-watchguard-lightgray/40 text-gray-400 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg shadow-black/25 relative overflow-hidden group active:scale-95 cursor-pointer"
-              title={theme === "dark" ? "Activate Light Theme" : "Activate Dark Theme"}
+              title={
+                theme === "dark"
+                  ? "Activate Light Theme"
+                  : "Activate Dark Theme"
+              }
+              aria-label="Toggle Theme"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-watchguard-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               {theme === "dark" ? (
@@ -252,7 +315,6 @@ export default function App() {
 
       {/* Main Study Arena Layout (Expanded Unified Container) */}
       <main className="flex-1 max-w-7xl mx-auto w-full p-6 flex flex-col space-y-6 overflow-hidden">
-        
         {/* Tab Navigation Tray */}
         <nav className="flex items-center space-x-1 bg-watchguard-gray/80 p-1 rounded-xl border border-watchguard-border w-full">
           {tabsConfig.map((t) => {
@@ -263,8 +325,8 @@ export default function App() {
                 key={t.id}
                 onClick={() => setActiveTab(t.id as Tab)}
                 className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 text-xs font-semibold rounded-lg transition-all select-none cursor-pointer ${
-                  isActive 
-                    ? "bg-watchguard-orange text-white border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10" 
+                  isActive
+                    ? "bg-watchguard-orange text-white border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10"
                     : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray/40"
                 }`}
               >
@@ -286,20 +348,32 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
-              {activeTab === "chat" && <GeneralChat />}
-              {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
-              {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
-              {activeTab === "flashcards" && <FlashcardStudio />}
-              {activeTab === "sandbox" && <NetworkSimulator />}
-              {activeTab === "admin" && (
-                <PerformanceDashboard 
-                  score={quizStats.score} 
-                  topicWeaknesses={quizStats.topicWeaknesses} 
-                  history={quizStats.history}
-                  completedLabs={completedLabs}
-                  displayName={profileName || "Local learner"}
-                />
-              )}
+              <Suspense
+                fallback={
+                  <div className="p-8 text-center text-gray-400 font-mono animate-pulse">
+                    Loading module...
+                  </div>
+                }
+              >
+                {activeTab === "chat" && <GeneralChat />}
+                {activeTab === "quiz" && (
+                  <PracticeQuiz onScoreUpdated={handleScoreUpdated} />
+                )}
+                {activeTab === "labs" && (
+                  <LabWalkthrough onLabCompleted={handleLabCompleted} />
+                )}
+                {activeTab === "flashcards" && <FlashcardStudio />}
+                {activeTab === "sandbox" && <NetworkSimulator />}
+                {activeTab === "admin" && (
+                  <PerformanceDashboard
+                    score={quizStats.score}
+                    topicWeaknesses={quizStats.topicWeaknesses}
+                    history={quizStats.history}
+                    completedLabs={completedLabs}
+                    displayName={profileName || "Local learner"}
+                  />
+                )}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -307,7 +381,10 @@ export default function App() {
 
       {/* Global Security Footer */}
       <footer className="bg-watchguard-gray/40 border-t border-watchguard-border py-4.5 px-6 mt-auto text-center text-xs text-gray-500 font-mono">
-        <p>© 2026 WatchGuard training portal • Authorized certified technical study engine v12.9.2+</p>
+        <p>
+          © 2026 WatchGuard training portal • Authorized certified technical
+          study engine v12.9.2+
+        </p>
       </footer>
 
       <AnimatePresence>
@@ -332,18 +409,28 @@ export default function App() {
                   <UserRound className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 id="profile-dialog-title" className="font-display text-lg font-bold text-white">
-                    {profileName ? "Edit your local profile" : "Choose your study name"}
+                  <h2
+                    id="profile-dialog-title"
+                    className="font-display text-lg font-bold text-white"
+                  >
+                    {profileName
+                      ? "Edit your local profile"
+                      : "Choose your study name"}
                   </h2>
                   <p className="mt-1 text-xs leading-relaxed text-gray-400">
-                    This name and your learning progress stay in this browser. Your Pangolin email is not displayed or used as your study identity.
+                    This name and your learning progress stay in this browser.
+                    Your Pangolin email is not displayed or used as your study
+                    identity.
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleProfileSave} className="space-y-4">
                 <div>
-                  <label htmlFor="profile-name" className="mb-1.5 block text-xs font-semibold text-gray-300">
+                  <label
+                    htmlFor="profile-name"
+                    className="mb-1.5 block text-xs font-semibold text-gray-300"
+                  >
                     Display name
                   </label>
                   <input
@@ -357,7 +444,9 @@ export default function App() {
                     placeholder="For example: Alex or Sam"
                     className="w-full rounded-lg border border-watchguard-border bg-watchguard-dark px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-watchguard-orange"
                   />
-                  <p className="mt-1.5 text-[10px] font-mono text-gray-500">Browser-only • 32 characters maximum</p>
+                  <p className="mt-1.5 text-[10px] font-mono text-gray-500">
+                    Browser-only • 32 characters maximum
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -369,7 +458,9 @@ export default function App() {
                     >
                       Clear local profile
                     </button>
-                  ) : <span />}
+                  ) : (
+                    <span />
+                  )}
                   <div className="flex gap-2">
                     {profileName && (
                       <button

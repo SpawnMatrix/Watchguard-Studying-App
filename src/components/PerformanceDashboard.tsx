@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
+import {
+  Award,
+  ShieldAlert,
+  BookOpen,
+  FileText,
+  CheckCircle2,
+  ChevronRight,
+  AlertTriangle,
+  Key,
+  Lock,
+  Settings,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface QuizHistoryItem {
@@ -18,12 +31,12 @@ interface PerformanceDashboardProps {
   displayName: string;
 }
 
-export default function PerformanceDashboard({ 
-  score, 
-  topicWeaknesses, 
-  history, 
+export default function PerformanceDashboard({
+  score,
+  topicWeaknesses,
+  history,
   completedLabs,
-  displayName
+  displayName,
 }: PerformanceDashboardProps) {
   const [report, setReport] = useState<{
     readinessScore: string;
@@ -36,7 +49,9 @@ export default function PerformanceDashboard({
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem("watchguard_custom_gemini_api_key") || "");
+  const [userCustomKey, setUserCustomKey] = useState(
+    () => localStorage.getItem("watchguard_custom_gemini_api_key") || "",
+  );
   const [showKey, setShowKey] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -48,17 +63,20 @@ export default function PerformanceDashboard({
 
   // Fetch current global features on mount
   const fetchFeatures = () => {
-    const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+    const customKey =
+      localStorage.getItem("watchguard_custom_gemini_api_key") || "";
     fetch("/api/features", {
-      headers: { "X-Gemini-API-Key": customKey }
+      headers: { "X-Gemini-API-Key": customKey },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.globalAIEnabled !== undefined) {
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
       })
-      .catch(err => console.error("Failed to query initial feature status", err));
+      .catch((err) =>
+        console.error("Failed to query initial feature status", err),
+      );
   };
 
   useEffect(() => {
@@ -87,7 +105,7 @@ export default function PerformanceDashboard({
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword })
+        body: JSON.stringify({ password: adminPassword }),
       });
       if (response.ok) {
         setIsAdminLoggedIn(true);
@@ -111,13 +129,18 @@ export default function PerformanceDashboard({
       const response = await fetch("/api/admin/toggle-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword, globalAIEnabled: targetState })
+        body: JSON.stringify({
+          password: adminPassword,
+          globalAIEnabled: targetState,
+        }),
       });
       if (response.ok) {
         const data = await response.json();
         setGlobalAIEnabledState(data.globalAIEnabled);
         setAdminIsSuccess(true);
-        setAdminMessage(`Global AI feature successfully toggled ${data.globalAIEnabled ? "ON" : "OFF"}.`);
+        setAdminMessage(
+          `Global AI feature successfully toggled ${data.globalAIEnabled ? "ON" : "OFF"}.`,
+        );
       } else {
         const err = await response.json();
         setAdminMessage(err.message || "Failed to toggle global AI state.");
@@ -130,9 +153,10 @@ export default function PerformanceDashboard({
   const handleGenerateReport = async () => {
     setIsLoading(true);
     try {
-      const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+      const customKey =
+        localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       };
       if (customKey) {
         headers["X-Gemini-API-Key"] = customKey;
@@ -145,11 +169,11 @@ export default function PerformanceDashboard({
           sessionHistory: {
             quizScore: score,
             totalQuizAttempts: history.length,
-            correctQuizAnswers: history.filter(h => h.isCorrect).length,
+            correctQuizAnswers: history.filter((h) => h.isCorrect).length,
             topicWeaknesses: topicWeaknesses,
-            completedLabs: completedLabs
-          }
-        })
+            completedLabs: completedLabs,
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -172,8 +196,12 @@ export default function PerformanceDashboard({
         {/* Exam Readiness Score */}
         <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Audited Exam Readiness</span>
-            <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
+            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+              Audited Exam Readiness
+            </span>
+            <div className="text-3xl font-display font-bold text-watchguard-orange">
+              {score}
+            </div>
           </div>
           <div className="p-3 bg-watchguard-orange/10 rounded-full">
             <Award className="w-6 h-6 text-watchguard-orange" />
@@ -183,8 +211,12 @@ export default function PerformanceDashboard({
         {/* Labs Completed */}
         <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Completed Core Labs</span>
-            <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / 5</div>
+            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+              Completed Core Labs
+            </span>
+            <div className="text-3xl font-display font-bold text-white">
+              {completedLabs.length} / 5
+            </div>
           </div>
           <div className="p-3 bg-green-500/10 rounded-full">
             <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -194,9 +226,12 @@ export default function PerformanceDashboard({
         {/* Total Exam Questions Answered */}
         <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Simulator Attempts</span>
+            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+              Simulator Attempts
+            </span>
             <div className="text-3xl font-display font-bold text-white">
-              {history.filter(h => h.isCorrect).length} / {history.length} Correct
+              {history.filter((h) => h.isCorrect).length} / {history.length}{" "}
+              Correct
             </div>
           </div>
           <div className="p-3 bg-blue-500/10 rounded-full">
@@ -210,24 +245,34 @@ export default function PerformanceDashboard({
         <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-5 transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
           <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
             <ShieldAlert className="w-4 h-4 text-watchguard-orange" />
-            <h3 className="font-display font-semibold text-white">Critical Weakness Tracker</h3>
+            <h3 className="font-display font-semibold text-white">
+              Critical Weakness Tracker
+            </h3>
           </div>
 
           {topicWeaknesses.length === 0 ? (
             <div className="text-center py-12 text-gray-500 text-xs">
-              Technician study records show zero active concept vulnerabilities. Complete practicing quiz questions to trigger tracking checks.
+              Technician study records show zero active concept vulnerabilities.
+              Complete practicing quiz questions to trigger tracking checks.
             </div>
           ) : (
             <div className="space-y-3">
               <p className="text-xs text-gray-400 leading-relaxed font-sans">
-                Our active exam tracking indicates weaknesses in the following certified namespaces. Click recommended labs to resolve the vulnerabilities:
+                Our active exam tracking indicates weaknesses in the following
+                certified namespaces. Click recommended labs to resolve the
+                vulnerabilities:
               </p>
               <div className="space-y-2">
                 {topicWeaknesses.map((weakness, idx) => (
-                  <div key={idx} className="p-3 bg-watchguard-dark border border-watchguard-border rounded-xl flex items-center justify-between">
+                  <div
+                    key={idx}
+                    className="p-3 bg-watchguard-dark border border-watchguard-border rounded-xl flex items-center justify-between"
+                  >
                     <div className="flex items-center space-x-2.5">
                       <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>
-                      <span className="text-xs font-medium text-gray-200">{weakness} Vulnerability</span>
+                      <span className="text-xs font-medium text-gray-200">
+                        {weakness} Vulnerability
+                      </span>
                     </div>
                     <span className="text-[9px] font-mono font-medium text-watchguard-orange uppercase tracking-wider bg-watchguard-orange/10 px-2 py-0.5 rounded border border-watchguard-orange/20">
                       Remediation Mandatory
@@ -244,10 +289,15 @@ export default function PerformanceDashboard({
           <div className="space-y-2.5">
             <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
               <FileText className="w-4 h-4 text-watchguard-orange" />
-              <h3 className="font-display font-semibold text-white">Generate Executive Performance Audit</h3>
+              <h3 className="font-display font-semibold text-white">
+                Generate Executive Performance Audit
+              </h3>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
-              Compile your training progress logs into a structured audit report using the Gemini Deep reasoning engine. This report maps conceptual vulnerabilities back to WatchGuard Lab exercises to establish a customized engineering remediation study plan.
+              Compile your training progress logs into a structured audit report
+              using the Gemini Deep reasoning engine. This report maps
+              conceptual vulnerabilities back to WatchGuard Lab exercises to
+              establish a customized engineering remediation study plan.
             </p>
           </div>
 
@@ -256,7 +306,11 @@ export default function PerformanceDashboard({
             disabled={history.length === 0 || isLoading}
             className="w-full mt-4 bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:bg-watchguard-dark disabled:text-gray-500 disabled:border-watchguard-border text-white text-xs font-semibold py-3 rounded-lg flex items-center justify-center space-x-2 border border-watchguard-orange/40 transition-all cursor-pointer"
           >
-            <span>{isLoading ? "Running Deep Audit Analysis..." : "Compile & Run Audit Analysis"}</span>
+            <span>
+              {isLoading
+                ? "Running Deep Audit Analysis..."
+                : "Compile & Run Audit Analysis"}
+            </span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -267,7 +321,9 @@ export default function PerformanceDashboard({
         <div className="flex items-center justify-between border-b border-watchguard-border pb-3 flex-wrap gap-2">
           <div className="flex items-center space-x-2">
             <Settings className="w-4 h-4 text-watchguard-orange" />
-            <h3 className="font-display font-semibold text-white">Administration Control Console</h3>
+            <h3 className="font-display font-semibold text-white">
+              Administration Control Console
+            </h3>
           </div>
           <div className="flex items-center space-x-2.5 text-[10px] font-mono">
             <span className="text-gray-400">Current User:</span>
@@ -297,7 +353,9 @@ export default function PerformanceDashboard({
                 <span>Custom Gemini API Key Override</span>
               </h4>
               <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
-                Want to run your own unlimited AI endpoints? Provide your own Google Gemini API key to override administrator resource control gates. This key is saved locally in your browser.
+                Want to run your own unlimited AI endpoints? Provide your own
+                Google Gemini API key to override administrator resource control
+                gates. This key is saved locally in your browser.
               </p>
             </div>
 
@@ -315,13 +373,19 @@ export default function PerformanceDashboard({
                   onClick={() => setShowKey(!showKey)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-all cursor-pointer"
                 >
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showKey ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 
               {userCustomKey && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-green-400 font-mono">✓ API key active locally</span>
+                  <span className="text-[10px] text-green-400 font-mono">
+                    ✓ API key active locally
+                  </span>
                   <button
                     onClick={handleClearCustomKey}
                     className="text-[10px] text-red-400 hover:text-red-300 transition-all font-mono underline bg-transparent border-0 cursor-pointer"
@@ -342,9 +406,14 @@ export default function PerformanceDashboard({
               </h4>
               <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
                 {isAuthorizedAdmin ? (
-                  <span className="text-green-400 font-medium">✓ Administrator password validated for this page session.</span>
+                  <span className="text-green-400 font-medium">
+                    ✓ Administrator password validated for this page session.
+                  </span>
                 ) : (
-                  <span>Enter the administrator password to change shared server settings. Local study profiles do not grant admin access.</span>
+                  <span>
+                    Enter the administrator password to change shared server
+                    settings. Local study profiles do not grant admin access.
+                  </span>
                 )}
               </p>
             </div>
@@ -373,12 +442,15 @@ export default function PerformanceDashboard({
             {/* If authorized by password, show shared control sliders */}
             {isAuthorizedAdmin && (
               <div className="space-y-4">
-                
                 {/* AI Toggle State */}
                 <div className="flex items-center justify-between bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5">
                   <div className="space-y-0.5">
-                    <span className="text-xs text-white font-mono block">Global AI Features</span>
-                    <span className="text-[10px] text-gray-400 font-sans block">Default: Offline (Q&A only)</span>
+                    <span className="text-xs text-white font-mono block">
+                      Global AI Features
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-sans block">
+                      Default: Offline (Q&A only)
+                    </span>
                   </div>
                   <button
                     onClick={handleToggleGlobalAI}
@@ -392,9 +464,10 @@ export default function PerformanceDashboard({
                   </button>
                 </div>
 
-
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-green-400 font-mono">✓ Authorized Admin Access Active</span>
+                  <span className="text-[10px] text-green-400 font-mono">
+                    ✓ Authorized Admin Access Active
+                  </span>
                   {isAdminLoggedIn && (
                     <button
                       onClick={() => {
@@ -408,12 +481,13 @@ export default function PerformanceDashboard({
                     </button>
                   )}
                 </div>
-
               </div>
             )}
 
             {adminMessage && (
-              <p className={`text-[10px] font-mono mt-2 ${adminIsSuccess ? "text-green-400" : "text-red-400"}`}>
+              <p
+                className={`text-[10px] font-mono mt-2 ${adminIsSuccess ? "text-green-400" : "text-red-400"}`}
+              >
                 {adminMessage}
               </p>
             )}
@@ -439,12 +513,18 @@ export default function PerformanceDashboard({
                   <span className="w-2.5 h-2.5 bg-watchguard-orange rounded-full animate-ping"></span>
                   <span>WATCHGUARD NSE READINESS AUDIT REPORT</span>
                 </h3>
-                <p className="text-[10px] font-mono text-gray-500 mt-0.5">Syllabus compliance audit • Fireware OS v12.9.2+</p>
+                <p className="text-[10px] font-mono text-gray-500 mt-0.5">
+                  Syllabus compliance audit • Fireware OS v12.9.2+
+                </p>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="text-right">
-                  <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">Readiness Score</span>
-                  <div className="text-xl font-display font-bold text-watchguard-orange">{report.readinessScore}</div>
+                  <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">
+                    Readiness Score
+                  </span>
+                  <div className="text-xl font-display font-bold text-watchguard-orange">
+                    {report.readinessScore}
+                  </div>
                 </div>
               </div>
             </div>
@@ -453,7 +533,9 @@ export default function PerformanceDashboard({
               {/* Strengths & Vulnerabilities */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-xs font-bold text-green-400 font-mono tracking-wide uppercase mb-2">Verified Conceptual Strengths</h4>
+                  <h4 className="text-xs font-bold text-green-400 font-mono tracking-wide uppercase mb-2">
+                    Verified Conceptual Strengths
+                  </h4>
                   <ul className="space-y-1.5 text-xs text-gray-300">
                     {report.strengths.map((s, idx) => (
                       <li key={idx} className="flex items-start space-x-2">
@@ -464,7 +546,9 @@ export default function PerformanceDashboard({
                   </ul>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-red-400 font-mono tracking-wide uppercase mb-2">Namespace Vulnerabilities</h4>
+                  <h4 className="text-xs font-bold text-red-400 font-mono tracking-wide uppercase mb-2">
+                    Namespace Vulnerabilities
+                  </h4>
                   <ul className="space-y-1.5 text-xs text-gray-300">
                     {report.criticalVulnerabilities.map((v, idx) => (
                       <li key={idx} className="flex items-start space-x-2">
@@ -479,11 +563,13 @@ export default function PerformanceDashboard({
               {/* Recommended Labs & Summary */}
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-xs font-bold text-watchguard-orange font-mono tracking-wide uppercase mb-2">Recommended Study Remediation Labs</h4>
+                  <h4 className="text-xs font-bold text-watchguard-orange font-mono tracking-wide uppercase mb-2">
+                    Recommended Study Remediation Labs
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {report.recommendedLabs.map((lab, idx) => (
-                      <span 
-                        key={idx} 
+                      <span
+                        key={idx}
                         className="text-[10px] font-mono font-medium bg-watchguard-orange/10 text-watchguard-orange px-2.5 py-1.5 rounded-lg border border-watchguard-orange/30"
                       >
                         {lab}
@@ -493,7 +579,9 @@ export default function PerformanceDashboard({
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-gray-400 font-mono tracking-wide uppercase mb-2">Auditor Summary & Outlook</h4>
+                  <h4 className="text-xs font-bold text-gray-400 font-mono tracking-wide uppercase mb-2">
+                    Auditor Summary & Outlook
+                  </h4>
                   <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-sans">
                     {report.summary}
                   </p>
@@ -504,7 +592,9 @@ export default function PerformanceDashboard({
             {report.isDemo && (
               <div className="mt-6 pt-3 border-t border-watchguard-border flex items-center space-x-2 text-[10px] font-mono text-gray-500">
                 <AlertTriangle className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span>Simulated Audit Analysis Powered by Local Ruleset daemon</span>
+                <span>
+                  Simulated Audit Analysis Powered by Local Ruleset daemon
+                </span>
               </div>
             )}
           </motion.div>

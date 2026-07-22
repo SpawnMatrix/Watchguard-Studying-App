@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle, ArrowRight, Award, Trophy, Bookmark, BarChart, RotateCcw, AlertCircle, HelpCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  Award,
+  Trophy,
+  BarChart,
+  RotateCcw,
+  HelpCircle,
+} from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -12,7 +21,11 @@ interface QuizHistoryItem {
 }
 
 interface PracticeQuizProps {
-  onScoreUpdated: (quizRecord: { score: string; topicWeaknesses: string[]; history: QuizHistoryItem[] }) => void;
+  onScoreUpdated: (quizRecord: {
+    score: string;
+    topicWeaknesses: string[];
+    history: QuizHistoryItem[];
+  }) => void;
 }
 
 export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
@@ -20,12 +33,18 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState<Question>(() => {
     return examQuestions[Math.floor(Math.random() * examQuestions.length)];
   });
-  const [seenQuestionIds, setSeenQuestionIds] = useState<number[]>(() => [currentQuestion.id]);
+  const [seenQuestionIds, setSeenQuestionIds] = useState<number[]>(() => [
+    currentQuestion.id,
+  ]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [evaluation, setEvaluation] = useState<{ isCorrect: boolean; detailedExplanation: string; weaknessCategory: string } | null>(null);
+  const [evaluation, setEvaluation] = useState<{
+    isCorrect: boolean;
+    detailedExplanation: string;
+    weaknessCategory: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Tracked Session Analytics
   const [quizHistory, setQuizHistory] = useState<QuizHistoryItem[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
@@ -34,13 +53,13 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     if (isSubmitted) return;
     if (currentQuestion.isMultiSelect) {
       if (selectedOptions.includes(option)) {
-        setSelectedOptions(prev => prev.filter(x => x !== option));
+        setSelectedOptions((prev) => prev.filter((x) => x !== option));
       } else {
         if (selectedOptions.length < currentQuestion.correctAnswersCount) {
-          setSelectedOptions(prev => [...prev, option]);
+          setSelectedOptions((prev) => [...prev, option]);
         } else {
           // Replace oldest if overlimit
-          setSelectedOptions(prev => [...prev.slice(1), option]);
+          setSelectedOptions((prev) => [...prev.slice(1), option]);
         }
       }
     } else {
@@ -53,9 +72,10 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     setIsLoading(true);
 
     try {
-      const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
+      const customKey =
+        localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       };
       if (customKey) {
         headers["X-Gemini-API-Key"] = customKey;
@@ -68,10 +88,12 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
           questionId: currentQuestion.id,
           question: currentQuestion.question,
           options: currentQuestion.options,
-          selectedAnswer: currentQuestion.isMultiSelect ? selectedOptions.join(", ") : selectedOptions[0],
+          selectedAnswer: currentQuestion.isMultiSelect
+            ? selectedOptions.join(", ")
+            : selectedOptions[0],
           selectedOptions: selectedOptions,
-          correctAnswer: currentQuestion.correctAnswer
-        })
+          correctAnswer: currentQuestion.correctAnswer,
+        }),
       });
 
       if (!response.ok) {
@@ -83,7 +105,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
       setIsSubmitted(true);
 
       if (evalData.isCorrect) {
-        setCorrectCount(prev => prev + 1);
+        setCorrectCount((prev) => prev + 1);
       }
 
       const updatedHistoryItem: QuizHistoryItem = {
@@ -91,7 +113,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         selectedAnswers: selectedOptions,
         isCorrect: evalData.isCorrect,
         explanation: evalData.detailedExplanation,
-        topic: currentQuestion.topic
+        topic: currentQuestion.topic,
       };
 
       const nextHistory = [...quizHistory, updatedHistoryItem];
@@ -99,15 +121,14 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
 
       // Trigger callback back to administrator tab
       const finalScore = `${Math.round(((correctCount + (evalData.isCorrect ? 1 : 0)) / nextHistory.length) * 100)}%`;
-      const uniqueWeaknesses = Array.from(new Set(
-        nextHistory.filter(h => !h.isCorrect).map(h => h.topic)
-      ));
+      const uniqueWeaknesses = Array.from(
+        new Set(nextHistory.filter((h) => !h.isCorrect).map((h) => h.topic)),
+      );
       onScoreUpdated({
         score: finalScore,
         topicWeaknesses: uniqueWeaknesses,
-        history: nextHistory
+        history: nextHistory,
       });
-
     } catch (error) {
       console.error("Evaluation error:", error);
     } finally {
@@ -121,19 +142,21 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
     setEvaluation(null);
 
     // 1. Find all unseen questions
-    const unseen = examQuestions.filter(q => !seenQuestionIds.includes(q.id));
+    const unseen = examQuestions.filter((q) => !seenQuestionIds.includes(q.id));
     let nextQ: Question;
 
     if (unseen.length === 0) {
       // If all 100 questions are seen, we reset the seen pool to allow a new lap
-      const nextRandom = examQuestions[Math.floor(Math.random() * examQuestions.length)];
+      const nextRandom =
+        examQuestions[Math.floor(Math.random() * examQuestions.length)];
       nextQ = nextRandom;
       setSeenQuestionIds([nextRandom.id]);
     } else {
       // Adaptive Algorithm:
       // Check performance on different topics from quizHistory to pick next topic to focus on
-      const topicMetrics: Record<string, { total: number; correct: number }> = {};
-      quizHistory.forEach(h => {
+      const topicMetrics: Record<string, { total: number; correct: number }> =
+        {};
+      quizHistory.forEach((h) => {
         if (!topicMetrics[h.topic]) {
           topicMetrics[h.topic] = { total: 0, correct: 0 };
         }
@@ -146,19 +169,19 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         .map(([topic, stats]) => ({
           topic,
           accuracy: stats.correct / stats.total,
-          total: stats.total
+          total: stats.total,
         }))
-        .filter(item => item.accuracy < 0.75)
+        .filter((item) => item.accuracy < 0.75)
         .sort((a, b) => a.accuracy - b.accuracy) // lowest accuracy first
-        .map(item => item.topic);
+        .map((item) => item.topic);
 
       let found = false;
       // Try to find an unseen question from weak topics
       for (const topic of weakTopics) {
-        const candidates = unseen.filter(q => q.topic === topic);
+        const candidates = unseen.filter((q) => q.topic === topic);
         if (candidates.length > 0) {
           nextQ = candidates[Math.floor(Math.random() * candidates.length)];
-          setSeenQuestionIds(prev => [...prev, nextQ.id]);
+          setSeenQuestionIds((prev) => [...prev, nextQ.id]);
           found = true;
           break;
         }
@@ -167,7 +190,7 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
       // If no weak-topic unseen questions exist, pick any random unseen question
       if (!found) {
         nextQ = unseen[Math.floor(Math.random() * unseen.length)];
-        setSeenQuestionIds(prev => [...prev, nextQ.id]);
+        setSeenQuestionIds((prev) => [...prev, nextQ.id]);
       }
     }
 
@@ -175,7 +198,8 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   };
 
   const handleReset = () => {
-    const firstQ = examQuestions[Math.floor(Math.random() * examQuestions.length)];
+    const firstQ =
+      examQuestions[Math.floor(Math.random() * examQuestions.length)];
     setCurrentQuestion(firstQ);
     setSeenQuestionIds([firstQ.id]);
     setSelectedOptions([]);
@@ -187,14 +211,17 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   };
 
   // Weakness metrics breakdown
-  const topicStats = quizHistory.reduce((acc, curr) => {
-    if (!acc[curr.topic]) {
-      acc[curr.topic] = { total: 0, correct: 0 };
-    }
-    acc[curr.topic].total += 1;
-    if (curr.isCorrect) acc[curr.topic].correct += 1;
-    return acc;
-  }, {} as Record<string, { total: number; correct: number }>);
+  const topicStats = quizHistory.reduce(
+    (acc, curr) => {
+      if (!acc[curr.topic]) {
+        acc[curr.topic] = { total: 0, correct: 0 };
+      }
+      acc[curr.topic].total += 1;
+      if (curr.isCorrect) acc[curr.topic].correct += 1;
+      return acc;
+    },
+    {} as Record<string, { total: number; correct: number }>,
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full font-sans">
@@ -204,10 +231,14 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
         <div className="flex items-center justify-between px-6 py-4 bg-watchguard-lightgray border-b border-watchguard-border flex-wrap gap-3">
           <div className="flex items-center space-x-2">
             <Trophy className="w-5 h-5 text-watchguard-orange" />
-            <h2 className="font-display font-semibold text-white">NSE Essentials Quiz</h2>
+            <h2 className="font-display font-semibold text-white">
+              NSE Essentials Quiz
+            </h2>
           </div>
           <div className="flex items-center space-x-3 text-xs font-mono">
-            <span className="text-gray-400">Question {quizHistory.length + 1} (Adaptive Mode)</span>
+            <span className="text-gray-400">
+              Question {quizHistory.length + 1} (Adaptive Mode)
+            </span>
             <span className="px-2.5 py-1 bg-watchguard-dark rounded text-watchguard-orange border border-watchguard-border">
               {currentQuestion.topic}
             </span>
@@ -227,7 +258,8 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
             </div>
             {currentQuestion.isMultiSelect && (
               <p className="text-xs text-watchguard-orange font-mono mt-3 pl-8">
-                ★ MULTI-SELECT: Choose exactly {currentQuestion.correctAnswersCount} correct options.
+                ★ MULTI-SELECT: Choose exactly{" "}
+                {currentQuestion.correctAnswersCount} correct options.
               </p>
             )}
           </div>
@@ -237,22 +269,28 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
             {currentQuestion.options.map((opt, idx) => {
               const isSelected = selectedOptions.includes(opt);
               const optLetter = String.fromCharCode(65 + idx);
-              
-              let optionStyle = "bg-watchguard-dark/40 border-watchguard-border hover:border-watchguard-orange/40 hover:bg-watchguard-lightgray/50 text-gray-300";
+
+              let optionStyle =
+                "bg-watchguard-dark/40 border-watchguard-border hover:border-watchguard-orange/40 hover:bg-watchguard-lightgray/50 text-gray-300";
               if (isSelected) {
-                optionStyle = "bg-watchguard-orange/15 border-watchguard-orange text-watchguard-orange shadow-lg shadow-watchguard-orange/5";
+                optionStyle =
+                  "bg-watchguard-orange/15 border-watchguard-orange text-watchguard-orange shadow-lg shadow-watchguard-orange/5";
               }
               if (isSubmitted) {
                 // If this option is correct, highlight green
-                const qCorrect = currentQuestion.correctAnswers || [currentQuestion.correctAnswer];
+                const qCorrect = currentQuestion.correctAnswers || [
+                  currentQuestion.correctAnswer,
+                ];
                 const isThisCorrect = qCorrect.includes(opt);
-                
+
                 if (isThisCorrect) {
-                  optionStyle = "bg-green-500/10 border-green-500 text-green-400";
+                  optionStyle =
+                    "bg-green-500/10 border-green-500 text-green-400";
                 } else if (isSelected) {
                   optionStyle = "bg-red-500/10 border-red-500 text-red-400";
                 } else {
-                  optionStyle = "bg-watchguard-dark/20 border-watchguard-border/40 text-gray-500 opacity-60";
+                  optionStyle =
+                    "bg-watchguard-dark/20 border-watchguard-border/40 text-gray-500 opacity-60";
                 }
               }
 
@@ -285,20 +323,30 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
                   {evaluation.isCorrect ? (
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle2 className="w-5 h-5" />
-                      <span className="font-display font-semibold text-sm">CORRECT RESPONSE</span>
+                      <span className="font-display font-semibold text-sm">
+                        CORRECT RESPONSE
+                      </span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2 text-red-400">
                       <XCircle className="w-5 h-5" />
-                      <span className="font-display font-semibold text-sm">INCORRECT RESPONSE</span>
+                      <span className="font-display font-semibold text-sm">
+                        INCORRECT RESPONSE
+                      </span>
                     </div>
                   )}
-                  <span className="text-xs text-gray-400">| Category: {evaluation.weaknessCategory}</span>
+                  <span className="text-xs text-gray-400">
+                    | Category: {evaluation.weaknessCategory}
+                  </span>
                 </div>
                 <div className="text-gray-300 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                  {evaluation.detailedExplanation.split("\n").map((line, idx) => (
-                    <p key={idx} className="my-1">{line}</p>
-                  ))}
+                  {evaluation.detailedExplanation
+                    .split("\n")
+                    .map((line, idx) => (
+                      <p key={idx} className="my-1">
+                        {line}
+                      </p>
+                    ))}
                 </div>
               </motion.div>
             )}
@@ -344,18 +392,26 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
               <Award className="w-4 h-4 text-watchguard-orange" />
               <span>Training Analytics</span>
             </h3>
-            <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">Exam Goal: 75%</span>
+            <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">
+              Exam Goal: 75%
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-watchguard-dark rounded-lg border border-watchguard-border text-center">
-              <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">Accuracy</div>
+              <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">
+                Accuracy
+              </div>
               <div className="text-2xl font-display font-bold text-watchguard-orange mt-1">
-                {quizHistory.length > 0 ? `${Math.round((correctCount / quizHistory.length) * 100)}%` : "0%"}
+                {quizHistory.length > 0
+                  ? `${Math.round((correctCount / quizHistory.length) * 100)}%`
+                  : "0%"}
               </div>
             </div>
             <div className="p-3 bg-watchguard-dark rounded-lg border border-watchguard-border text-center">
-              <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">Completed</div>
+              <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">
+                Completed
+              </div>
               <div className="text-2xl font-display font-bold text-white mt-1">
                 {quizHistory.length} / {examQuestions.length}
               </div>
@@ -370,7 +426,9 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
               <BarChart className="w-4 h-4 text-watchguard-orange" />
               <span>Zonal Performance</span>
             </h3>
-            <span className="text-[10px] font-mono text-gray-500">Correct / Attempt</span>
+            <span className="text-[10px] font-mono text-gray-500">
+              Correct / Attempt
+            </span>
           </div>
 
           {quizHistory.length === 0 ? (
@@ -381,19 +439,23 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
             <div className="space-y-3.5">
               {Object.entries(topicStats).map(([topic, statsVal]) => {
                 const stats = statsVal as { total: number; correct: number };
-                const percentage = Math.round((stats.correct / stats.total) * 100);
+                const percentage = Math.round(
+                  (stats.correct / stats.total) * 100,
+                );
                 const isFailing = percentage < 75;
                 return (
                   <div key={topic} className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="text-gray-300 font-medium">{topic}</span>
-                      <span className={`font-mono font-bold ${isFailing ? "text-red-400" : "text-green-400"}`}>
+                      <span
+                        className={`font-mono font-bold ${isFailing ? "text-red-400" : "text-green-400"}`}
+                      >
                         {stats.correct}/{stats.total} ({percentage}%)
                       </span>
                     </div>
                     {/* Bar visualization */}
                     <div className="w-full bg-watchguard-dark h-1.5 rounded-full overflow-hidden border border-watchguard-border/30">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ${isFailing ? "bg-red-500" : "bg-green-500"}`}
                         style={{ width: `${percentage}%` }}
                       ></div>

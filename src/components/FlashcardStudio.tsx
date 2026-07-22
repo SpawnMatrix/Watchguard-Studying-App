@@ -1,5 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { BookOpen, RefreshCw, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, HelpCircle, Award, Layers, Volume2, Search, ExternalLink } from "lucide-react";
+import {
+  BookOpen,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Award,
+  Layers,
+  Search,
+  ExternalLink,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface Flashcard {
@@ -16,183 +27,241 @@ const HIGH_YIELD_FLASHCARDS: Flashcard[] = [
   {
     id: 1,
     category: "Setup",
-    question: "What is the factory default IP address and subnet mask of Eth1 (Trusted) on a new or reset Firebox?",
-    answer: "IP: 10.0.1.1\nSubnet Mask: 255.255.255.0 (/24)\n\nAdditionally, DHCP Server is enabled on Eth1 by default, distributing IP addresses in the 10.0.1.2 - 10.0.1.254 range to connected clients.",
+    question:
+      "What is the factory default IP address and subnet mask of Eth1 (Trusted) on a new or reset Firebox?",
+    answer:
+      "IP: 10.0.1.1\nSubnet Mask: 255.255.255.0 (/24)\n\nAdditionally, DHCP Server is enabled on Eth1 by default, distributing IP addresses in the 10.0.1.2 - 10.0.1.254 range to connected clients.",
     keyConcept: "Eth1 Default Configuration",
-    examTip: "Eth1 is always Trusted by default. Eth0 is always External by default, configured as a DHCP client.",
-    officialReference: "WatchGuard Fireware Quick Start Guide"
+    examTip:
+      "Eth1 is always Trusted by default. Eth0 is always External by default, configured as a DHCP client.",
+    officialReference: "WatchGuard Fireware Quick Start Guide",
   },
   {
     id: 2,
     category: "Setup",
-    question: "Which port does the Firebox Web UI run on by default for administrator logins?",
-    answer: "HTTPS Port 8080 (e.g., https://10.0.1.1:8080)\n\nNote that the Firebox System Manager (FSM) software connects over port 4105. WatchGuard System Manager uses port 4118 for Gateway commands.",
+    question:
+      "Which port does the Firebox Web UI run on by default for administrator logins?",
+    answer:
+      "HTTPS Port 8080 (e.g., https://10.0.1.1:8080)\n\nNote that the Firebox System Manager (FSM) software connects over port 4105. WatchGuard System Manager uses port 4118 for Gateway commands.",
     keyConcept: "Management Ports",
-    examTip: "Make sure you include the 'https://' prefix and ':8080' port suffix in your browser, or the connection will time out.",
-    officialReference: "Connect to Fireware Web UI"
+    examTip:
+      "Make sure you include the 'https://' prefix and ':8080' port suffix in your browser, or the connection will time out.",
+    officialReference: "Connect to Fireware Web UI",
   },
   {
     id: 3,
     category: "Policies",
-    question: "Describe the order in which the Firebox processes security policies. How does precedence work?",
-    answer: "The Firebox processes policies sequentially from top to bottom. Specific rules (such as policy matching a single host IP) should be placed higher in the list than general rules (such as Any-Trusted to Any-External).\n\nIf Auto-Order is enabled, the Firebox automatically places specific filters above general ones.",
+    question:
+      "Describe the order in which the Firebox processes security policies. How does precedence work?",
+    answer:
+      "The Firebox processes policies sequentially from top to bottom. Specific rules (such as policy matching a single host IP) should be placed higher in the list than general rules (such as Any-Trusted to Any-External).\n\nIf Auto-Order is enabled, the Firebox automatically places specific filters above general ones.",
     keyConcept: "Policy Precedence & Order",
-    examTip: "Auto-Order is the recommended default. Manual ordering allows you to drag policies up or down to bypass default precedence.",
-    officialReference: "About Policy Precedence"
+    examTip:
+      "Auto-Order is the recommended default. Manual ordering allows you to drag policies up or down to bypass default precedence.",
+    officialReference: "About Policy Precedence",
   },
   {
     id: 4,
     category: "Policies",
-    question: "What is the main difference between a packet filter policy and a proxy policy?",
-    answer: "• Packet Filter: Operates at Layers 3/4 (IP & Port). Simply checks the source, destination, and port, then allows or blocks. Very fast but doesn't scan contents.\n• Proxy: Operates at Layer 7 (Application). Intercepts connection, terminates handshake, parses actual payload, enforces protocol standards, and can inspect bodies.",
+    question:
+      "What is the main difference between a packet filter policy and a proxy policy?",
+    answer:
+      "• Packet Filter: Operates at Layers 3/4 (IP & Port). Simply checks the source, destination, and port, then allows or blocks. Very fast but doesn't scan contents.\n• Proxy: Operates at Layer 7 (Application). Intercepts connection, terminates handshake, parses actual payload, enforces protocol standards, and can inspect bodies.",
     keyConcept: "Packet Filters vs. Proxies",
-    examTip: "Exam questions often ask which policy type to use to inspect attachments or block MIME types. The answer is always a Proxy policy.",
-    officialReference: "About Proxies and Application Layer Gateways"
+    examTip:
+      "Exam questions often ask which policy type to use to inspect attachments or block MIME types. The answer is always a Proxy policy.",
+    officialReference: "About Proxies and Application Layer Gateways",
   },
   {
     id: 5,
     category: "Policies",
-    question: "How does HTTPS Content Inspection work, and what must be installed on clients to prevent browser warnings?",
-    answer: "HTTPS Content Inspection decrypts HTTPS traffic, scans the underlying HTTP headers/payload with HTTP proxy actions (WebBlocker, GAV, APT), and re-encrypts the data using the Firebox's Proxy Authority Certificate.\n\nTo prevent TLS/SSL certificate warnings, the Firebox Proxy Authority CA Certificate must be imported into the trusted root authority store of each client device.",
+    question:
+      "How does HTTPS Content Inspection work, and what must be installed on clients to prevent browser warnings?",
+    answer:
+      "HTTPS Content Inspection decrypts HTTPS traffic, scans the underlying HTTP headers/payload with HTTP proxy actions (WebBlocker, GAV, APT), and re-encrypts the data using the Firebox's Proxy Authority Certificate.\n\nTo prevent TLS/SSL certificate warnings, the Firebox Proxy Authority CA Certificate must be imported into the trusted root authority store of each client device.",
     keyConcept: "HTTPS Deep Packet Inspection (DPI)",
-    examTip: "Clients can download the certificate directly from the certificate portal at http://<Firebox-IP>:4126/certportal",
-    officialReference: "HTTPS Proxy: Content Inspection"
+    examTip:
+      "Clients can download the certificate directly from the certificate portal at http://<Firebox-IP>:4126/certportal",
+    officialReference: "HTTPS Proxy: Content Inspection",
   },
   {
     id: 6,
     category: "Routing",
-    question: "What is NAT Loopback (also known as hairpin NAT) and when is it required?",
-    answer: "NAT Loopback allows a trusted internal network client to access a public-facing server (e.g., an internal web server mapped with Static NAT) using its public IP address or public domain name instead of its private IP.",
+    question:
+      "What is NAT Loopback (also known as hairpin NAT) and when is it required?",
+    answer:
+      "NAT Loopback allows a trusted internal network client to access a public-facing server (e.g., an internal web server mapped with Static NAT) using its public IP address or public domain name instead of its private IP.",
     keyConcept: "NAT Loopback Mechanism",
-    examTip: "Ensure 'Enable NAT Loopback' is checked in the Static NAT (SNAT) policy action settings.",
-    officialReference: "About NAT Loopback"
+    examTip:
+      "Ensure 'Enable NAT Loopback' is checked in the Static NAT (SNAT) policy action settings.",
+    officialReference: "About NAT Loopback",
   },
   {
     id: 7,
     category: "Routing",
     question: "Explain 1-to-1 NAT on a Firebox. Is it bi-directional?",
-    answer: "Yes, 1-to-1 NAT is bi-directional. It maps a range of internal private IP addresses to a corresponding range of public external IP addresses.\n\nTraffic outbound from private IP 10.0.1.50 is NATed to public IP 203.0.113.50, and inbound traffic to 203.0.113.50 is automatically routed to 10.0.1.50.",
+    answer:
+      "Yes, 1-to-1 NAT is bi-directional. It maps a range of internal private IP addresses to a corresponding range of public external IP addresses.\n\nTraffic outbound from private IP 10.0.1.50 is NATed to public IP 203.0.113.50, and inbound traffic to 203.0.113.50 is automatically routed to 10.0.1.50.",
     keyConcept: "1-to-1 NAT Bi-directional Mapping",
     examTip: "1-to-1 NAT does not consume ports. It maps entire IP addresses.",
-    officialReference: "About 1-to-1 NAT"
+    officialReference: "About 1-to-1 NAT",
   },
   {
     id: 8,
     category: "VPN",
-    question: "What is the primary difference between BOVPN Phase 1 and Phase 2 negotiations?",
-    answer: "• Phase 1 (Gateway): Authenticates the remote peers, establishes a secure encryption algorithm (IKEv1/IKEv2), and negotiates secure session keys. Crucial settings: Pre-shared key and Gateway ID.\n• Phase 2 (Tunnel): Defines the actual traffic that is allowed to pass through the tunnel, specifying matching subnet route ranges (Local and Remote) and IPsec security associations (ESP/PFS).",
+    question:
+      "What is the primary difference between BOVPN Phase 1 and Phase 2 negotiations?",
+    answer:
+      "• Phase 1 (Gateway): Authenticates the remote peers, establishes a secure encryption algorithm (IKEv1/IKEv2), and negotiates secure session keys. Crucial settings: Pre-shared key and Gateway ID.\n• Phase 2 (Tunnel): Defines the actual traffic that is allowed to pass through the tunnel, specifying matching subnet route ranges (Local and Remote) and IPsec security associations (ESP/PFS).",
     keyConcept: "BOVPN Phase 1 vs. Phase 2",
-    examTip: "Mismatched Pre-shared keys fail in Phase 1. Mismatched Subnet definitions fail in Phase 2.",
-    officialReference: "BOVPN Gateway and Tunnel Configurations"
+    examTip:
+      "Mismatched Pre-shared keys fail in Phase 1. Mismatched Subnet definitions fail in Phase 2.",
+    officialReference: "BOVPN Gateway and Tunnel Configurations",
   },
   {
     id: 9,
     category: "VPN",
-    question: "Which Mobile VPN type is recommended for seamless integration, zero-touch deployment, and native OS support?",
-    answer: "Mobile VPN with IKEv2.\n\nIt is highly secure, fast, and supported natively by Windows, macOS, and iOS without third-party client software. WatchGuard provides a single configuration script (.bat or .mobileconfig) to automatically configure clients.",
+    question:
+      "Which Mobile VPN type is recommended for seamless integration, zero-touch deployment, and native OS support?",
+    answer:
+      "Mobile VPN with IKEv2.\n\nIt is highly secure, fast, and supported natively by Windows, macOS, and iOS without third-party client software. WatchGuard provides a single configuration script (.bat or .mobileconfig) to automatically configure clients.",
     keyConcept: "Mobile VPN with IKEv2",
-    examTip: "If users need access behind highly restrictive firewalls that block standard IKEv2 UDP ports (500/4500), fallback to Mobile VPN with SSL (which uses TCP port 443).",
-    officialReference: "About Mobile VPN with IKEv2"
+    examTip:
+      "If users need access behind highly restrictive firewalls that block standard IKEv2 UDP ports (500/4500), fallback to Mobile VPN with SSL (which uses TCP port 443).",
+    officialReference: "About Mobile VPN with IKEv2",
   },
   {
     id: 10,
     category: "Diagnostics",
-    question: "What does the Policy Checker diagnostic tool do in Firebox System Manager?",
-    answer: "Policy Checker simulates a packet matching specific criteria (Source IP, Destination IP, Port, and Protocol) and determines which active policy in the configuration list handles that packet (Allow, Deny, or Drop).",
+    question:
+      "What does the Policy Checker diagnostic tool do in Firebox System Manager?",
+    answer:
+      "Policy Checker simulates a packet matching specific criteria (Source IP, Destination IP, Port, and Protocol) and determines which active policy in the configuration list handles that packet (Allow, Deny, or Drop).",
     keyConcept: "Policy Checker Utility",
-    examTip: "Use Policy Checker if a technician reports that a specific server cannot receive traffic despite an open policy. It immediately highlights if a higher policy is dropping the traffic first.",
-    officialReference: "FSM Policy Checker"
+    examTip:
+      "Use Policy Checker if a technician reports that a specific server cannot receive traffic despite an open policy. It immediately highlights if a higher policy is dropping the traffic first.",
+    officialReference: "FSM Policy Checker",
   },
   {
     id: 11,
     category: "Diagnostics",
-    question: "How long does an IP address remain in the temporary 'Blocked Sites' list by default when triggered by intrusion prevention (IPS)?",
-    answer: "20 minutes.\n\nThis default duration can be customized in the Global Blocked Sites parameters. Administrators can also permanently block sites by manually adding them to the Permanent Blocked Sites list.",
+    question:
+      "How long does an IP address remain in the temporary 'Blocked Sites' list by default when triggered by intrusion prevention (IPS)?",
+    answer:
+      "20 minutes.\n\nThis default duration can be customized in the Global Blocked Sites parameters. Administrators can also permanently block sites by manually adding them to the Permanent Blocked Sites list.",
     keyConcept: "Temporary Blocked Sites",
-    examTip: "A temporary block is dynamic and self-clearing, reducing administrative overhead while blocking automated brute-force attempts.",
-    officialReference: "About Blocked Sites"
+    examTip:
+      "A temporary block is dynamic and self-clearing, reducing administrative overhead while blocking automated brute-force attempts.",
+    officialReference: "About Blocked Sites",
   },
   {
     id: 12,
     category: "Routing",
-    question: "Describe the four Multi-WAN routing modes available on locally-managed Fireboxes.",
-    answer: "1. Routing Table: Routes based on default gateways and static routes.\n2. Round Robin: Distributes connections across active WAN interfaces based on weights.\n3. Failover: Directs all traffic to a primary WAN, falling back to a backup WAN if it fails.\n4. Interface Overflow: Routes traffic to a primary WAN until a bandwidth threshold is hit, then overflows to the next WAN.",
+    question:
+      "Describe the four Multi-WAN routing modes available on locally-managed Fireboxes.",
+    answer:
+      "1. Routing Table: Routes based on default gateways and static routes.\n2. Round Robin: Distributes connections across active WAN interfaces based on weights.\n3. Failover: Directs all traffic to a primary WAN, falling back to a backup WAN if it fails.\n4. Interface Overflow: Routes traffic to a primary WAN until a bandwidth threshold is hit, then overflows to the next WAN.",
     keyConcept: "Multi-WAN Modes",
-    examTip: "SD-WAN policies are used to route application-specific traffic based on performance metrics (latency, jitter, packet loss), overriding default Multi-WAN modes.",
-    officialReference: "About Multi-WAN Methods"
+    examTip:
+      "SD-WAN policies are used to route application-specific traffic based on performance metrics (latency, jitter, packet loss), overriding default Multi-WAN modes.",
+    officialReference: "About Multi-WAN Methods",
   },
   {
     id: 13,
     category: "Routing",
-    question: "How does SD-WAN evaluate active link quality to dynamically route outbound traffic?",
-    answer: "SD-WAN uses Link Monitors to measure real-time link statistics including: latency, jitter, and packet loss.\n\nBy comparing these active measurements against configured thresholds, the Firebox can dynamically route voice, video, or critical database traffic to the best performing interface, overriding standard Multi-WAN rules.",
+    question:
+      "How does SD-WAN evaluate active link quality to dynamically route outbound traffic?",
+    answer:
+      "SD-WAN uses Link Monitors to measure real-time link statistics including: latency, jitter, and packet loss.\n\nBy comparing these active measurements against configured thresholds, the Firebox can dynamically route voice, video, or critical database traffic to the best performing interface, overriding standard Multi-WAN rules.",
     keyConcept: "SD-WAN Quality Metrics",
-    examTip: "VoIP traffic usually has strict jitter (< 20ms) and latency (< 150ms) requirements. SD-WAN is the exact tool to enforce these levels.",
-    officialReference: "Configure SD-WAN Actions"
+    examTip:
+      "VoIP traffic usually has strict jitter (< 20ms) and latency (< 150ms) requirements. SD-WAN is the exact tool to enforce these levels.",
+    officialReference: "Configure SD-WAN Actions",
   },
   {
     id: 14,
     category: "Routing",
-    question: "Which dynamic routing protocols are supported natively on WatchGuard Fireboxes?",
-    answer: "• OSPF: Link-state interior routing protocol, highly popular for mid-to-large business networks.\n• BGP v4: Path-vector exterior gateway protocol, ideal for multihomed connections with multiple ISPs.\n• RIP v1/v2: Legacy interior distance-vector routing protocol based on hop counts.",
+    question:
+      "Which dynamic routing protocols are supported natively on WatchGuard Fireboxes?",
+    answer:
+      "• OSPF: Link-state interior routing protocol, highly popular for mid-to-large business networks.\n• BGP v4: Path-vector exterior gateway protocol, ideal for multihomed connections with multiple ISPs.\n• RIP v1/v2: Legacy interior distance-vector routing protocol based on hop counts.",
     keyConcept: "Dynamic Routing Protocols",
-    examTip: "To enable dynamic routing, you must write a Zebra configuration routing script directly in the Firebox configuration.",
-    officialReference: "About Dynamic Routing"
+    examTip:
+      "To enable dynamic routing, you must write a Zebra configuration routing script directly in the Firebox configuration.",
+    officialReference: "About Dynamic Routing",
   },
   {
     id: 15,
     category: "VPN",
-    question: "What is a major administrative advantage of Virtual Interface BOVPN over Policy-Based BOVPN?",
-    answer: "A Virtual Interface BOVPN creates a logical virtual interface (bvpn1) that behaves like a physical port.\n\nThis allows administrators to configure standard static routes, run dynamic routing protocols (OSPF), or include the tunnel in SD-WAN actions. Policy-Based BOVPN requires hardcoded local-and-remote network selectors for every rule, which is difficult to scale.",
+    question:
+      "What is a major administrative advantage of Virtual Interface BOVPN over Policy-Based BOVPN?",
+    answer:
+      "A Virtual Interface BOVPN creates a logical virtual interface (bvpn1) that behaves like a physical port.\n\nThis allows administrators to configure standard static routes, run dynamic routing protocols (OSPF), or include the tunnel in SD-WAN actions. Policy-Based BOVPN requires hardcoded local-and-remote network selectors for every rule, which is difficult to scale.",
     keyConcept: "Virtual Interface BOVPN Flexibility",
-    examTip: "For modern redundant branch office networks with automated failovers, Virtual Interface BOVPN is the standard recommendation.",
-    officialReference: "About Virtual Interface BOVPN"
+    examTip:
+      "For modern redundant branch office networks with automated failovers, Virtual Interface BOVPN is the standard recommendation.",
+    officialReference: "About Virtual Interface BOVPN",
   },
   {
     id: 16,
     category: "Policies",
-    question: "Compare Gateway AntiVirus (GAV) and APT Blocker in threat scanning.",
-    answer: "• Gateway AntiVirus: Uses a local engine with signature databases to detect known files on-the-fly as they stream through proxies (HTTP, FTP, SMTP).\n• APT Blocker: Scans for unknown malware and zero-day threats. It calculates file hashes and uploads unrecognized executables/documents to a cloud-based sandbox for behavioral analysis.",
+    question:
+      "Compare Gateway AntiVirus (GAV) and APT Blocker in threat scanning.",
+    answer:
+      "• Gateway AntiVirus: Uses a local engine with signature databases to detect known files on-the-fly as they stream through proxies (HTTP, FTP, SMTP).\n• APT Blocker: Scans for unknown malware and zero-day threats. It calculates file hashes and uploads unrecognized executables/documents to a cloud-based sandbox for behavioral analysis.",
     keyConcept: "Layered Malware Protection",
-    examTip: "Signature-based blocks are fast but only catch known threats. Sandbox analyses (APT Blocker) catch brand new zero-day threats but take a few minutes.",
-    officialReference: "WatchGuard APT Blocker Overview"
+    examTip:
+      "Signature-based blocks are fast but only catch known threats. Sandbox analyses (APT Blocker) catch brand new zero-day threats but take a few minutes.",
+    officialReference: "WatchGuard APT Blocker Overview",
   },
   {
     id: 17,
     category: "Policies",
-    question: "What is DNSWatch, and how does it secure client internet lookups?",
-    answer: "DNSWatch is a subscription service that intercepts DNS queries and forwards them to WatchGuard's secure cloud DNS servers.\n\nIt compares requested domains against known malicious feeds. If a threat is found, it redirects the client to a safe educational block page rather than resolving the malicious IP.",
+    question:
+      "What is DNSWatch, and how does it secure client internet lookups?",
+    answer:
+      "DNSWatch is a subscription service that intercepts DNS queries and forwards them to WatchGuard's secure cloud DNS servers.\n\nIt compares requested domains against known malicious feeds. If a threat is found, it redirects the client to a safe educational block page rather than resolving the malicious IP.",
     keyConcept: "DNS-Level Threat Interception",
-    examTip: "DNSWatch operates globally for the network and doesn't require importing local certificates like HTTPS Content Inspection does.",
-    officialReference: "About DNSWatch"
+    examTip:
+      "DNSWatch operates globally for the network and doesn't require importing local certificates like HTTPS Content Inspection does.",
+    officialReference: "About DNSWatch",
   },
   {
     id: 18,
     category: "Diagnostics",
-    question: "Which port does a Firebox use to forward security logs to a centralized WatchGuard Log Server or Dimension database?",
-    answer: "TCP Port 4115.\n\nThis proprietary communication channel is secure and encrypted. For standard Syslog to third-party collectors, the Firebox uses standard UDP/TCP Port 514.",
+    question:
+      "Which port does a Firebox use to forward security logs to a centralized WatchGuard Log Server or Dimension database?",
+    answer:
+      "TCP Port 4115.\n\nThis proprietary communication channel is secure and encrypted. For standard Syslog to third-party collectors, the Firebox uses standard UDP/TCP Port 514.",
     keyConcept: "Centralized Log Server Port",
-    examTip: "Make sure that port 4115 is allowed outbound on any perimeter devices between the Firebox and your logging target.",
-    officialReference: "Configure Logging on the Firebox"
+    examTip:
+      "Make sure that port 4115 is allowed outbound on any perimeter devices between the Firebox and your logging target.",
+    officialReference: "Configure Logging on the Firebox",
   },
   {
     id: 19,
     category: "Setup",
-    question: "How do Active/Passive and Active/Active FireCluster deployments differ in interface load balancing?",
-    answer: "• Active/Passive: The master Firebox processes all traffic while the backup synchronizes states. Only one device is active at any time.\n• Active/Active: Both Fireboxes process traffic simultaneously. The master load-balances incoming WAN connections to the backup unit using multicast ARP, expanding total bandwidth capabilities.",
+    question:
+      "How do Active/Passive and Active/Active FireCluster deployments differ in interface load balancing?",
+    answer:
+      "• Active/Passive: The master Firebox processes all traffic while the backup synchronizes states. Only one device is active at any time.\n• Active/Active: Both Fireboxes process traffic simultaneously. The master load-balances incoming WAN connections to the backup unit using multicast ARP, expanding total bandwidth capabilities.",
     keyConcept: "FireCluster Cluster Modes",
-    examTip: "Active/Active requires network switches that support static multicast ARP entries to prevent network packet flooding.",
-    officialReference: "About FireCluster"
+    examTip:
+      "Active/Active requires network switches that support static multicast ARP entries to prevent network packet flooding.",
+    officialReference: "About FireCluster",
   },
   {
     id: 20,
     category: "Setup",
-    question: "Explain the difference between saving a backup XML configuration and an FXI Flash Backup Image.",
-    answer: "• XML Config File: Contains only the plain text configuration settings. It is model-independent and can be used to migrate policies to newer Firebox models.\n• FXI Flash Backup Image: A comprehensive bit-level snapshot of the Firebox's flash memory. It includes the exact Fireware OS, active certificates, feature licenses, and configurations. It is strictly hardware-model-specific.",
+    question:
+      "Explain the difference between saving a backup XML configuration and an FXI Flash Backup Image.",
+    answer:
+      "• XML Config File: Contains only the plain text configuration settings. It is model-independent and can be used to migrate policies to newer Firebox models.\n• FXI Flash Backup Image: A comprehensive bit-level snapshot of the Firebox's flash memory. It includes the exact Fireware OS, active certificates, feature licenses, and configurations. It is strictly hardware-model-specific.",
     keyConcept: "XML Configs vs. FXI Images",
-    examTip: "Use XML configuration files for migrations between different hardware models, and FXI backup images for fast disaster recovery on identical hardware.",
-    officialReference: "Backup and Restore Firebox Configuration"
-  }
+    examTip:
+      "Use XML configuration files for migrations between different hardware models, and FXI backup images for fast disaster recovery on identical hardware.",
+    officialReference: "Backup and Restore Firebox Configuration",
+  },
 ];
 
 export default function FlashcardStudio() {
@@ -200,7 +269,7 @@ export default function FlashcardStudio() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Track study progress locally in state
   const [masteredIds, setMasteredIds] = useState<number[]>(() => {
     try {
@@ -211,15 +280,24 @@ export default function FlashcardStudio() {
     }
   });
 
-  const categories = ["All", "Setup", "Policies", "Routing", "VPN", "Diagnostics"];
+  const categories = [
+    "All",
+    "Setup",
+    "Policies",
+    "Routing",
+    "VPN",
+    "Diagnostics",
+  ];
 
   // Filter cards based on category and search query
   const filteredCards = useMemo(() => {
-    return HIGH_YIELD_FLASHCARDS.filter(card => {
-      const matchesCategory = selectedCategory === "All" || card.category === selectedCategory;
-      const matchesSearch = card.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            card.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            card.keyConcept.toLowerCase().includes(searchQuery.toLowerCase());
+    return HIGH_YIELD_FLASHCARDS.filter((card) => {
+      const matchesCategory =
+        selectedCategory === "All" || card.category === selectedCategory;
+      const matchesSearch =
+        card.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.keyConcept.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [selectedCategory, searchQuery]);
@@ -244,39 +322,49 @@ export default function FlashcardStudio() {
     if (filteredCards.length === 0) return;
     setIsFlipped(false);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + filteredCards.length) % filteredCards.length);
+      setCurrentIndex(
+        (prev) => (prev - 1 + filteredCards.length) % filteredCards.length,
+      );
     }, 150);
   };
 
   const handleToggleMastered = (id: number) => {
     setMasteredIds((prev) => {
-      const updated = prev.includes(id) 
-        ? prev.filter(item => item !== id) 
+      const updated = prev.includes(id)
+        ? prev.filter((item) => item !== id)
         : [...prev, id];
-      localStorage.setItem("watchguard_mastered_flashcards", JSON.stringify(updated));
+      localStorage.setItem(
+        "watchguard_mastered_flashcards",
+        JSON.stringify(updated),
+      );
       return updated;
     });
   };
 
   const handleResetProgress = () => {
-    if (window.confirm("Are you sure you want to reset your mastered flashcards status?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to reset your mastered flashcards status?",
+      )
+    ) {
       setMasteredIds([]);
       localStorage.removeItem("watchguard_mastered_flashcards");
     }
   };
 
   const masteredCount = useMemo(() => {
-    return HIGH_YIELD_FLASHCARDS.filter(c => masteredIds.includes(c.id)).length;
+    return HIGH_YIELD_FLASHCARDS.filter((c) => masteredIds.includes(c.id))
+      .length;
   }, [masteredIds]);
 
-  const progressPercent = Math.round((masteredCount / HIGH_YIELD_FLASHCARDS.length) * 100);
+  const progressPercent = Math.round(
+    (masteredCount / HIGH_YIELD_FLASHCARDS.length) * 100,
+  );
 
   return (
     <div className="space-y-6">
-      
       {/* Overview Stat Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
         {/* Progress Card */}
         <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 flex items-center space-x-4">
           <div className="p-3 bg-watchguard-orange/15 rounded-xl border border-watchguard-orange/30">
@@ -284,17 +372,22 @@ export default function FlashcardStudio() {
           </div>
           <div className="flex-1">
             <div className="flex justify-between items-end">
-              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold">Exam Mastery Goal</span>
-              <span className="text-sm font-semibold text-white font-mono">{progressPercent}%</span>
+              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold">
+                Exam Mastery Goal
+              </span>
+              <span className="text-sm font-semibold text-white font-mono">
+                {progressPercent}%
+              </span>
             </div>
             <div className="w-full bg-watchguard-dark h-2 rounded-full mt-2 overflow-hidden border border-watchguard-border">
-              <div 
-                className="bg-watchguard-orange h-full rounded-full transition-all duration-500" 
+              <div
+                className="bg-watchguard-orange h-full rounded-full transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
             <p className="text-[11px] text-gray-400 mt-1.5 font-sans leading-normal">
-              {masteredCount} of {HIGH_YIELD_FLASHCARDS.length} essential NSE topics flagged as mastered.
+              {masteredCount} of {HIGH_YIELD_FLASHCARDS.length} essential NSE
+              topics flagged as mastered.
             </p>
           </div>
         </div>
@@ -305,13 +398,25 @@ export default function FlashcardStudio() {
             <Layers className="w-6 h-6 text-watchguard-orange" />
           </div>
           <div>
-            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Coded Syllabus Areas</span>
+            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">
+              Coded Syllabus Areas
+            </span>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Setup</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Policies</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Routing</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">VPN</span>
-              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Diagnostics</span>
+              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">
+                Setup
+              </span>
+              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">
+                Policies
+              </span>
+              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">
+                Routing
+              </span>
+              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">
+                VPN
+              </span>
+              <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">
+                Diagnostics
+              </span>
             </div>
           </div>
         </div>
@@ -322,11 +427,15 @@ export default function FlashcardStudio() {
             <BookOpen className="w-6 h-6 text-watchguard-orange" />
           </div>
           <div>
-            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Study Guide Links</span>
+            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">
+              Study Guide Links
+            </span>
             <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-              Based directly on the <strong>locally managed firebox syllabus</strong> for the Network Security Essentials exam.
+              Based directly on the{" "}
+              <strong>locally managed firebox syllabus</strong> for the Network
+              Security Essentials exam.
             </p>
-            <button 
+            <button
               onClick={handleResetProgress}
               className="text-[10px] text-red-400 hover:text-red-300 underline font-mono bg-transparent border-0 mt-1 px-0 cursor-pointer block"
             >
@@ -338,11 +447,12 @@ export default function FlashcardStudio() {
 
       {/* Main Flashcard Interface Arena */}
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-6 shadow-2xl flex flex-col md:flex-row gap-6">
-        
         {/* Left Side: Filter Panels */}
         <div className="w-full md:w-64 space-y-4 flex-shrink-0">
           <div>
-            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">Category Filter</h3>
+            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">
+              Category Filter
+            </h3>
             <div className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
               {categories.map((cat) => (
                 <button
@@ -361,7 +471,9 @@ export default function FlashcardStudio() {
           </div>
 
           <div>
-            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">Keyword Search</h3>
+            <h3 className="text-xs font-bold text-gray-200 font-mono uppercase tracking-wider mb-2">
+              Keyword Search
+            </h3>
             <div className="relative">
               <input
                 type="text"
@@ -376,9 +488,12 @@ export default function FlashcardStudio() {
 
           {filteredCards.length > 0 && (
             <div className="bg-watchguard-dark/40 border border-watchguard-border/60 p-3 rounded-lg space-y-1">
-              <span className="text-[10px] font-mono text-gray-500 block">Syllabus Index</span>
+              <span className="text-[10px] font-mono text-gray-500 block">
+                Syllabus Index
+              </span>
               <p className="text-[11px] text-gray-300 font-sans">
-                Showing {currentIndex + 1} of {filteredCards.length} matching flashcards.
+                Showing {currentIndex + 1} of {filteredCards.length} matching
+                flashcards.
               </p>
             </div>
           )}
@@ -386,7 +501,6 @@ export default function FlashcardStudio() {
 
         {/* Right Side: Flashcard Display Stage */}
         <div className="flex-1 flex flex-col items-center justify-between min-h-[400px] bg-watchguard-dark/20 rounded-xl border border-watchguard-border/60 p-6 space-y-6">
-          
           <div className="w-full text-center">
             {activeCard && (
               <span className="text-[9px] font-mono bg-watchguard-orange/10 border border-watchguard-orange/30 text-watchguard-orange px-2.5 py-1 rounded uppercase tracking-widest font-bold">
@@ -399,9 +513,14 @@ export default function FlashcardStudio() {
             {filteredCards.length === 0 ? (
               <div className="text-center space-y-3 py-12">
                 <AlertCircle className="w-10 h-10 text-gray-500 mx-auto" />
-                <p className="text-sm text-gray-400 font-mono">No matching high-yield flashcards found.</p>
-                <button 
-                  onClick={() => { setSelectedCategory("All"); setSearchQuery(""); }}
+                <p className="text-sm text-gray-400 font-mono">
+                  No matching high-yield flashcards found.
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedCategory("All");
+                    setSearchQuery("");
+                  }}
                   className="text-xs bg-watchguard-orange/10 border border-watchguard-orange/30 text-watchguard-orange hover:bg-watchguard-orange/20 px-3 py-1.5 rounded transition-all font-mono cursor-pointer"
                 >
                   Reset Study Filter
@@ -409,12 +528,12 @@ export default function FlashcardStudio() {
               </div>
             ) : (
               activeCard && (
-                <div 
+                <div
                   id={`flashcard-${activeCard.id}`}
                   onClick={() => setIsFlipped(!isFlipped)}
                   className="w-full min-h-[260px] bg-watchguard-gray border border-watchguard-border rounded-xl p-6 shadow-2xl relative cursor-pointer select-none overflow-hidden hover:border-watchguard-orange/40 transition-all flex flex-col justify-between"
                   style={{
-                    perspective: "1000px"
+                    perspective: "1000px",
                   }}
                 >
                   {/* Decorative background grids */}
@@ -432,11 +551,18 @@ export default function FlashcardStudio() {
                       >
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono text-gray-500 font-semibold uppercase">Question Card</span>
-                            <span className="text-xs text-watchguard-orange font-mono font-medium">#{activeCard.id}</span>
+                            <span className="text-[10px] font-mono text-gray-500 font-semibold uppercase">
+                              Question Card
+                            </span>
+                            <span className="text-xs text-watchguard-orange font-mono font-medium">
+                              #{activeCard.id}
+                            </span>
                           </div>
-                          
-                          <h2 className="text-lg font-display font-medium text-white tracking-tight leading-relaxed select-text cursor-text" onClick={(e) => e.stopPropagation()}>
+
+                          <h2
+                            className="text-lg font-display font-medium text-white tracking-tight leading-relaxed select-text cursor-text"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {activeCard.question}
                           </h2>
                         </div>
@@ -446,7 +572,9 @@ export default function FlashcardStudio() {
                             <RefreshCw className="w-3.5 h-3.5 text-watchguard-orange animate-spin-slow" />
                             <span>Click card to reveal answer</span>
                           </span>
-                          <span className="text-gray-500 text-[10px]">Key: {activeCard.keyConcept}</span>
+                          <span className="text-gray-500 text-[10px]">
+                            Key: {activeCard.keyConcept}
+                          </span>
                         </div>
                       </motion.div>
                     ) : (
@@ -464,16 +592,26 @@ export default function FlashcardStudio() {
                               <CheckCircle2 className="w-3 h-3" />
                               <span>Syllabus Verification</span>
                             </span>
-                            <span className="text-xs text-watchguard-orange font-mono font-medium">#{activeCard.id}</span>
+                            <span className="text-xs text-watchguard-orange font-mono font-medium">
+                              #{activeCard.id}
+                            </span>
                           </div>
 
-                          <div className="text-sm text-gray-200 leading-relaxed font-sans whitespace-pre-wrap select-text cursor-text" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="text-sm text-gray-200 leading-relaxed font-sans whitespace-pre-wrap select-text cursor-text"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {activeCard.answer}
                           </div>
 
                           {activeCard.examTip && (
-                            <div className="bg-watchguard-orange/5 border border-watchguard-orange/20 rounded-lg p-3 space-y-1 select-text cursor-text" onClick={(e) => e.stopPropagation()}>
-                              <span className="text-[10px] font-mono font-bold text-watchguard-orange uppercase tracking-wide block">🔥 HIGHER-YIELD EXAM TIP</span>
+                            <div
+                              className="bg-watchguard-orange/5 border border-watchguard-orange/20 rounded-lg p-3 space-y-1 select-text cursor-text"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="text-[10px] font-mono font-bold text-watchguard-orange uppercase tracking-wide block">
+                                🔥 HIGHER-YIELD EXAM TIP
+                              </span>
                               <p className="text-xs text-gray-300 leading-relaxed font-sans">
                                 {activeCard.examTip}
                               </p>
@@ -482,7 +620,9 @@ export default function FlashcardStudio() {
                         </div>
 
                         <div className="mt-6 flex items-center justify-between text-xs text-gray-400 border-t border-watchguard-border/40 pt-4 font-mono">
-                          <span className="text-[10px] text-gray-500">Ref: {activeCard.officialReference}</span>
+                          <span className="text-[10px] text-gray-500">
+                            Ref: {activeCard.officialReference}
+                          </span>
                           <span className="text-watchguard-orange text-[10px] flex items-center space-x-1">
                             <span>Click to flip back</span>
                           </span>
@@ -498,7 +638,6 @@ export default function FlashcardStudio() {
           {/* Mastered toggle & Navigation Buttons */}
           {activeCard && (
             <div className="w-full max-w-xl flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-watchguard-border/40">
-              
               {/* Mastery toggle */}
               <button
                 type="button"
@@ -509,8 +648,14 @@ export default function FlashcardStudio() {
                     : "bg-watchguard-lightgray text-gray-400 border-watchguard-border hover:bg-watchguard-lightgray/80 hover:text-white"
                 }`}
               >
-                <CheckCircle2 className={`w-4 h-4 ${masteredIds.includes(activeCard.id) ? "text-emerald-400" : "text-gray-500"}`} />
-                <span>{masteredIds.includes(activeCard.id) ? "Mastered Topic ✓" : "Mark as Mastered"}</span>
+                <CheckCircle2
+                  className={`w-4 h-4 ${masteredIds.includes(activeCard.id) ? "text-emerald-400" : "text-gray-500"}`}
+                />
+                <span>
+                  {masteredIds.includes(activeCard.id)
+                    ? "Mastered Topic ✓"
+                    : "Mark as Mastered"}
+                </span>
               </button>
 
               {/* Slider Arrows */}
@@ -533,10 +678,8 @@ export default function FlashcardStudio() {
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-
             </div>
           )}
-
         </div>
       </div>
 
@@ -544,22 +687,31 @@ export default function FlashcardStudio() {
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4">
         <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
           <BookOpen className="w-4 h-4 text-watchguard-orange" />
-          <h3 className="font-display font-semibold text-white">WatchGuard NSE Official Reference Catalog</h3>
+          <h3 className="font-display font-semibold text-white">
+            WatchGuard NSE Official Reference Catalog
+          </h3>
         </div>
         <p className="text-xs text-gray-400 leading-relaxed font-sans">
-          To prepare to **PASS** your WatchGuard Network Security exam (Locally-Managed Fireboxes), use these highly recommended study materials, curated video tutorials, and interactive reference sets.
+          To prepare to **PASS** your WatchGuard Network Security exam
+          (Locally-Managed Fireboxes), use these highly recommended study
+          materials, curated video tutorials, and interactive reference sets.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Official Help Center</span>
-              <h4 className="text-xs font-semibold text-white">WatchGuard Fireware Help Docs</h4>
+              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">
+                Official Help Center
+              </span>
+              <h4 className="text-xs font-semibold text-white">
+                WatchGuard Fireware Help Docs
+              </h4>
               <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Comprehensive configuration manuals covering proxies, Mobile VPNs, Multi-WAN failovers, and Policy Manager rules.
+                Comprehensive configuration manuals covering proxies, Mobile
+                VPNs, Multi-WAN failovers, and Policy Manager rules.
               </p>
             </div>
-            <a 
+            <a
               href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/overview/firebox_overview.html"
               target="_blank"
               rel="referrer noopener"
@@ -572,13 +724,18 @@ export default function FlashcardStudio() {
 
           <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Video Tutorials</span>
-              <h4 className="text-xs font-semibold text-white">WatchGuard Video Training Academy</h4>
+              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">
+                Video Tutorials
+              </span>
+              <h4 className="text-xs font-semibold text-white">
+                WatchGuard Video Training Academy
+              </h4>
               <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Visual step-by-step videos and walkthroughs on setting up SNAT, certificate trust imports, and branch office tunnels.
+                Visual step-by-step videos and walkthroughs on setting up SNAT,
+                certificate trust imports, and branch office tunnels.
               </p>
             </div>
-            <a 
+            <a
               href="https://www.watchguard.com/wgrd-training/learning-paths"
               target="_blank"
               rel="referrer noopener"
@@ -591,13 +748,18 @@ export default function FlashcardStudio() {
 
           <div className="bg-watchguard-dark/40 border border-watchguard-border rounded-xl p-4 space-y-3 flex flex-col justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Quizlet Study Sets</span>
-              <h4 className="text-xs font-semibold text-white">High-Yield Exam Prep Sets</h4>
+              <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">
+                Quizlet Study Sets
+              </span>
+              <h4 className="text-xs font-semibold text-white">
+                High-Yield Exam Prep Sets
+              </h4>
               <p className="text-[11px] text-gray-400 leading-normal font-sans">
-                Review verified flashcards on Quizlet prepared by engineers studying for the Network Security Essentials certification.
+                Review verified flashcards on Quizlet prepared by engineers
+                studying for the Network Security Essentials certification.
               </p>
             </div>
-            <a 
+            <a
               href="https://quizlet.com/search?query=watchguard-certified-network-security&type=all"
               target="_blank"
               rel="referrer noopener"
@@ -609,7 +771,6 @@ export default function FlashcardStudio() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
