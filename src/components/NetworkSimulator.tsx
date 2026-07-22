@@ -6,11 +6,14 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
+type Zone = "trusted" | "dmz" | "external";
+type Protocol = "TCP" | "UDP" | "ICMP" | "HTTPS";
+
 interface Packet {
   id: number;
-  from: "trusted" | "dmz" | "external";
-  to: "trusted" | "dmz" | "external";
-  protocol: "TCP" | "UDP" | "ICMP" | "HTTPS";
+  from: Zone;
+  to: Zone;
+  protocol: Protocol;
   srcIP: string;
   dstIP: string;
   srcPort: number;
@@ -37,9 +40,9 @@ export default function NetworkSimulator() {
   const [newPortBlock, setNewPortBlock] = useState("");
 
   // Interactive Packet Injector Form States
-  const [srcZone, setSrcZone] = useState<"trusted" | "dmz" | "external">("trusted");
-  const [dstZone, setDstZone] = useState<"trusted" | "dmz" | "external">("external");
-  const [customProtocol, setCustomProtocol] = useState<"TCP" | "UDP" | "ICMP" | "HTTPS">("TCP");
+  const [srcZone, setSrcZone] = useState<Zone>("trusted");
+  const [dstZone, setDstZone] = useState<Zone>("external");
+  const [customProtocol, setCustomProtocol] = useState<Protocol>("TCP");
   const [customPort, setCustomPort] = useState(80);
   const [customSrcIP, setCustomSrcIP] = useState("10.0.1.25");
   const [customDstIP, setCustomDstIP] = useState("8.8.8.8");
@@ -101,9 +104,9 @@ export default function NetworkSimulator() {
 
   // Core Firebox Packet Processing Engine
   const processPacket = (
-    from: "trusted" | "dmz" | "external",
-    to: "trusted" | "dmz" | "external",
-    protocol: "TCP" | "UDP" | "ICMP" | "HTTPS",
+    from: Zone,
+    to: Zone,
+    protocol: Protocol,
     srcIP: string,
     dstIP: string,
     srcPort: number,
@@ -272,8 +275,8 @@ export default function NetworkSimulator() {
     if (!autoGen) return;
 
     const interval = setInterval(() => {
-      const zones: ("trusted" | "dmz" | "external")[] = ["trusted", "dmz", "external"];
-      const protocols: ("TCP" | "UDP" | "ICMP" | "HTTPS")[] = ["TCP", "UDP", "ICMP", "HTTPS"];
+      const zones: Zone[] = ["trusted", "dmz", "external"];
+      const protocols: Protocol[] = ["TCP", "UDP", "ICMP", "HTTPS"];
       
       const from = zones[Math.floor(Math.random() * zones.length)];
       let to = zones[Math.floor(Math.random() * zones.length)];
@@ -511,7 +514,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Source Interface Zone</label>
                   <select 
                     value={srcZone} 
-                    onChange={e => setSrcZone(e.target.value as any)}
+                    onChange={e => setSrcZone(e.target.value as Zone)}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="trusted">ETH1 (Trusted)</option>
@@ -525,7 +528,7 @@ export default function NetworkSimulator() {
                   <label className="text-[10px] font-semibold text-gray-400">Destination Zone</label>
                   <select 
                     value={dstZone} 
-                    onChange={e => setDstZone(e.target.value as any)}
+                    onChange={e => setDstZone(e.target.value as Zone)}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
                   >
                     <option value="external">ETH0 (External / WAN)</option>
@@ -541,7 +544,7 @@ export default function NetworkSimulator() {
                   <label className="text-[9px] font-semibold text-gray-500 block">Protocol</label>
                   <select 
                     value={customProtocol} 
-                    onChange={e => setCustomProtocol(e.target.value as any)}
+                    onChange={e => setCustomProtocol(e.target.value as Protocol)}
                     className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-1 py-1 w-full focus:outline-none"
                   >
                     <option value="TCP">TCP</option>
