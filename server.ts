@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import {
   isAIFeaturesEnabled,
@@ -22,6 +23,22 @@ app.use(express.json());
 
 function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
+}
+
+function secureCompare(provided: string | undefined, expected: string | undefined): boolean {
+  if (typeof provided !== "string" || typeof expected !== "string") {
+    return false;
+  }
+  const providedBuffer = Buffer.from(provided, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+
+  if (providedBuffer.length !== expectedBuffer.length) {
+    // Compare expected with itself to mitigate length-based timing attacks
+    crypto.timingSafeEqual(expectedBuffer, expectedBuffer);
+    return false;
+  }
+
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
 }
 
 // Pangolin forwards authenticated user details through Remote-* headers.
@@ -53,7 +70,7 @@ app.post("/api/admin/toggle-ai", (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
@@ -65,7 +82,7 @@ app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   res.json({ success: true });
