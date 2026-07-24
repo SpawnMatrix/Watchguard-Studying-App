@@ -45,9 +45,14 @@ function secureCompare(provided: string | undefined, expected: string | undefine
 // Report only whether Pangolin authenticated the request. Personal identity
 // headers intentionally stay server-side and are never returned to the app.
 app.get("/api/session", (req, res) => {
-  const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
-  const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
-  const forwardedIdentity = remoteName || remoteUser;
+  const clientIp = req.socket.remoteAddress;
+  let forwardedIdentity = "";
+
+  if (isTrustedProxy(clientIp)) {
+    const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
+    const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
+    forwardedIdentity = remoteName || remoteUser;
+  }
 
   res.set("Cache-Control", "private, no-store");
   res.json({
@@ -65,8 +70,17 @@ app.get("/api/features", (req, res) => {
   });
 });
 
+// Rate Limiter for Admin Actions
+const adminRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per `window` (here, per 15 minutes)
+  message: { success: false, message: "Too many attempts, please try again later." },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 // Admin Configuration Toggle
-app.post("/api/admin/toggle-ai", (req, res) => {
+app.post("/api/admin/toggle-ai", adminRateLimiter, (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
@@ -78,7 +92,7 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 });
 
 // Admin Password Login (Verification)
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", adminRateLimiter, (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
