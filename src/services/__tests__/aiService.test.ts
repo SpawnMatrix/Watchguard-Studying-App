@@ -4,9 +4,9 @@ import { GoogleGenAI } from '@google/genai';
 
 // Mock @google/genai to simulate API failure
 vi.mock('@google/genai', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import('@google/genai')>();
   return {
-    ...actual as any,
+    ...actual,
     GoogleGenAI: vi.fn().mockImplementation(function() {
       return {
         models: {
