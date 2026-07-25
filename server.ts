@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { createServer as createViteServer } from "vite";
+
 import { rateLimit } from "express-rate-limit";
 
 // Helper function to check if the incoming IP is a trusted proxy
@@ -199,7 +199,8 @@ app.post("/api/admin/analyze", async (req, res) => {
 async function startServer() {
 
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    const viteModule = await import("vite");
+    const vite = await viteModule.createServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
