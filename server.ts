@@ -3,6 +3,20 @@ import path from "path";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
+import { rateLimit } from "express-rate-limit";
+
+// Helper function to check if the incoming IP is a trusted proxy
+function isTrustedProxy(ip: string | undefined): boolean {
+  if (!ip) return false;
+  // Trust localhost and private network ranges
+  return ip === "127.0.0.1" ||
+         ip === "::1" ||
+         ip === "::ffff:127.0.0.1" ||
+         ip.startsWith("10.") ||
+         ip.startsWith("192.168.") ||
+         /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip);
+}
+
 import {
   isAIFeaturesEnabled,
   generateChatResponse,
