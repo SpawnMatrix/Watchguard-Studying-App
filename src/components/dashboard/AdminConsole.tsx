@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Key, Eye, EyeOff, Lock } from 'lucide-react';
+import { handleError } from '../../utils/errorHandler';
 
 interface AdminConsoleProps {
   displayName: string;
@@ -27,7 +28,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
       })
-      .catch(err => console.error("Failed to query initial feature status", err));
+      .catch(err => handleError("Failed to query initial feature status", err));
   };
 
   useEffect(() => {
