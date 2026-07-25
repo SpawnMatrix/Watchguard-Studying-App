@@ -27,6 +27,8 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
   // Tracked Session Analytics
   const [quizHistory, setQuizHistory] = useState<QuizHistoryItem[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [xp, setXp] = useState(0);
 
   const handleOptionToggle = (option: string) => {
     if (isSubmitted) return;
@@ -83,6 +85,10 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
 
       if (evalData.isCorrect) {
         setCorrectCount(prev => prev + 1);
+        setStreak(prev => prev + 1);
+        setXp(prev => prev + 10 + (streak * 2)); // Base XP + streak bonus
+      } else {
+        setStreak(0); // Reset streak on wrong answer
       }
 
       const updatedHistoryItem: QuizHistoryItem = {
