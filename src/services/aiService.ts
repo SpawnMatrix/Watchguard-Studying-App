@@ -1,4 +1,4 @@
-import { errorHandler } from "../utils/errorHandler";
+import { handleError } from "../utils/errorHandler";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { examQuestions } from "../data/questions";
@@ -128,7 +128,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    errorHandler.warn("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
+    handleError("AI Service generateChatResponse failed, using local rules engine fallback", err);
     return getLocalChatFallback(prompt);
   }
 }
@@ -149,8 +149,51 @@ export async function evaluateQuizAnswer(
   detailedExplanation: string;
   weaknessCategory: string;
 }> {
-  // Always use local intelligence as requested by user
-  return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
+  if (!isAIFeaturesEnabled(customApiKey)) {
+    return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
+  }
+
+  try {
+    const ai = getAIClient(customApiKey);
+    const systemInstruction = `You are a WatchGuard Certified Exam Auditor evaluating a technician's response to an NSE training question.
+Analyze the user's selected answer versus the correct answer.
+Generate a response in JSON format. Provide:
+1. 'isCorrect': boolean.
+2. 'detailedExplanation': Thorough technical breakdown of why the correct option is right and why the distractors are wrong, citing policy precedence, default threat protection (blocked sites/ports), NAT rules, or packet flows.
+3. 'weaknessCategory': Categorize the question under one of these strings: 'NAT', 'Mobile VPN', 'BOVPN', 'Routing', 'Policies', 'Proxies', 'Security Services', 'Initial Setup', 'Logging & Monitoring'.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `Question: "${question}"
+Options: ${JSON.stringify(options)}
+Technician Selected Option: "${selectedAnswer}"
+Verified Correct Option: "${correctAnswer}"`,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isCorrect: { type: Type.BOOLEAN },
+            detailedExplanation: { 
+              type: Type.STRING, 
+              description: "Technical explanation of the correct choice and why distractors fail, referencing WatchGuard guidelines." 
+            },
+            weaknessCategory: { 
+              type: Type.STRING, 
+              description: "Must be: 'NAT', 'Mobile VPN', 'BOVPN', 'Routing', 'Policies', 'Proxies', 'Security Services', 'Initial Setup', 'Logging & Monitoring'." 
+            }
+          },
+          required: ["isCorrect", "detailedExplanation", "weaknessCategory"]
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "{}");
+  } catch (err: any) {
+    handleError("AI Service evaluateQuizAnswer failed, using local fallback", err);
+    return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
+  }
 }
 
 /**
@@ -212,7 +255,7 @@ Technician described issue: "${technicianIssue}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    errorHandler.warn("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
+    handleError("AI Service diagnoseLabFailure failed, using local fallback", err);
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 }
@@ -269,7 +312,7 @@ export async function analyzeCertificationPerformance(sessionHistory: any, custo
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    errorHandler.warn("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
+    handleError("AI Service analyzeCertificationPerformance failed, using local fallback", err);
     return getLocalPerformanceFallback(sessionHistory);
   }
 }

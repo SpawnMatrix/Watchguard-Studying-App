@@ -32,7 +32,7 @@ describe('aiService', () => {
       const correctAnswer = "Option A";
 
       // Keep console.warn quiet during test
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function() {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
         question,
@@ -48,12 +48,13 @@ describe('aiService', () => {
       expect(result.isCorrect).toBe(true);
       expect(result.weaknessCategory).toBe("Policies");
 
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(Error)
+      );
+      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
 
-
-
-
-
-      warnSpy.mockRestore();
+      errorSpy.mockRestore();
     });
 
     it('should fallback to local logic when AI API request fails with incorrect answer', async () => {
@@ -65,7 +66,7 @@ describe('aiService', () => {
       const correctAnswer = "Option A";
 
       // Keep console.warn quiet during test
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function() {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
         question,
@@ -81,12 +82,13 @@ describe('aiService', () => {
       expect(result.isCorrect).toBe(false);
       expect(result.weaknessCategory).toBe("Policies");
 
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(Error)
+      );
+      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
 
-
-
-
-
-      warnSpy.mockRestore();
+      errorSpy.mockRestore();
     });
   });
 });
