@@ -32,7 +32,7 @@ describe('aiService', () => {
       const correctAnswer = "Option A";
 
       // Keep console.warn quiet during test
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function() {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
         question,
@@ -51,12 +51,13 @@ describe('aiService', () => {
       expect(result.detailedExplanation).toContain("Technician selected: **\"Option A\"**.");
       expect(result.detailedExplanation).toContain("✅ This is correct!");
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        "AI Service evaluateQuizAnswer failed, using local fallback:",
-        "Simulated API failure"
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(Error)
       );
+      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
 
-      warnSpy.mockRestore();
+      errorSpy.mockRestore();
     });
 
     it('should fallback to local logic when AI API request fails with incorrect answer', async () => {
@@ -68,7 +69,7 @@ describe('aiService', () => {
       const correctAnswer = "Option A";
 
       // Keep console.warn quiet during test
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(function() {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
         question,
@@ -87,12 +88,13 @@ describe('aiService', () => {
       expect(result.detailedExplanation).toContain("Technician selected: **\"Option B\"**.");
       expect(result.detailedExplanation).toContain("❌ This is incorrect. The correct answer(s) should be: Option A.");
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        "AI Service evaluateQuizAnswer failed, using local fallback:",
-        "Simulated API failure"
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(Error)
       );
+      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
 
-      warnSpy.mockRestore();
+      errorSpy.mockRestore();
     });
   });
 });
