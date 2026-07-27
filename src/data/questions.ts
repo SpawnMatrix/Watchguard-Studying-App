@@ -1595,7 +1595,7 @@ export function verifyAnswer(questionId: number, selected: string[]): { isCorrec
   
   if (q.isMultiSelect) {
     const isAllCorrect = selected.length === correctList.length && 
-      selected.every(ans => correctList.includes(ans));
+      correctList.every(ans => selected.includes(ans));
     return { isCorrect: isAllCorrect, correctAnswers: correctList };
   } else {
     const isSingleCorrect = selected.length === 1 && correctList[0] === selected[0];
