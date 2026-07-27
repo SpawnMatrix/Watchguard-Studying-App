@@ -59,5 +59,25 @@ describe('verifyAnswer', () => {
       expect(result.isCorrect).toBe(false);
       expect(result.correctAnswers).toEqual(['Firebox-DB', 'RADIUS']);
     });
+
+    it('should return false when duplicate correct answers are provided instead of all distinct correct answers', () => {
+      const result = verifyAnswer(10, ['Firebox-DB', 'Firebox-DB']);
+      expect(result.isCorrect).toBe(false);
+      expect(result.correctAnswers).toEqual(['Firebox-DB', 'RADIUS']);
+    });
+
+    it('should return false when no answers are provided', () => {
+      const result = verifyAnswer(10, []);
+      expect(result.isCorrect).toBe(false);
+      expect(result.correctAnswers).toEqual(['Firebox-DB', 'RADIUS']);
+    });
+  });
+
+  describe('Empty Selection', () => {
+    it('should return false when no answers are provided for a single-select question', () => {
+      const result = verifyAnswer(1, []);
+      expect(result.isCorrect).toBe(false);
+      expect(result.correctAnswers).toEqual(['/16']);
+    });
   });
 });
