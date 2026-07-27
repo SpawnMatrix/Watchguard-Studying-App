@@ -307,7 +307,7 @@ export default function App() {
 
       {/* Global Security Footer */}
       <footer className="bg-watchguard-gray/40 border-t border-watchguard-border py-4.5 px-6 mt-auto text-center text-xs text-gray-500 font-mono">
-        <p>© 2026 WatchGuard training portal • Authorized certified technical study engine v12.9.2+ • Updated: 2024-05-15</p>
+        <p>© 2026 WatchGuard training portal • Authorized certified technical study engine v12.9.2+ • Updated: {import.meta.env.VITE_APP_BUILD_DATE || "unknown"} ({import.meta.env.VITE_APP_COMMIT_SHA || "unknown"})</p>
       </footer>
 
       <AnimatePresence>
