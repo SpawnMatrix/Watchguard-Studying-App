@@ -6,14 +6,14 @@ interface SyslogTerminalProps {
   inspectedPacket: Packet | null;
   setInspectedPacket: (val: Packet | null) => void;
   activeConsoleLog: string[];
-  packets: Packet[];
+  packetLookupMap: Map<string, Packet>;
 }
 
 export function SyslogTerminal({
   inspectedPacket,
   setInspectedPacket,
   activeConsoleLog,
-  packets
+  packetLookupMap
 }: SyslogTerminalProps) {
   return (
     <>
@@ -70,7 +70,7 @@ export function SyslogTerminal({
                     const parts = log.split(" ");
                     const srcIP = parts[2];
                     const dstIP = parts[3];
-                    const matched = packets.find(p => p.srcIP === srcIP && p.dstIP === dstIP);
+                    const matched = packetLookupMap.get(`${srcIP}-${dstIP}`);
                     if (matched) setInspectedPacket(matched);
                   }}
                   className={`leading-normal break-all font-mono py-1 rounded px-1.5 transition-all cursor-pointer hover:bg-watchguard-lightgray/20 ${

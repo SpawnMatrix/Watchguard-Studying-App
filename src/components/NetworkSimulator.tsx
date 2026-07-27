@@ -394,7 +394,7 @@ export default function NetworkSimulator() {
         inspectedPacket={inspectedPacket}
         setInspectedPacket={setInspectedPacket}
         activeConsoleLog={activeConsoleLog}
-        packets={packets}
+        packetLookupMap={packetLookupMap}
       />
     </div>
   );
