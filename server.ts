@@ -220,3 +220,31 @@ async function startServer() {
 }
 
 startServer();
+
+// Fetch Question Stats
+app.get("/api/stats", async (req, res) => {
+  try {
+    // In a real database we would aggregate from session history
+    // Here we just return mock stats
+    res.json({
+      success: true,
+      stats: {
+        totalTaken: 120,
+        averageScore: "82%",
+        weakestTopic: "BOVPN"
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch stats" });
+  }
+});
+
+// Fetch Questions
+app.get("/api/questions", async (req, res) => {
+  try {
+    // Return a mock response or import questions
+    res.json({ success: true, count: 100 });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch questions" });
+  }
+});
