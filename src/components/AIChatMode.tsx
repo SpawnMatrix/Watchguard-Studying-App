@@ -27,7 +27,7 @@ export default function AIChatMode({
     <div className="flex flex-col flex-1 min-h-[450px]">
       {/* Messages Window */}
       <div
-        ref={scrollRef as any}
+        ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 bg-watchguard-dark/40"
       >
         <AnimatePresence initial={false}>

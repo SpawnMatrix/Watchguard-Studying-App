@@ -1,62 +1,38 @@
 const { performance } = require('perf_hooks');
 
-const items = [];
-for (let i = 0; i < 10000; i++) {
-  items.push({
-    question: `What is the question ${i}? This is a very long question text that should simulate real-world data and it has to be evaluated multiple times.`,
-    answer: `The answer is ${i}. This is an extremely long answer to simulate processing a large amount of text during a search operation. We want to see the difference clearly.`,
-    category: i % 5 === 0 ? 'Setup' : 'Policies',
-    keywords: ['keyword1', 'keyword2', 'keyword3', 'keyword4', 'keyword5']
-  });
-}
+const blockedSites = Array.from({ length: 1000 }, (_, i) => `192.168.1.${i}`);
+const blockedSitesSet = new Set(blockedSites);
 
-const searchQuery = 'long answer';
-const selectedCategory = 'All';
+const srcIP = '10.0.0.1';
+const dstIP = '192.168.1.999';
 
-function runUnoptimized() {
-  const start = performance.now();
-  for (let iter = 0; iter < 100; iter++) {
-    items.filter(item => {
-      const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-      const matchesSearch = item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            item.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            item.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
-    });
+function testArray() {
+  let count = 0;
+  for (let i = 0; i < 100000; i++) {
+    if (blockedSites.includes(srcIP) || blockedSites.includes(dstIP)) {
+      count++;
+    }
   }
-  const end = performance.now();
-  return end - start;
+  return count;
 }
 
-function runOptimized() {
-  const start = performance.now();
-  for (let iter = 0; iter < 100; iter++) {
-    const lowerQuery = searchQuery.toLowerCase();
-    items.filter(item => {
-      const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-      const matchesSearch = item.question.toLowerCase().includes(lowerQuery) ||
-                            item.answer.toLowerCase().includes(lowerQuery) ||
-                            item.keywords.some(k => k.toLowerCase().includes(lowerQuery));
-      return matchesCategory && matchesSearch;
-    });
+function testSet() {
+  let count = 0;
+  for (let i = 0; i < 100000; i++) {
+    if (blockedSitesSet.has(srcIP) || blockedSitesSet.has(dstIP)) {
+      count++;
+    }
   }
-  const end = performance.now();
-  return end - start;
+  return count;
 }
 
-// Warmup
-runUnoptimized();
-runOptimized();
+const startArray = performance.now();
+testArray();
+const endArray = performance.now();
 
-let unoptimizedTotal = 0;
-let optimizedTotal = 0;
-const runs = 5;
+const startSet = performance.now();
+testSet();
+const endSet = performance.now();
 
-for (let i = 0; i < runs; i++) {
-    unoptimizedTotal += runUnoptimized();
-    optimizedTotal += runOptimized();
-}
-
-console.log(`Unoptimized Average: ${(unoptimizedTotal / runs).toFixed(2)} ms`);
-console.log(`Optimized Average: ${(optimizedTotal / runs).toFixed(2)} ms`);
-console.log(`Improvement: ${((unoptimizedTotal - optimizedTotal) / unoptimizedTotal * 100).toFixed(2)}%`);
+console.log(`Array includes: ${endArray - startArray} ms`);
+console.log(`Set has: ${endSet - startSet} ms`);

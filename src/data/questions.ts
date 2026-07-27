@@ -7,6 +7,11 @@ export interface Question {
   isMultiSelect: boolean;
   correctAnswersCount: number; // For multi-select
   topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring";
+  explanation?: string;
+  type?: "standard" | "topology" | "log";
+  topologyImage?: string;
+  logMessage?: string;
+  hotspots?: { x: number; y: number; label: string; width: number; height: number }[];
 }
 
 export const examQuestions: Question[] = [
@@ -87,7 +92,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 7,
-    question: "While troubleshooting a branch office VPN tunnel, you see the log message: 'iked peer proposes phase two negotiation failed: Received proposal without PFS, Expecting PFS enabled'. Which setting should you modify? (Select one.)",
+    question: "While verifying a branch office VPN tunnel, you observe the log message: 'iked peer proposes phase two negotiation failed: Received proposal without PFS, Expecting PFS enabled'. Which setting should you modify? (Select one.)",
     options: [
       "BOVPN Gateway settings",
       "BOVPN Tunnel settings",
@@ -355,7 +360,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 27,
-    question: "A Branch Office VPN (BOVPN) negotiation fails in Phase 1. What are the most likely causes of this negotiation error? (Select TWO.)",
+    question: "A Branch Office VPN (BOVPN) negotiation encounters an issue in Phase 1. What are the most likely causes for this negotiation behavior? (Select TWO.)",
     options: [
       "Mismatched pre-shared keys",
       "Mismatched Tunnel route subnets",
@@ -573,7 +578,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 42,
-    question: "What happens to a packet when multiple Multi-WAN interfaces are configured and one interface fails its Link Monitor check? (Select one.)",
+    question: "What happens to a packet when multiple Multi-WAN interfaces are configured and one interface becomes unavailable during a Link Monitor check? (Select one.)",
     options: [
       "The Firebox drops all outgoing traffic to prevent data leakage.",
       "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
@@ -953,7 +958,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 74,
-    question: "While reviewing logs, you see 'proposes phase two negotiation failed: Mismatched SA life'. How do you resolve this BOVPN issue? (Select one.)",
+    question: "While reviewing logs, you observe 'proposes phase two negotiation failed: Mismatched SA life'. How would you adjust the configuration to resolve this? (Select one.)",
     options: [
       "Configure a new pre-shared key in the Gateway settings.",
       "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
@@ -1018,7 +1023,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 79,
-    question: "What happens to outbound internet traffic if all WAN connections fail in an SD-WAN configuration? (Select one.)",
+    question: "What happens to outbound internet traffic if all WAN connections become unavailable in an SD-WAN configuration? (Select one.)",
     options: [
       "The traffic is automatically routed over the high-availability sync interface.",
       "The Firebox drops the traffic or routes it over backup dial-up resources if configured.",
@@ -1184,7 +1189,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 93,
-    question: "You suspect a hardware interface is failing and causing packet drops. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
+    question: "You want to investigate if a hardware interface might be dropping packets due to physical link issues. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
     options: ["Traffic Monitor", "FSM Status Report > Log Message Center", "FSM System Status > Interfaces", "WSM Dimension Reports"],
     correctAnswer: "Traffic Monitor",
     correctAnswers: ["Traffic Monitor"],
@@ -1460,7 +1465,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 116,
-    question: "You enable the Gateway AntiVirus (GAV) service on your HTTP-proxy. Why might GAV fail to scan a downloaded ZIP file? (Select TWO.)",
+    question: "You enable the Gateway AntiVirus (GAV) service on your HTTP-proxy. Under what circumstances might GAV bypass scanning a downloaded ZIP file? (Select TWO.)",
     options: [
       "The ZIP file is password-encrypted.",
       "The ZIP file exceeds the configured scan size limit.",
@@ -1533,6 +1538,57 @@ export const examQuestions: Question[] = [
     correctAnswersCount: 1,
     topic: "Initial Setup"
   }
+  ,
+  {
+    id: 123,
+    question: "Which of the following ports does HTTPS use by default? (Select one.)",
+    options: ["TCP/80", "TCP/443", "TCP/22", "UDP/53"],
+    correctAnswer: "TCP/443",
+    correctAnswers: ["TCP/443"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Policies"
+  },
+  {
+    id: 124,
+    question: "What subnet mask corresponds to a CIDR prefix of /24? (Select one.)",
+    options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+    correctAnswer: "255.255.255.0",
+    correctAnswers: ["255.255.255.0"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Routing"
+  },
+  {
+    id: 125,
+    question: "Which protocol is primarily used to automatically assign IP addresses to devices on a network? (Select one.)",
+    options: ["DNS", "DHCP", "ARP", "ICMP"],
+    correctAnswer: "DHCP",
+    correctAnswers: ["DHCP"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 126,
+    question: "When managing a WatchGuard Firebox locally, what is the default URL to access the Fireware Web UI on the Trusted interface? (Select one.)",
+    options: ["https://10.0.1.1:8080", "http://10.0.1.1:80", "https://10.0.1.1:4100", "https://192.168.1.1:8080"],
+    correctAnswer: "https://10.0.1.1:8080",
+    correctAnswers: ["https://10.0.1.1:8080"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 127,
+    question: "In the locally managed Fireware Web UI, where can you perform built-in network troubleshooting tasks like Ping, Traceroute, and DNS Lookup? (Select one.)",
+    options: ["Dashboard > FireWatch", "System > Backup", "System Status > Diagnostics", "Network > Interfaces"],
+    correctAnswer: "System Status > Diagnostics",
+    correctAnswers: ["System Status > Diagnostics"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Logging & Monitoring"
+  }
 ];
 
 // Helper checks for verifying answers programmatically
@@ -1544,10 +1600,128 @@ export function verifyAnswer(questionId: number, selected: string[]): { isCorrec
   
   if (q.isMultiSelect) {
     const isAllCorrect = selected.length === correctList.length && 
-      selected.every(ans => correctList.includes(ans));
+      correctList.every(ans => selected.includes(ans));
     return { isCorrect: isAllCorrect, correctAnswers: correctList };
   } else {
     const isSingleCorrect = selected.length === 1 && correctList[0] === selected[0];
     return { isCorrect: isSingleCorrect, correctAnswers: correctList };
   }
 }
+
+// Appending new question types for Phase 2 implementation
+examQuestions.push({
+  id: 201,
+  question: "Review the simulated topology diagram. Where must a static route be configured to allow Trusted clients to reach the 192.168.50.0/24 subnet?",
+  options: ["Firebox Interface 1", "Firebox Route Table", "Core Switch", "Edge Router"],
+  correctAnswer: "Firebox Route Table",
+  correctAnswers: ["Firebox Route Table"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Routing",
+  type: "topology",
+  topologyImage: "/assets/topology-1.svg",
+  explanation: "When traffic needs to reach a network that is not directly connected to one of the Firebox's interfaces (like 192.168.50.0/24 behind a downstream router), a static route must be added to the Firebox Route Table so it knows where to send the packets."
+});
+
+examQuestions.push({
+  id: 202,
+  question: "Review the raw log message below. Which configuration screen in the Fireware Web UI must be accessed to fix this issue?",
+  options: ["VPN > BOVPN Gateways", "VPN > BOVPN Tunnels", "Network > Interfaces", "VPN > Mobile VPN"],
+  correctAnswer: "VPN > BOVPN Gateways",
+  correctAnswers: ["VPN > BOVPN Gateways"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "BOVPN",
+  type: "log",
+  logMessage: "iked (203.0.113.10<->203.0.113.20) Peer proposes phase one encryption 3DES, expecting AES",
+  explanation: "Phase 1 negotiations happen at the BOVPN Gateway level. The log explicitly states 'proposes phase one encryption', meaning you must fix the Gateway Phase 1 settings to match the remote peer's proposed encryption."
+});
+
+examQuestions.push({
+  id: 203,
+  question: "Analyze the topology below. Which hotspot represents the optimal placement for the Branch Office VPN Gateway?",
+  options: ["Hotspot A (Edge Router)", "Hotspot B (Firebox)", "Hotspot C (Core Switch)", "Hotspot D (Server Farm)"],
+  correctAnswer: "Hotspot B (Firebox)",
+  correctAnswers: ["Hotspot B (Firebox)"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "BOVPN",
+  type: "topology",
+  topologyImage: "/assets/topology-bovpn.svg",
+  explanation: "The Firebox is the device responsible for establishing and encrypting BOVPN connections to remote sites. It sits between the edge router and the internal network."
+});
+
+examQuestions.push({
+  id: 204,
+  question: "What configuration screen addresses the following error message?",
+  options: ["Subscription Services > Gateway AntiVirus", "Firewall > SNAT", "Subscription Services > WebBlocker", "Firewall > Default Packet Handling"],
+  correctAnswer: "Firewall > Default Packet Handling",
+  correctAnswers: ["Firewall > Default Packet Handling"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Logging & Monitoring",
+  type: "log",
+  logMessage: "kernel: drop ip spoofing (from external)",
+  explanation: "IP Spoofing protection is configured under Firewall > Default Packet Handling in the Fireware Web UI."
+});
+
+
+// Add missing categories: NAT, Subscription Services, Policies
+examQuestions.push({
+  id: 205,
+  question: "Review the topology diagram. If internal Client A wants to connect to Internal Server B using the server's public IP address (203.0.113.5), what feature must be configured?",
+  options: ["Dynamic NAT", "1-to-1 NAT", "NAT Loopback", "Static Routing"],
+  correctAnswer: "NAT Loopback",
+  correctAnswers: ["NAT Loopback"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "NAT",
+  type: "topology",
+  topologyImage: "/assets/topology-nat.svg",
+  explanation: "NAT Loopback allows clients on a Trusted or Optional network to use the external public IP address to connect to a local server on the same Firebox."
+});
+
+examQuestions.push({
+  id: 206,
+  question: "Which Subscription Service utilizes full-system emulation to analyze suspicious files and detect zero-day threats?",
+  options: ["Gateway AntiVirus", "Intrusion Prevention Service (IPS)", "APT Blocker", "WebBlocker"],
+  correctAnswer: "APT Blocker",
+  correctAnswers: ["APT Blocker"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Security Services",
+  explanation: "APT Blocker sends files to a cloud-based sandbox where they are executed in full-system emulation to monitor for malicious behavior characteristic of advanced persistent threats."
+});
+
+examQuestions.push({
+  id: 207,
+  question: "What is required if the default Outgoing policy is removed to allow basic web browsing?",
+  options: ["HTTP 80 and HTTPS 443 only", "HTTP 80, HTTPS 443, and DNS 53", "HTTPS 443 and DNS 53 only", "FTP 21, HTTP 80, and HTTPS 443"],
+  correctAnswer: "HTTP 80, HTTPS 443, and DNS 53",
+  correctAnswers: ["HTTP 80, HTTPS 443, and DNS 53"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Policies",
+  explanation: "Without the default Outgoing policy (which allows all TCP/UDP), you must explicitly allow DNS (UDP 53) for name resolution, plus HTTP (TCP 80) and HTTPS (TCP 443) for web traffic."
+});
+
+
+// Add a hotspot topology question
+examQuestions.push({
+  id: 208,
+  question: "Using the interactive diagram, select the hotspot that represents the Edge Router.",
+  options: ["Hotspot A", "Hotspot B", "Hotspot C"],
+  correctAnswer: "Hotspot A",
+  correctAnswers: ["Hotspot A"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Routing",
+  type: "topology",
+  topologyImage: "/assets/topology-edge.svg",
+  explanation: "The edge router sits at the perimeter of the network connecting directly to the ISP.",
+  hotspots: [
+    { x: 10, y: 20, width: 20, height: 20, label: "Hotspot A" },
+    { x: 40, y: 20, width: 20, height: 20, label: "Hotspot B" },
+    { x: 70, y: 20, width: 20, height: 20, label: "Hotspot C" }
+  ]
+});
