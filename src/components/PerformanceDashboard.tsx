@@ -1,7 +1,7 @@
-import { errorHandler } from "../utils/errorHandler";
 import React, { useState, useEffect } from "react";
 import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { OverviewStats, WeaknessTracker, AuditReportBuilder, AdminConsole, ReportVisualization } from "./dashboard";
 import { handleError } from "../utils/errorHandler";
 
 interface QuizHistoryItem {

@@ -1,8 +1,8 @@
-import { errorHandler } from "../utils/errorHandler";
+import { handleError } from "../utils/errorHandler";
 import { useState } from "react";
-import { ArrowRight, Trophy, RotateCcw, HelpCircle } from "lucide-react";
+import { ArrowRight, Trophy, RotateCcw, HelpCircle, AlertCircle } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import QuizAnalyticsPanel, { QuizHistoryItem } from "./QuizAnalyticsPanel";
 import QuizEvaluation, { EvaluationData } from "./QuizEvaluation";
 

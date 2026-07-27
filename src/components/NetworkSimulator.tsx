@@ -1,6 +1,8 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Cpu } from "lucide-react";
+type Zone = "trusted" | "dmz" | "external";
+type Protocol = "TCP" | "UDP" | "ICMP" | "HTTPS";
 import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, Packet } from "./network-simulator";
 
 export default function NetworkSimulator() {
