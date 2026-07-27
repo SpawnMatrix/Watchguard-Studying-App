@@ -10,6 +10,14 @@ RUN npm ci
 
 COPY . .
 
+# Declare the arguments expected from GitHub Actions
+ARG COMMIT_SHA="unknown"
+ARG BUILD_DATE="unknown"
+
+# Map them to environment variables if your app needs them at runtime
+ENV VITE_APP_COMMIT_SHA=${COMMIT_SHA}
+ENV VITE_APP_BUILD_DATE=${BUILD_DATE}
+
 # Compile frontend static assets and compile backend production server
 RUN npm run build
 
