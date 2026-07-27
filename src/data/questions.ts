@@ -87,7 +87,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 7,
-    question: "While troubleshooting a branch office VPN tunnel, you see the log message: 'iked peer proposes phase two negotiation failed: Received proposal without PFS, Expecting PFS enabled'. Which setting should you modify? (Select one.)",
+    question: "While verifying a branch office VPN tunnel, you observe the log message: 'iked peer proposes phase two negotiation failed: Received proposal without PFS, Expecting PFS enabled'. Which setting should you modify? (Select one.)",
     options: [
       "BOVPN Gateway settings",
       "BOVPN Tunnel settings",
@@ -355,7 +355,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 27,
-    question: "A Branch Office VPN (BOVPN) negotiation fails in Phase 1. What are the most likely causes of this negotiation error? (Select TWO.)",
+    question: "A Branch Office VPN (BOVPN) negotiation encounters an issue in Phase 1. What are the most likely causes for this negotiation behavior? (Select TWO.)",
     options: [
       "Mismatched pre-shared keys",
       "Mismatched Tunnel route subnets",
@@ -573,7 +573,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 42,
-    question: "What happens to a packet when multiple Multi-WAN interfaces are configured and one interface fails its Link Monitor check? (Select one.)",
+    question: "What happens to a packet when multiple Multi-WAN interfaces are configured and one interface becomes unavailable during a Link Monitor check? (Select one.)",
     options: [
       "The Firebox drops all outgoing traffic to prevent data leakage.",
       "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
@@ -953,7 +953,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 74,
-    question: "While reviewing logs, you see 'proposes phase two negotiation failed: Mismatched SA life'. How do you resolve this BOVPN issue? (Select one.)",
+    question: "While reviewing logs, you observe 'proposes phase two negotiation failed: Mismatched SA life'. How would you adjust the configuration to resolve this? (Select one.)",
     options: [
       "Configure a new pre-shared key in the Gateway settings.",
       "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
@@ -1018,7 +1018,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 79,
-    question: "What happens to outbound internet traffic if all WAN connections fail in an SD-WAN configuration? (Select one.)",
+    question: "What happens to outbound internet traffic if all WAN connections become unavailable in an SD-WAN configuration? (Select one.)",
     options: [
       "The traffic is automatically routed over the high-availability sync interface.",
       "The Firebox drops the traffic or routes it over backup dial-up resources if configured.",
@@ -1184,7 +1184,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 93,
-    question: "You suspect a hardware interface is failing and causing packet drops. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
+    question: "You want to investigate if a hardware interface might be dropping packets due to physical link issues. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
     options: ["Traffic Monitor", "FSM Status Report > Log Message Center", "FSM System Status > Interfaces", "WSM Dimension Reports"],
     correctAnswer: "Traffic Monitor",
     correctAnswers: ["Traffic Monitor"],
@@ -1460,7 +1460,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 116,
-    question: "You enable the Gateway AntiVirus (GAV) service on your HTTP-proxy. Why might GAV fail to scan a downloaded ZIP file? (Select TWO.)",
+    question: "You enable the Gateway AntiVirus (GAV) service on your HTTP-proxy. Under what circumstances might GAV bypass scanning a downloaded ZIP file? (Select TWO.)",
     options: [
       "The ZIP file is password-encrypted.",
       "The ZIP file exceeds the configured scan size limit.",
@@ -1532,6 +1532,57 @@ export const examQuestions: Question[] = [
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
+  }
+  ,
+  {
+    id: 123,
+    question: "Which of the following ports does HTTPS use by default? (Select one.)",
+    options: ["TCP/80", "TCP/443", "TCP/22", "UDP/53"],
+    correctAnswer: "TCP/443",
+    correctAnswers: ["TCP/443"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Policies"
+  },
+  {
+    id: 124,
+    question: "What subnet mask corresponds to a CIDR prefix of /24? (Select one.)",
+    options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+    correctAnswer: "255.255.255.0",
+    correctAnswers: ["255.255.255.0"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Routing"
+  },
+  {
+    id: 125,
+    question: "Which protocol is primarily used to automatically assign IP addresses to devices on a network? (Select one.)",
+    options: ["DNS", "DHCP", "ARP", "ICMP"],
+    correctAnswer: "DHCP",
+    correctAnswers: ["DHCP"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 126,
+    question: "When managing a WatchGuard Firebox locally, what is the default URL to access the Fireware Web UI on the Trusted interface? (Select one.)",
+    options: ["https://10.0.1.1:8080", "http://10.0.1.1:80", "https://10.0.1.1:4100", "https://192.168.1.1:8080"],
+    correctAnswer: "https://10.0.1.1:8080",
+    correctAnswers: ["https://10.0.1.1:8080"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Initial Setup"
+  },
+  {
+    id: 127,
+    question: "In the locally managed Fireware Web UI, where can you perform built-in network troubleshooting tasks like Ping, Traceroute, and DNS Lookup? (Select one.)",
+    options: ["Dashboard > FireWatch", "System > Backup", "System Status > Diagnostics", "Network > Interfaces"],
+    correctAnswer: "System Status > Diagnostics",
+    correctAnswers: ["System Status > Diagnostics"],
+    isMultiSelect: false,
+    correctAnswersCount: 1,
+    topic: "Logging & Monitoring"
   }
 ];
 

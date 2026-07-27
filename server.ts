@@ -1,8 +1,22 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
-import rateLimit from "express-rate-limit";
-import { createServer as createViteServer } from "vite";
+import crypto from "crypto";
+
+import { rateLimit } from "express-rate-limit";
+
+// Helper function to check if the incoming IP is a trusted proxy
+function isTrustedProxy(ip: string | undefined): boolean {
+  if (!ip) return false;
+  // Trust localhost and private network ranges
+  return ip === "127.0.0.1" ||
+         ip === "::1" ||
+         ip === "::ffff:127.0.0.1" ||
+         ip.startsWith("10.") ||
+         ip.startsWith("192.168.") ||
+         /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip);
+}
+
 import {
   isAIFeaturesEnabled,
   generateChatResponse,
@@ -25,28 +39,20 @@ function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
 }
 
-function isTrustedProxy(ip: string | undefined): boolean {
-  if (!ip) return false;
-  // Handle IPv4-mapped IPv6 addresses
-  if (ip.startsWith("::ffff:")) ip = ip.substring(7);
+function secureCompare(provided: string | undefined, expected: string | undefined): boolean {
+  if (typeof provided !== "string" || typeof expected !== "string") {
+    return false;
+  }
+  const providedBuffer = Buffer.from(provided, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
 
-  // Loopback
-  if (ip === "127.0.0.1" || ip === "::1") return true;
-
-  // Private IPv4 (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
-  if (ip.startsWith("10.")) return true;
-  if (ip.startsWith("192.168.")) return true;
-  if (ip.startsWith("172.")) {
-    const secondOctet = parseInt(ip.split(".")[1], 10);
-    if (secondOctet >= 16 && secondOctet <= 31) return true;
+  if (providedBuffer.length !== expectedBuffer.length) {
+    // Compare expected with itself to mitigate length-based timing attacks
+    crypto.timingSafeEqual(expectedBuffer, expectedBuffer);
+    return false;
   }
 
-  // Private IPv6 (Unique Local Addresses: fc00::/7)
-  if (/^[fF][cCdD]/.test(ip)) return true;
-  // Link-local IPv6 (fe80::/10)
-  if (/^[fF][eE][89aAbB]/.test(ip)) return true;
-
-  return false;
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
 }
 
 // Pangolin forwards authenticated user details through Remote-* headers.
@@ -92,7 +98,7 @@ app.post("/api/admin/toggle-ai", adminRateLimiter, (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
@@ -104,7 +110,7 @@ app.post("/api/admin/login", adminRateLimiter, (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   res.json({ success: true });
@@ -193,7 +199,8 @@ app.post("/api/admin/analyze", async (req, res) => {
 async function startServer() {
 
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    const viteModule = await import("vite");
+    const vite = await viteModule.createServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
