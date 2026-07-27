@@ -33,6 +33,7 @@ const app = express();
 const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
 const PORT = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
+app.set("trust proxy", (ip: string) => isTrustedProxy(ip));
 app.use(express.json());
 
 function cleanIdentityHeader(value: string | undefined) {
