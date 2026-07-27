@@ -16,12 +16,15 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
 
   // Filter local database Q&As
   const filteredQA = useMemo(() => {
+    const query = searchQuery.toLowerCase();
     return qaDatabase.filter(item => {
       const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-      const matchesSearch = item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            item.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            item.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
+      if (!matchesCategory) return false;
+      if (!query) return true;
+      const matchesSearch = item.question.toLowerCase().includes(query) ||
+                            item.answer.toLowerCase().includes(query) ||
+                            item.keywords.some(k => k.toLowerCase().includes(query));
+      return matchesSearch;
     });
   }, [qaDatabase, selectedCategory, searchQuery]);
 
