@@ -32,8 +32,8 @@ export default function PerformanceDashboard({
     recommendedLabs: string[];
     summary: string;
     isDemo?: boolean;
-    errorMessage?: string;
   } | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem("watchguard_custom_gemini_api_key") || "");
@@ -129,6 +129,7 @@ export default function PerformanceDashboard({
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
+    setReportError(null);
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
@@ -159,7 +160,7 @@ export default function PerformanceDashboard({
       const data = await response.json();
       setReport(data);
     } catch (error) {
-      console.error("Report error:", error);
+      setReportError(error instanceof Error ? error.message : "An unknown error occurred while generating the report.");
     } finally {
       setIsLoading(false);
     }
@@ -423,7 +424,20 @@ export default function PerformanceDashboard({
 
       {/* Structured report visualization card */}
       <AnimatePresence>
-        {report && (
+        {reportError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-watchguard-gray border-2 border-red-500/50 rounded-2xl p-8 shadow-3xl relative overflow-hidden transition-all"
+          >
+            <div className="flex items-center space-x-2 text-red-400 font-mono text-sm">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <span>Error generating report: {reportError}</span>
+            </div>
+          </motion.div>
+        )}
+        {report && !reportError && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
