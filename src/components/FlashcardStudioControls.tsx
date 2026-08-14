@@ -1,5 +1,4 @@
-import React from 'react';
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface FlashcardStudioControlsProps {
   activeCardId: number;
@@ -18,13 +17,12 @@ export default function FlashcardStudioControls({
   handlePrev,
   handleNext,
   currentIndex,
-  filteredCardsLength
+  filteredCardsLength,
 }: FlashcardStudioControlsProps) {
   const isMastered = masteredIds.includes(activeCardId);
 
   return (
     <div className="w-full max-w-xl flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-watchguard-border/40">
-
       {/* Mastery toggle */}
       <button
         type="button"
@@ -35,7 +33,9 @@ export default function FlashcardStudioControls({
             : "bg-watchguard-lightgray text-gray-400 border-watchguard-border hover:bg-watchguard-lightgray/80 hover:text-white"
         }`}
       >
-        <CheckCircle2 className={`w-4 h-4 ${isMastered ? "text-emerald-400" : "text-gray-500"}`} />
+        <CheckCircle2
+          className={`w-4 h-4 ${isMastered ? "text-emerald-400" : "text-gray-500"}`}
+        />
         <span>{isMastered ? "Mastered Topic ✓" : "Mark as Mastered"}</span>
       </button>
 
@@ -59,7 +59,6 @@ export default function FlashcardStudioControls({
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-
     </div>
   );
 }
