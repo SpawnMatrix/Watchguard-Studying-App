@@ -1,7 +1,22 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
-import { createServer as createViteServer } from "vite";
+import crypto from "crypto";
+
+import { rateLimit } from "express-rate-limit";
+
+// Helper function to check if the incoming IP is a trusted proxy
+function isTrustedProxy(ip: string | undefined): boolean {
+  if (!ip) return false;
+  // Trust localhost and private network ranges
+  return ip === "127.0.0.1" ||
+         ip === "::1" ||
+         ip === "::ffff:127.0.0.1" ||
+         ip.startsWith("10.") ||
+         ip.startsWith("192.168.") ||
+         /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip);
+}
+
 import {
   isAIFeaturesEnabled,
   generateChatResponse,
@@ -18,19 +33,41 @@ const app = express();
 const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
 const PORT = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
+app.set("trust proxy", (ip: string) => isTrustedProxy(ip));
 app.use(express.json());
 
 function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
 }
 
+function secureCompare(provided: string | undefined, expected: string | undefined): boolean {
+  if (typeof provided !== "string" || typeof expected !== "string") {
+    return false;
+  }
+  const providedBuffer = Buffer.from(provided, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+
+  if (providedBuffer.length !== expectedBuffer.length) {
+    // Compare expected with itself to mitigate length-based timing attacks
+    crypto.timingSafeEqual(expectedBuffer, expectedBuffer);
+    return false;
+  }
+
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+}
+
 // Pangolin forwards authenticated user details through Remote-* headers.
 // Report only whether Pangolin authenticated the request. Personal identity
 // headers intentionally stay server-side and are never returned to the app.
 app.get("/api/session", (req, res) => {
-  const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
-  const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
-  const forwardedIdentity = remoteName || remoteUser;
+  const clientIp = req.socket.remoteAddress;
+  let forwardedIdentity = "";
+
+  if (isTrustedProxy(clientIp)) {
+    const remoteName = cleanIdentityHeader(req.get("Remote-Name"));
+    const remoteUser = cleanIdentityHeader(req.get("Remote-User"));
+    forwardedIdentity = remoteName || remoteUser;
+  }
 
   res.set("Cache-Control", "private, no-store");
   res.json({
@@ -48,12 +85,21 @@ app.get("/api/features", (req, res) => {
   });
 });
 
+// Rate Limiter for Admin Actions
+const adminRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per `window` (here, per 15 minutes)
+  message: { success: false, message: "Too many attempts, please try again later." },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 // Admin Configuration Toggle
-app.post("/api/admin/toggle-ai", (req, res) => {
+app.post("/api/admin/toggle-ai", adminRateLimiter, (req, res) => {
   const { globalAIEnabled: targetEnabled, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   setGlobalAIEnabled(!!targetEnabled);
@@ -61,11 +107,11 @@ app.post("/api/admin/toggle-ai", (req, res) => {
 });
 
 // Admin Password Login (Verification)
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", adminRateLimiter, (req, res) => {
   const { password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD;
 
-  if (!adminPass || password !== adminPass) {
+  if (!adminPass || !secureCompare(password, adminPass)) {
     return res.status(403).json({ success: false, message: "Invalid admin authentication" });
   }
   res.json({ success: true });
@@ -154,7 +200,8 @@ app.post("/api/admin/analyze", async (req, res) => {
 async function startServer() {
 
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    const viteModule = await import("vite");
+    const vite = await viteModule.createServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
@@ -173,3 +220,31 @@ async function startServer() {
 }
 
 startServer();
+
+// Fetch Question Stats
+app.get("/api/stats", async (req, res) => {
+  try {
+    // In a real database we would aggregate from session history
+    // Here we just return mock stats
+    res.json({
+      success: true,
+      stats: {
+        totalTaken: 120,
+        averageScore: "82%",
+        weakestTopic: "BOVPN"
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch stats" });
+  }
+});
+
+// Fetch Questions
+app.get("/api/questions", async (req, res) => {
+  try {
+    // Return a mock response or import questions
+    res.json({ success: true, count: 100 });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch questions" });
+  }
+});
