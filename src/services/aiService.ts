@@ -128,7 +128,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleError("AI Service generateChatResponse failed, using local rules engine fallback", err);
+    console.error("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
     return getLocalChatFallback(prompt);
   }
 }
@@ -191,7 +191,7 @@ Verified Correct Option: "${correctAnswer}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleError("AI Service evaluateQuizAnswer failed, using local fallback", err);
+    console.error("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
     return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 }
@@ -255,7 +255,7 @@ Technician described issue: "${technicianIssue}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleError("AI Service diagnoseLabFailure failed, using local fallback", err);
+    console.error("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 }
@@ -312,7 +312,7 @@ export async function analyzeCertificationPerformance(sessionHistory: any, custo
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleError("AI Service analyzeCertificationPerformance failed, using local fallback", err);
+    console.error("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
     return getLocalPerformanceFallback(sessionHistory);
   }
 }
