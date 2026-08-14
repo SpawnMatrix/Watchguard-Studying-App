@@ -1,3 +1,4 @@
+import { handleError } from "../utils/errorHandler";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { examQuestions } from "../data/questions";
@@ -127,7 +128,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
+    handleError("AI Service generateChatResponse failed, using local rules engine fallback", err);
     return getLocalChatFallback(prompt);
   }
 }
@@ -190,7 +191,7 @@ Verified Correct Option: "${correctAnswer}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service evaluateQuizAnswer failed, using local fallback:", err.message);
+    handleError("AI Service evaluateQuizAnswer failed, using local fallback", err);
     return getLocalQuizFallback(selectedAnswer, correctAnswer, questionId, selectedOptions);
   }
 }
@@ -254,28 +255,20 @@ Technician described issue: "${technicianIssue}"`,
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service diagnoseLabFailure failed, using local fallback:", err.message);
+    handleError("AI Service diagnoseLabFailure failed, using local fallback", err);
     return getLocalDiagnosticsFallback(labName, stepTitle, technicianIssue);
   }
 }
 
-/**
- * Executive Auditor Analysis with Fallbacks
- */
-export async function analyzeCertificationPerformance(sessionHistory: any, customApiKey?: string): Promise<{
+export interface CertificationPerformanceReport {
   readinessScore: string;
   strengths: string[];
   criticalVulnerabilities: string[];
   recommendedLabs: string[];
   summary: string;
-}> {
-  if (!isAIFeaturesEnabled(customApiKey)) {
-    return getLocalPerformanceFallback(sessionHistory);
-  }
+}
 
-  try {
-    const ai = getAIClient(customApiKey);
-    const systemInstruction = `You are a WatchGuard Certified Readiness Auditor.
+const PERFORMANCE_SYSTEM_INSTRUCTION = `You are a WatchGuard Certified Readiness Auditor.
 Analyze the user's mock training logs (quiz and lab completion records) to generate a professional auditor performance report.
 Output must be in JSON format:
 1. 'readinessScore': String percentage representing exam preparedness.
@@ -284,29 +277,42 @@ Output must be in JSON format:
 4. 'recommendedLabs': Array of lab exercises they should do.
 5. 'summary': Executive manager overview.`;
 
+const PERFORMANCE_RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    readinessScore: { type: Type.STRING },
+    strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+    criticalVulnerabilities: { type: Type.ARRAY, items: { type: Type.STRING } },
+    recommendedLabs: { type: Type.ARRAY, items: { type: Type.STRING } },
+    summary: { type: Type.STRING }
+  },
+  required: ["readinessScore", "strengths", "criticalVulnerabilities", "recommendedLabs", "summary"]
+};
+
+/**
+ * Executive Auditor Analysis with Fallbacks
+ */
+export async function analyzeCertificationPerformance(sessionHistory: any, customApiKey?: string): Promise<CertificationPerformanceReport> {
+  if (!isAIFeaturesEnabled(customApiKey)) {
+    return getLocalPerformanceFallback(sessionHistory);
+  }
+
+  try {
+    const ai = getAIClient(customApiKey);
+
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: `User Performance Data: ${JSON.stringify(sessionHistory)}`,
       config: {
-        systemInstruction,
+        systemInstruction: PERFORMANCE_SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            readinessScore: { type: Type.STRING },
-            strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-            criticalVulnerabilities: { type: Type.ARRAY, items: { type: Type.STRING } },
-            recommendedLabs: { type: Type.ARRAY, items: { type: Type.STRING } },
-            summary: { type: Type.STRING }
-          },
-          required: ["readinessScore", "strengths", "criticalVulnerabilities", "recommendedLabs", "summary"]
-        }
+        responseSchema: PERFORMANCE_RESPONSE_SCHEMA
       }
     });
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    console.warn("AI Service analyzeCertificationPerformance failed, using local fallback:", err.message);
+    handleError("AI Service analyzeCertificationPerformance failed, using local fallback", err);
     return getLocalPerformanceFallback(sessionHistory);
   }
 }
@@ -394,9 +400,10 @@ function getLocalQuizFallback(
 ) {
   let isCorrect = selectedAnswer === correctAnswer;
   let topic = "Policies";
+  let q: any = null;
 
   if (questionId !== undefined && selectedOptions !== undefined) {
-    const q = examQuestions.find(x => x.id === questionId);
+    q = examQuestions.find(x => x.id === questionId);
     if (q) {
       topic = q.topic;
       const correctList = q.correctAnswers;
@@ -409,18 +416,43 @@ function getLocalQuizFallback(
     }
   }
 
+  const correctAnswersDisplay = questionId !== undefined ? (q?.correctAnswers || [correctAnswer]).join(", ") : correctAnswer;
+
+  let detailedExplanation = "";
+  if (isCorrect) {
+    detailedExplanation = `**Great job!** Your answer **"${selectedAnswer}"** is exactly right.
+
+Keep up the great work! Understanding these concepts is key to mastering network security.`;
+  } else {
+    detailedExplanation = `**Good effort!** However, the selected answer **"${selectedAnswer}"** is not correct. The correct answer(s) should be: **${correctAnswersDisplay}**.
+
+`;
+
+    // Provide topic-specific guidance
+    if (topic === "Policies") {
+      detailedExplanation += `**Hint on Policies:** Remember that WatchGuard Firebox processes policies from top to bottom. More specific rules take precedence. Proxy policies operate at Layer 7 for deep inspection, whereas packet filters operate faster at Layers 3/4.`;
+    } else if (topic === "NAT") {
+      detailedExplanation += `**Hint on NAT:** Network Address Translation maps public IPs to private IPs. Dynamic NAT allows internal users out, while Static NAT (SNAT) allows external users in (like to a web server) and 1-to-1 NAT maps a single public IP to a single private IP bidirectionally.`;
+    } else if (topic === "Mobile VPN") {
+      detailedExplanation += `**Hint on Mobile VPN:** Mobile VPNs allow remote users to securely connect to the corporate network. Remember that SSL VPN uses standard port 443, making it easy to pass through firewalls, while IKEv2 offers native OS support.`;
+    } else if (topic === "BOVPN") {
+      detailedExplanation += `**Hint on BOVPN:** Branch Office VPNs connect two physical locations. Phase 1 establishes the secure channel (IKE), and Phase 2 negotiates the IPsec Security Associations (SAs) for the actual data traffic.`;
+    } else if (topic === "Routing") {
+      detailedExplanation += `**Hint on Routing:** Static routes require manual configuration, whereas dynamic routing (like OSPF or BGP) adapts to network changes. Multi-WAN features like Round-Robin or Failover dictate how outgoing traffic is handled across multiple ISPs.`;
+    } else if (topic === "Proxies" || topic === "Security Services") {
+      detailedExplanation += `**Hint on Proxies & Security Services:** Security services (like Gateway AntiVirus, WebBlocker, IPS) typically require a Proxy policy to function because they need to inspect the application-layer payload.`;
+    } else if (topic === "Initial Setup") {
+      detailedExplanation += `**Hint on Initial Setup:** By default, Interface 1 (Trusted) is 10.0.1.1/24, Interface 0 (External) gets DHCP, and Interface 2 (Optional) is for DMZ. The Web UI runs on port 8080.`;
+    } else if (topic === "Logging & Monitoring") {
+      detailedExplanation += `**Hint on Logging & Monitoring:** Traffic Monitor shows real-time log messages. 'Unhandled Internal Packet' often means traffic didn't match any allowed policy. Dimension is used for long-term log storage and reporting.`;
+    } else {
+      detailedExplanation += `**General Hint:** Always refer back to WatchGuard core architectural principles such as Zonal Separation and Policy Precedence. Understanding the "why" behind the configuration is the key to troubleshooting!`;
+    }
+  }
+
   return {
     isCorrect,
-    detailedExplanation: `**[LOCAL DAEMON AUDIT REVIEW]**
-
-Technician selected: **"${selectedAnswer}"**.
-${isCorrect ? "✅ This is correct!" : `❌ This is incorrect. The correct answer(s) should be: ${questionId !== undefined ? (examQuestions.find(x => x.id === questionId)?.correctAnswers || [correctAnswer]).join(", ") : correctAnswer}.`}
-
-**WatchGuard Core Architectural Principles:**
-1. **Zonal Separation:** All locally-managed Fireboxes enforce strict routing zones. Interface 1 (Eth1) is Trusted by default with subnet 10.0.1.1/24, Eth0 is External, and Eth2 is Optional (often used as DMZ zones).
-2. **Policy Precedence:** The Firebox processes policies sequentially from top to bottom. Specific rules (such as single host/port mappings) always take precedence over general rules (such as Any-Trusted to Any-External).
-3. **Layer 7 Inspection:** Proxies operate at the Application layer, intercepting connection handshakes and parsing body contents to enforce RFC standards. Packet filters bypass deeper contents, focusing purely on speed.
-4. **Disaster Recovery:** A Backup Image (.fxi) is unique to the physical Firebox hardware that created it, containing feature keys, certificates, passwords, and the configuration file. It cannot be restored on different hardware, unlike a raw Configuration (.xml) file.`,
+    detailedExplanation,
     weaknessCategory: topic
   };
 }
