@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Award, ShieldAlert, BookOpen, FileText, CheckCircle2, ChevronRight, AlertTriangle, Printer, Key, Lock, Unlock, Settings, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { handleError } from "../utils/errorHandler";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -32,8 +33,8 @@ export default function PerformanceDashboard({
     recommendedLabs: string[];
     summary: string;
     isDemo?: boolean;
-    errorMessage?: string;
   } | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem("watchguard_custom_gemini_api_key") || "");
@@ -58,7 +59,7 @@ export default function PerformanceDashboard({
           setGlobalAIEnabledState(data.globalAIEnabled);
         }
       })
-      .catch(err => console.error("Failed to query initial feature status", err));
+      .catch(err => handleError("Failed to query initial feature status", err));
   };
 
   useEffect(() => {
@@ -129,6 +130,7 @@ export default function PerformanceDashboard({
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
+    setReportError(null);
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
@@ -159,7 +161,7 @@ export default function PerformanceDashboard({
       const data = await response.json();
       setReport(data);
     } catch (error) {
-      console.error("Report error:", error);
+      setReportError(error instanceof Error ? error.message : "An unknown error occurred while generating the report.");
     } finally {
       setIsLoading(false);
     }
@@ -167,99 +169,16 @@ export default function PerformanceDashboard({
 
   return (
     <div className="space-y-6 h-full overflow-y-auto pr-2">
-      {/* Overview Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-        {/* Exam Readiness Score */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Audited Exam Readiness</span>
-            <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
-          </div>
-          <div className="p-3 bg-watchguard-orange/10 rounded-full">
-            <Award className="w-6 h-6 text-watchguard-orange" />
-          </div>
-        </div>
-
-        {/* Labs Completed */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Completed Core Labs</span>
-            <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / 5</div>
-          </div>
-          <div className="p-3 bg-green-500/10 rounded-full">
-            <CheckCircle2 className="w-6 h-6 text-green-400" />
-          </div>
-        </div>
-
-        {/* Total Exam Questions Answered */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Simulator Attempts</span>
-            <div className="text-3xl font-display font-bold text-white">
-              {history.filter(h => h.isCorrect).length} / {history.length} Correct
-            </div>
-          </div>
-          <div className="p-3 bg-blue-500/10 rounded-full">
-            <BookOpen className="w-6 h-6 text-blue-400" />
-          </div>
-        </div>
-      </div>
+      <OverviewStats score={score} completedLabs={completedLabs} history={history} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Certification Weakness Tracker / Study Plan */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-5 transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
-          <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
-            <ShieldAlert className="w-4 h-4 text-watchguard-orange" />
-            <h3 className="font-display font-semibold text-white">Critical Weakness Tracker</h3>
-          </div>
+        <WeaknessTracker topicWeaknesses={topicWeaknesses} />
 
-          {topicWeaknesses.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-xs">
-              Technician study records show zero active concept vulnerabilities. Complete practicing quiz questions to trigger tracking checks.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-xs text-gray-400 leading-relaxed font-sans">
-                Our active exam tracking indicates weaknesses in the following certified namespaces. Click recommended labs to resolve the vulnerabilities:
-              </p>
-              <div className="space-y-2">
-                {topicWeaknesses.map((weakness, idx) => (
-                  <div key={idx} className="p-3 bg-watchguard-dark border border-watchguard-border rounded-xl flex items-center justify-between">
-                    <div className="flex items-center space-x-2.5">
-                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>
-                      <span className="text-xs font-medium text-gray-200">{weakness} Vulnerability</span>
-                    </div>
-                    <span className="text-[9px] font-mono font-medium text-watchguard-orange uppercase tracking-wider bg-watchguard-orange/10 px-2 py-0.5 rounded border border-watchguard-orange/20">
-                      Remediation Mandatory
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Audit Report Builder */}
-        <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-5 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
-          <div className="space-y-2.5">
-            <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
-              <FileText className="w-4 h-4 text-watchguard-orange" />
-              <h3 className="font-display font-semibold text-white">Generate Executive Performance Audit</h3>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed font-sans">
-              Compile your training progress logs into a structured audit report using the Gemini Deep reasoning engine. This report maps conceptual vulnerabilities back to WatchGuard Lab exercises to establish a customized engineering remediation study plan.
-            </p>
-          </div>
-
-          <button
-            onClick={handleGenerateReport}
-            disabled={history.length === 0 || isLoading}
-            className="w-full mt-4 bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:bg-watchguard-dark disabled:text-gray-500 disabled:border-watchguard-border text-white text-xs font-semibold py-3 rounded-lg flex items-center justify-center space-x-2 border border-watchguard-orange/40 transition-all cursor-pointer"
-          >
-            <span>{isLoading ? "Running Deep Audit Analysis..." : "Compile & Run Audit Analysis"}</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <AuditReportBuilder
+          historyLength={history.length}
+          isLoading={isLoading}
+          onGenerateReport={handleGenerateReport}
+        />
       </div>
 
       {/* Security Gateway AI Console (Admin and User Override panel) */}
@@ -423,7 +342,20 @@ export default function PerformanceDashboard({
 
       {/* Structured report visualization card */}
       <AnimatePresence>
-        {report && (
+        {reportError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-watchguard-gray border-2 border-red-500/50 rounded-2xl p-8 shadow-3xl relative overflow-hidden transition-all"
+          >
+            <div className="flex items-center space-x-2 text-red-400 font-mono text-sm">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <span>Error generating report: {reportError}</span>
+            </div>
+          </motion.div>
+        )}
+        {report && !reportError && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -501,15 +433,7 @@ export default function PerformanceDashboard({
               </div>
             </div>
 
-            {report.isDemo && (
-              <div className="mt-6 pt-3 border-t border-watchguard-border flex items-center space-x-2 text-[10px] font-mono text-gray-500">
-                <AlertTriangle className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span>Simulated Audit Analysis Powered by Local Ruleset daemon</span>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ReportVisualization report={report} />
     </div>
   );
 }
