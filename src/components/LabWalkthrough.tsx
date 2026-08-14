@@ -97,12 +97,8 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
 
       const diag = await response.json();
       setStuckDiagnosis(diag);
-    } catch (error: any) {
-      setStuckDiagnosis({
-        analysis: "⚠️ System Connection Error: Unable to complete diagnostic analysis. Please check your network connection and API key configuration.",
-        suggestedCommand: `Error: ${error.message || "Unknown error"}`,
-        simulatedLogs: ["FATAL: Connection to diagnostic daemon failed.", "Check API Key and network status."]
-      });
+    } catch (error) {
+      handleError("Diagnostic error", error);
     } finally {
       setIsLoadingDiagnosis(false);
     }

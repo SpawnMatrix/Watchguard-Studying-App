@@ -2,11 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { AlertCircle, ArrowRight, Trophy, RotateCcw, Filter, FileText, BrainCircuit } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
 import { motion, AnimatePresence } from "motion/react";
-import QuizAnalyticsPanel, { QuizHistoryItem } from "./QuizAnalyticsPanel";
-import QuizEvaluation, { EvaluationData } from "./QuizEvaluation";
-import StandardQuizzer from "./StandardQuizzer";
-import TopologyQuizzer from "./TopologyQuizzer";
-import LogSimulator from "./LogSimulator";
 import { handleError } from "../utils/errorHandler";
 
 export type { QuizHistoryItem };
@@ -208,7 +203,6 @@ export default function PracticeQuiz({ onScoreUpdated }: PracticeQuizProps) {
 
     } catch (error) {
       handleError("Evaluation error", error);
-      setErrorMsg("Failed to evaluate answer. Please try again.");
     } finally {
       setIsLoading(false);
     }
