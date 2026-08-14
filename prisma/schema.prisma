@@ -1,0 +1,66 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  name          String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  flashcards    Flashcard[]
+  studySessions StudySession[]
+}
+
+model CommandLibrary {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  cliCommand      String?
+  uiNavigationPath String?
+  tags            String   // Comma separated tags or could be a relation
+  category        String   // e.g., "Networking", "Security", "VPN"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Flashcard {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        String
+  answer          String
+  originalQuizId  String?  // Reference to the missed question ID
+  domain          String   // e.g., "CompTIA Network+", "WatchGuard NSE"
+  nextReviewDate  DateTime @default(now())
+  interval        Int      @default(1) // Spaced repetition interval in days
+  easeFactor      Float    @default(2.5) // Spaced repetition ease factor
+  repetitions     Int      @default(0) // Number of successful repetitions
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CheatSheet {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  imageUrl        String
+  category        String   // e.g., "Topology", "Subnetting"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model StudySession {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  duration  Int      // Duration in minutes
+  xpEarned  Int      @default(0)
+}
