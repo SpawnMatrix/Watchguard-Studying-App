@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityDay } from '../../store/useStudyStore';
 
 interface ActivityHeatmapProps {
@@ -8,19 +8,22 @@ interface ActivityHeatmapProps {
 
 export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, days = 90 }) => {
   // Generate the last `days` dates
-  const today = new Date();
-  const dateMap = new Map<string, number>();
+  const heatmapDays = useMemo(() => {
+    const today = new Date();
+    const dateMap = new Map<string, number>();
 
-  data.forEach(d => dateMap.set(d.date, d.count));
+    data.forEach(d => dateMap.set(d.date, d.count));
 
-  const heatmapDays = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateString = d.toISOString().split('T')[0];
-    const count = dateMap.get(dateString) || 0;
-    heatmapDays.push({ date: dateString, count });
-  }
+    const daysList = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const count = dateMap.get(dateString) || 0;
+      daysList.push({ date: dateString, count });
+    }
+    return daysList;
+  }, [data, days]);
 
   const getColor = (count: number) => {
     if (count === 0) return 'bg-gray-800 border-gray-700';
