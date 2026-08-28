@@ -1,11 +1,12 @@
-export const handleError = (context: string, error: unknown) => {
-  // Centralized error handling
-  // In a real application, this could report to an error tracking service like Sentry or Datadog
-  console.error(`[Error] ${context}:`, error);
-};
+/**
+ * Centralized error handler for logging and telemetry.
+ * Replaces direct console.error calls to allow for future
+ * integrations like Sentry, Datadog, etc.
+ */
+export const handleError = (context: string, error: unknown): void => {
+  // In a production app, this is where you would send the error to a monitoring service.
+  // Example: Sentry.captureException(error, { extra: { context } });
 
-export const errorHandler = {
-  warn(message: string, detail?: unknown) {
-    console.warn(message, detail);
-  },
+  // For now, we still log to the console, but we do it centrally.
+  console.error(`[Error] ${context}:`, error);
 };

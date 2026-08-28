@@ -2,8 +2,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Sparkles, Search, Compass, BookOpen, User, Bot, AlertTriangle, ExternalLink, HelpCircle, Layers, CheckCircle, ChevronDown, ChevronUp, Link } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { handleError } from "../utils/errorHandler";
-import AIChatMode from "./AIChatMode";
-import QADeskMode from "./QADeskMode";
 
 interface Message {
   id: string;
@@ -334,7 +332,7 @@ export default function GeneralChat() {
       setMessages(prev => [...prev, {
         id: `err-${Date.now()}`,
         sender: "bot",
-        text: `⚠️ **System Connection Error**: Unable to contact local tutor daemon.\n\n*Error details:* ${error.message}`,
+        text: `⚠️ **System Connection Error**: Unable to contact local tutor daemon.\n\n*Error details:* ${error?.message || String(error)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
     } finally {

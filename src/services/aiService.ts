@@ -153,10 +153,7 @@ IMPORTANT: If a query is about external cloud services (e.g. obscure third-party
 
     return JSON.parse(response.text || "{}");
   } catch (err: any) {
-    handleError(
-      "AI Service generateChatResponse failed, using local rules engine fallback",
-      err,
-    );
+    console.error("AI Service generateChatResponse failed, using local rules engine fallback:", err.message);
     return getLocalChatFallback(prompt);
   }
 }
