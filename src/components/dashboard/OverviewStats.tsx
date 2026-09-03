@@ -1,13 +1,15 @@
 import React from 'react';
 import { Award, CheckCircle2, BookOpen } from 'lucide-react';
 
-interface QuizHistoryItem {
-  questionId: number;
-  selectedAnswers: string[];
-  isCorrect: boolean;
-  explanation: string;
-  topic: string;
-}
+import { type QuizHistoryItem } from "../QuizAnalyticsPanel";
+
+// interface QuizHistoryItem {
+//   questionId: number;
+//   selectedAnswers: string[];
+//   isCorrect: boolean;
+//   explanation: string;
+//   topic: string;
+// }
 
 interface OverviewStatsProps {
   score: string;

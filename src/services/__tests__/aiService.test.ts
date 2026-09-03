@@ -49,10 +49,10 @@ describe('aiService', () => {
       expect(result.weaknessCategory).toBe("Policies");
 
       expect(errorSpy).toHaveBeenCalledWith(
-        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
-        expect.any(Error)
+        "AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(String)
       );
-      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
+      expect(errorSpy.mock.calls[0][1]).toBe("Simulated API failure");
 
       errorSpy.mockRestore();
     });
@@ -83,10 +83,10 @@ describe('aiService', () => {
       expect(result.weaknessCategory).toBe("Policies");
 
       expect(errorSpy).toHaveBeenCalledWith(
-        "[Error] AI Service evaluateQuizAnswer failed, using local fallback:",
-        expect.any(Error)
+        "AI Service evaluateQuizAnswer failed, using local fallback:",
+        expect.any(String)
       );
-      expect(errorSpy.mock.calls[0][1].message).toBe("Simulated API failure");
+      expect(errorSpy.mock.calls[0][1]).toBe("Simulated API failure");
 
       errorSpy.mockRestore();
     });

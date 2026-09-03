@@ -1,6 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { AlertCircle, ArrowRight, Trophy, RotateCcw, Filter, FileText, BrainCircuit } from "lucide-react";
 import { examQuestions, Question } from "../data/questions";
+import type { QuizHistoryItem } from "./QuizAnalyticsPanel";
+import type { EvaluationData } from "./QuizEvaluation";
+import StandardQuizzer from "./StandardQuizzer";
+import TopologyQuizzer from "./TopologyQuizzer";
+import LogSimulator from "./LogSimulator";
+import QuizEvaluation from "./QuizEvaluation";
+import QuizAnalyticsPanel from "./QuizAnalyticsPanel";
 import { motion, AnimatePresence } from "motion/react";
 import { handleError } from "../utils/errorHandler";
 
