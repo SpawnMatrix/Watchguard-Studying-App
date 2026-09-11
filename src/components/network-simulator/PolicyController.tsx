@@ -47,13 +47,13 @@ export function PolicyController({
   handleAddPortBlock
 }: PolicyControllerProps) {
   return (
-    <div className="p-4.5 border-r border-watchguard-border space-y-4 bg-watchguard-dark/40 overflow-y-auto max-h-[420px] scrollbar-thin">
+    <div className="p-4.5 border-r border-watchguard-border space-y-4 bg-watchguard-dark/40   scrollbar-thin">
       <div className="space-y-1 pb-1 border-b border-watchguard-border/60">
         <h4 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-wide">
           <Settings className="w-3.5 h-3.5 text-watchguard-orange" />
           <span>Firebox Security Policy Controller</span>
         </h4>
-        <p className="text-[10px] text-gray-500">Configure firewall rulesets in real-time to watch their immediate impact on routing flows.</p>
+        <p className="text-[10px] text-gray-500">Change these teaching policies to compare their effect on the next test flow.</p>
       </div>
 
       <div className="space-y-2.5">
@@ -61,10 +61,11 @@ export function PolicyController({
         <div className="flex items-center justify-between p-2 bg-watchguard-lightgray/30 border border-watchguard-border/40 rounded-lg">
           <div>
             <span className="text-xs font-semibold text-gray-200 block">Default Outgoing Policy (TCP-UDP)</span>
-            <span className="text-[9px] text-gray-500">Allow outbound connections on any port by default.</span>
+            <span className="text-[9px] text-gray-500">Trusted/Optional → External, TCP and UDP.</span>
           </div>
           <input
             type="checkbox"
+            aria-label="Outgoing TCP-UDP policy"
             checked={outgoingEnabled}
             onChange={(e) => setOutgoingOutgoing(e.target.checked)}
             className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
@@ -79,6 +80,7 @@ export function PolicyController({
           </div>
           <input
             type="checkbox"
+            aria-label="DNS UDP/53 policy"
             checked={dnsPolicyEnabled}
             onChange={(e) => setDnsPolicyEnabled(e.target.checked)}
             className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
@@ -93,6 +95,7 @@ export function PolicyController({
           </div>
           <input
             type="checkbox"
+            aria-label="HTTP proxy and GAV"
             checked={httpProxyEnabled}
             onChange={(e) => setHttpProxyEnabled(e.target.checked)}
             className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
@@ -107,6 +110,7 @@ export function PolicyController({
           </div>
           <input
             type="checkbox"
+            aria-label="HTTPS content inspection"
             checked={httpsContentInspection}
             onChange={(e) => setHttpsContentInspection(e.target.checked)}
             className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
@@ -119,10 +123,12 @@ export function PolicyController({
         }`}>
           <div>
             <span className="text-xs font-semibold text-watchguard-orange block">Client Trusts Proxy Certificate?</span>
-            <span className="text-[9px] text-gray-400">Avoids SSL warning by trusting Firebox\'s self-signed CA.</span>
+            <span className="text-[9px] text-gray-400">Client trusts the CA used for inspection.</span>
           </div>
           <input
             type="checkbox"
+            disabled={!httpsContentInspection}
+            aria-label="Client trusts inspection CA"
             checked={certTrusted}
             onChange={(e) => setCertTrusted(e.target.checked)}
             className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
@@ -134,11 +140,11 @@ export function PolicyController({
       <div className="pt-2 border-t border-watchguard-border/60 grid grid-cols-2 gap-4">
         <div>
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked IP Sites List</span>
-          <div className="space-y-1 max-h-[70px] overflow-y-auto bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
+          <div className="space-y-1 max-h-[70px]  bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
             {blockedSites.map(site => (
               <div key={site} className="flex items-center justify-between text-[9px] text-red-400 font-mono">
                 <span>{site}</span>
-                <button onClick={() => setBlockedSites(prev => prev.filter(s => s !== site))} className="hover:text-white">
+                <button aria-label={`Remove blocked site ${site}`} onClick={() => setBlockedSites(prev => prev.filter(s => s !== site))} className="hover:text-white">
                   <Trash2 className="w-2.5 h-2.5" />
                 </button>
               </div>
@@ -152,7 +158,7 @@ export function PolicyController({
               placeholder="Block IP..."
               className="bg-watchguard-dark text-[9px] text-white border border-watchguard-border rounded px-1.5 py-0.5 w-full font-mono focus:outline-none"
             />
-            <button type="submit" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
+            <button type="submit" aria-label="Add blocked site" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
               <Plus className="w-2.5 h-2.5" />
             </button>
           </form>
@@ -160,11 +166,11 @@ export function PolicyController({
 
         <div>
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked Port Numbers</span>
-          <div className="space-y-1 max-h-[70px] overflow-y-auto bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
+          <div className="space-y-1 max-h-[70px]  bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
             {blockedPorts.map(port => (
               <div key={port} className="flex items-center justify-between text-[9px] text-red-400 font-mono">
                 <span>Port {port}</span>
-                <button onClick={() => setBlockedPorts(prev => prev.filter(p => p !== port))} className="hover:text-white">
+                <button aria-label={`Remove blocked port ${port}`} onClick={() => setBlockedPorts(prev => prev.filter(p => p !== port))} className="hover:text-white">
                   <Trash2 className="w-2.5 h-2.5" />
                 </button>
               </div>
@@ -178,7 +184,7 @@ export function PolicyController({
               placeholder="Block Port..."
               className="bg-watchguard-dark text-[9px] text-white border border-watchguard-border rounded px-1.5 py-0.5 w-full font-mono focus:outline-none"
             />
-            <button type="submit" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
+            <button type="submit" aria-label="Add blocked port" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
               <Plus className="w-2.5 h-2.5" />
             </button>
           </form>

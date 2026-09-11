@@ -1,3 +1,4 @@
+import { version } from './package.json';
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
@@ -247,6 +248,8 @@ async function startServer() {
 }
 
 
+
+app.get('/api/version', (_req,res)=>res.set('Cache-Control','no-store').json({version,commit:process.env.APP_COMMIT_SHA||'local',buildDate:process.env.APP_BUILD_DATE||'unknown'}));
 
 // Fetch Question Stats
 app.get("/api/stats", async (req, res) => {

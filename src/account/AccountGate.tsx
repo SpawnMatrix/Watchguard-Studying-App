@@ -1,3 +1,4 @@
+import ReleaseFooter from '../components/ReleaseFooter';
 import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ShieldCheck, Shuffle, KeyRound, Download, UserRound, LogOut, X } from 'lucide-react';
 import { PROGRESS_EVENT, readJSON, restoreBrowser, snapshotBrowser } from './storage';
@@ -182,6 +183,7 @@ export default function AccountGate({children}:{children:ReactNode}) {
         <button className="text-button" onClick={localOnly}>Study on this device only</button>
       </>}
       {error&&<p role="alert" className="account-error">{error}</p>}
+      <ReleaseFooter compact/>
     </div></div>}
   </AccountContext.Provider>;
 }

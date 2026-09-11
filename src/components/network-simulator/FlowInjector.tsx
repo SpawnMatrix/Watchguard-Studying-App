@@ -45,7 +45,7 @@ export function FlowInjector({
               <Zap className="w-3.5 h-3.5 text-watchguard-orange" />
               <span>Interactive Flow Injector</span>
             </h4>
-            <p className="text-[10px] text-gray-500">Inject custom payloads to audit exact interface routing and GAV filters.</p>
+            <p className="text-[10px] text-gray-500">Send a simulated flow through the policies shown. No network traffic leaves your browser.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -53,6 +53,7 @@ export function FlowInjector({
             <div className="space-y-1">
               <label className="text-[10px] font-semibold text-gray-400">Source Interface Zone</label>
               <select
+                aria-label="Source Interface Zone"
                 value={srcZone}
                 onChange={e => setSrcZone(e.target.value as "trusted" | "dmz" | "external")}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
@@ -67,6 +68,7 @@ export function FlowInjector({
             <div className="space-y-1">
               <label className="text-[10px] font-semibold text-gray-400">Destination Zone</label>
               <select
+                aria-label="Destination Zone"
                 value={dstZone}
                 onChange={e => setDstZone(e.target.value as "trusted" | "dmz" | "external")}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full focus:outline-none"
@@ -78,11 +80,12 @@ export function FlowInjector({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-3 text-xs">
             {/* Protocol */}
             <div className="space-y-1">
               <label className="text-[9px] font-semibold text-gray-500 block">Protocol</label>
               <select
+                aria-label="Protocol"
                 value={customProtocol}
                 onChange={e => setCustomProtocol(e.target.value as "TCP" | "UDP" | "ICMP" | "HTTPS")}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-1 py-1 w-full focus:outline-none"
@@ -98,7 +101,8 @@ export function FlowInjector({
             <div className="space-y-1">
               <label className="text-[9px] font-semibold text-gray-500 block">Dest Port</label>
               <input
-                type="number"
+                type="number" min={1} max={65535} disabled={customProtocol==='ICMP'}
+                aria-label="Destination port"
                 value={customPort}
                 onChange={e => setCustomPort(parseInt(e.target.value, 10))}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full font-mono focus:outline-none"
@@ -110,6 +114,7 @@ export function FlowInjector({
               <label className="text-[9px] font-semibold text-gray-500 block">Source IP</label>
               <input
                 type="text"
+                aria-label="Source IP"
                 value={customSrcIP}
                 onChange={e => setCustomSrcIP(e.target.value)}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-1.5 py-1 w-full font-mono focus:outline-none"
@@ -117,16 +122,17 @@ export function FlowInjector({
             </div>
           </div>
 
+          <label className="block text-xs text-gray-400">Destination IP<input aria-label="Destination IP" value={customDstIP} onChange={e=>setCustomDstIP(e.target.value)} className="w-full mt-1 bg-watchguard-dark text-white border border-watchguard-border rounded px-3 py-2 font-mono"/></label>
           {/* Payload Field with Quick Malicious Signatures */}
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <label className="text-[10px] font-semibold text-gray-400">Payload / Request description</label>
               <button
                 type="button"
-                onClick={() => setCustomPayload("Malicious payload with infected EICAR test signature")}
+                onClick={() => setCustomPayload("EICAR test marker")}
                 className="text-[9px] text-watchguard-orange hover:underline font-mono"
               >
-                ⚡ LOAD EICAR MALWARE
+                Load harmless EICAR marker
               </button>
             </div>
             <input
@@ -144,7 +150,7 @@ export function FlowInjector({
           className="w-full bg-watchguard-orange hover:bg-watchguard-orange/90 text-white font-semibold text-xs py-2 rounded-lg transition-all flex items-center justify-center space-x-2 border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/5 cursor-pointer mt-3"
         >
           <Play className="w-3.5 h-3.5" />
-          <span>INJECT TRAFFIC FLOW</span>
+          <span>Run test flow</span>
         </button>
       </form>
     </div>

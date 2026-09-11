@@ -146,7 +146,7 @@ The portal uses standard Node environment variables. Modify `.env` in the root f
 
 ## 🛡️ Reverse Proxy Integration (TLS/SSL)
 
-Pangolin protects access to the resource, but the portal intentionally does not display or return forwarded email addresses. On first open, each learner chooses a display name that is stored only in that browser alongside their local quiz and lab progress. The name can be edited or cleared from the header, and it does not grant administrator access. Shared administration controls require the server-side admin password. Time, timezone, locale, platform, and connectivity indicators are derived from the current browser.
+Learners create a username and six-digit PIN, with server-side progress and a one-time recovery code. Existing browser progress can be imported during registration. Profile display names do not grant administrator access; shared administration controls still require ADMIN_PASSWORD. Reverse-proxy identity is not displayed in the study UI.
 
 For local home labs, we highly recommend setting up an **Nginx Proxy Manager (NPM)** LXC or VM to assign a secure Local SSL certificate (e.g., Let's Encrypt or Wildcard certificate):
 

@@ -1,401 +1,75 @@
-import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
-import { Cpu } from "lucide-react";
-import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, Packet, Protocol, Zone } from "./network-simulator";
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Play, Pause, RotateCcw, Download, FlaskConical, CheckCircle2 } from 'lucide-react';
+import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, type Packet, type Zone, type Protocol } from './network-simulator';
+import { challenges, defaultConfig, defaultFlow, evaluateFlow, validIPv4, validateFlow, type Flow, type SandboxConfig } from './network-simulator/engine';
 
 export default function NetworkSimulator() {
-  // Firebox Policy Controller States
-  const [outgoingEnabled, setOutgoingOutgoing] = useState(true);
-  const [dnsPolicyEnabled, setDnsPolicyEnabled] = useState(true);
-  const [httpProxyEnabled, setHttpProxyEnabled] = useState(true);
-  const [httpsContentInspection, setHttpsContentInspection] = useState(false);
-  const [certTrusted, setCertTrusted] = useState(false);
-  
-  // Threats List
-  const [blockedSites, setBlockedSites] = useState<string[]>(["203.0.113.66", "198.51.100.99"]);
-  const [blockedPorts, setBlockedPorts] = useState<number[]>([23, 21]); // Block Telnet/FTP
-  const [newSiteBlock, setNewSiteBlock] = useState("");
-  const [newPortBlock, setNewPortBlock] = useState("");
+  const [config,setConfig]=useState<SandboxConfig>(()=>structuredClone(defaultConfig));
+  const [flow,setFlow]=useState<Flow>({...defaultFlow});
+  const [packets,setPackets]=useState<Packet[]>([]),[inspectedPacket,setInspectedPacket]=useState<Packet|null>(null);
+  const [autoGen,setAutoGen]=useState(false),[challengeId,setChallengeId]=useState(''),[completed,setCompleted]=useState<string[]>([]);
+  const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
+  const [newSiteBlock,setNewSiteBlock]=useState(''),[newPortBlock,setNewPortBlock]=useState('');
+  const [animatingPacket,setAnimatingPacket]=useState<{from:string;to:string;status:'Allowed'|'Denied';protocol:string}|null>(null);
+  const counter=useRef(Date.now()),animationTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const challenge=challenges.find(c=>c.id===challengeId);
+  const patch=<K extends keyof SandboxConfig>(key:K,value:SandboxConfig[K])=>setConfig(c=>({...c,[key]:value}));
+  const update=<K extends keyof Flow>(key:K,value:Flow[K])=>{setFlow(f=>({...f,[key]:value}));setFeedback('');};
+  const changeZone=(key:'from'|'to',zone:Zone)=>setFlow(f=>({...f,[key]:zone,[key==='from'?'srcIP':'dstIP']:zone==='trusted'?'10.0.1.25':zone==='dmz'?'192.168.10.15':'203.0.113.25'}));
+  const changeProtocol=(protocol:Protocol)=>setFlow(f=>({...f,protocol,dstPort:protocol==='HTTPS'?443:protocol==='UDP'?53:protocol==='ICMP'?0:80,payload:protocol==='HTTPS'?'Clean HTTPS test':protocol==='UDP'?'DNS query':protocol==='ICMP'?'ICMP echo request':'HTTP request'}));
+  useEffect(()=>()=>{if(animationTimer.current)clearTimeout(animationTimer.current);},[]);
 
-  // O(1) Lookup Sets for Performance
-  const blockedSitesSet = useMemo(() => new Set(blockedSites), [blockedSites]);
-  const blockedPortsSet = useMemo(() => new Set(blockedPorts), [blockedPorts]);
-
-  // Interactive Packet Injector Form States
-  const [srcZone, setSrcZone] = useState<Zone>("trusted");
-  const [dstZone, setDstZone] = useState<Zone>("external");
-  const [customProtocol, setCustomProtocol] = useState<Protocol>("TCP");
-  const [customPort, setCustomPort] = useState(80);
-  const [customSrcIP, setCustomSrcIP] = useState("10.0.1.25");
-  const [customDstIP, setCustomDstIP] = useState("8.8.8.8");
-  const [customPayload, setCustomPayload] = useState("HTTP Web Browse request");
-
-  // Simulated packets list (historical logs)
-  const [packets, setPackets] = useState<Packet[]>([]);
-  const [activeConsoleLog, setActiveConsoleLog] = useState<string[]>([]);
-  const [inspectedPacket, setInspectedPacket] = useState<Packet | null>(null);
-
-  // Animation visual trigger states
-  const [animatingPacket, setAnimatingPacket] = useState<{
-    from: string;
-    to: string;
-    status: "Allowed" | "Denied";
-    protocol: string;
-  } | null>(null);
-
-  // Auto-generator toggle
-  const [autoGen, setAutoGen] = useState(true);
-
-  // Update pre-populated values when zones change
-  useEffect(() => {
-    if (srcZone === "trusted") {
-      setCustomSrcIP("10.0.1.25");
-    } else if (srcZone === "dmz") {
-      setCustomSrcIP("192.168.10.5");
-    } else {
-      setCustomSrcIP("203.0.113.80");
-    }
-  }, [srcZone]);
-
-  useEffect(() => {
-    if (dstZone === "trusted") {
-      setCustomDstIP("10.0.1.100");
-    } else if (dstZone === "dmz") {
-      setCustomDstIP("192.168.10.15");
-    } else {
-      setCustomDstIP("8.8.8.8");
-    }
-  }, [dstZone]);
-
-  // Handle port defaults based on protocol selection
-  useEffect(() => {
-    if (customProtocol === "HTTPS") {
-      setCustomPort(443);
-      setCustomPayload("Secure Browser Exchange (TLS)");
-    } else if (customProtocol === "UDP") {
-      setCustomPort(53);
-      setCustomPayload("DNS query resolution");
-    } else if (customProtocol === "ICMP") {
-      setCustomPort(0);
-      setCustomPayload("Ping ICMP echo request");
-    } else {
-      setCustomPort(80);
-      setCustomPayload("Standard HTTP Web request");
-    }
-  }, [customProtocol]);
-
-  // Optimized historical packet lookup map
-  const packetLookupMap = useMemo(() => {
-    const map = new Map<string, Packet>();
-    packets.forEach(p => {
-      const key = `${p.srcIP}-${p.dstIP}`;
-      if (!map.has(key)) map.set(key, p);
-    });
-    return map;
-  }, [packets]);
-
-  // Core Firebox Packet Processing Engine
-  const processPacket = (
-    from: Zone,
-    to: Zone,
-    protocol: Protocol,
-    srcIP: string,
-    dstIP: string,
-    srcPort: number,
-    dstPort: number,
-    payload: string
-  ): Packet => {
-    const timestamp = new Date().toISOString().replace("T", " ").substring(11, 19);
-    let status: "Allowed" | "Denied" = "Allowed";
-    let matchedPolicy = "Default Outgoing Policy";
-    let reason = "Allowed by outbound TCP-UDP packet filters.";
-
-    // 1. DEFAULT THREAT PROTECTION (Precedes policies!)
-    if (blockedSitesSet.has(srcIP) || blockedSitesSet.has(dstIP)) {
-      status = "Denied";
-      matchedPolicy = "Default Threat Protection: Blocked Sites";
-      reason = "Dropped immediately because the IP matches an entry in the Blocked Sites list.";
-    } else if (blockedPortsSet.has(dstPort)) {
-      status = "Denied";
-      matchedPolicy = "Default Threat Protection: Blocked Ports";
-      reason = "Dropped immediately because the destination port is in the Blocked Ports database.";
-    }
-    // 2. LAYER 3/4 UNHANDLED EXTERNAL PACKETS
-    else if (from === "external" && to === "trusted") {
-      status = "Denied";
-      matchedPolicy = "Unhandled External Packet";
-      reason = "Dropped by default deny. No inbound firewall rules allow incoming WAN connections to eth1.";
-    }
-    // 3. POLICY SPECIFIC CHECKS
-    else if (from === "trusted" || from === "dmz") {
-      // DNS port checking
-      if (dstPort === 53 || protocol === "UDP") {
-        if (dnsPolicyEnabled) {
-          status = "Allowed";
-          matchedPolicy = "DNS Packet Filter Policy";
-          reason = "Allowed by explicit outbound UDP/53 DNS policy.";
-        } else if (outgoingEnabled) {
-          status = "Allowed";
-          matchedPolicy = "Default Outgoing Policy";
-          reason = "DNS Policy is disabled, but falling back to Allowed by general Outgoing TCP-UDP policy.";
-        } else {
-          status = "Denied";
-          matchedPolicy = "Unhandled Internal Packet";
-          reason = "Dropped by default implicit deny. DNS policy and general Outgoing filters are both disabled.";
-        }
-      }
-      // HTTP proxy checking
-      else if (dstPort === 80) {
-        if (httpProxyEnabled) {
-          if (payload.toLowerCase().includes("eicar")) {
-            status = "Denied";
-            matchedPolicy = "HTTP-Proxy Action (GAV Gateway AV)";
-            reason = "Dropped because Gateway AntiVirus signature scanner found infected payload: 'EICAR-Test-File'.";
-          } else {
-            status = "Allowed";
-            matchedPolicy = "HTTP-Proxy Policy (WebBlocker Active)";
-            reason = "Deep Packet Inspection allowed this HTTP session cleanly after categorizing content.";
-          }
-        } else if (outgoingEnabled) {
-          status = "Allowed";
-          matchedPolicy = "Default Outgoing Policy";
-          reason = "HTTP Proxy is disabled, but falling back to Allowed by general Outgoing packet filters.";
-        } else {
-          status = "Denied";
-          matchedPolicy = "Unhandled Internal Packet";
-          reason = "Dropped by default implicit deny. HTTP policy and Outgoing rules are both disabled.";
-        }
-      }
-      // HTTPS content inspection checking
-      else if (dstPort === 443 || protocol === "HTTPS") {
-        if (httpsContentInspection) {
-          if (!certTrusted) {
-            status = "Denied";
-            matchedPolicy = "HTTPS-Proxy with Content Inspection";
-            reason = "Dropped due to SSL warning. The user's computer does not trust the self-signed Proxy Authority Certificate on the Firebox.";
-          } else if (payload.toLowerCase().includes("eicar")) {
-            status = "Denied";
-            matchedPolicy = "HTTPS-Proxy (Deep Content Inspection)";
-            reason = "Decrypted and scanned HTTPS. GAV signature scanner detected 'EICAR' infected file inside the decrypted stream.";
-          } else {
-            status = "Allowed";
-            matchedPolicy = "HTTPS-Proxy Policy (Decrypted & Inspected)";
-            reason = "Decrypted and allowed cleanly. Security certificate verified via OCSP.";
-          }
-        } else if (outgoingEnabled) {
-          status = "Allowed";
-          matchedPolicy = "Default Outgoing Policy (Raw HTTPS)";
-          reason = "HTTPS Proxy Content Inspection is disabled. Allowed outbound natively as raw encrypted traffic (no decryption scanning).";
-        } else {
-          status = "Denied";
-          matchedPolicy = "Unhandled Internal Packet";
-          reason = "Dropped by default implicit deny. Outbound HTTPS traffic is blocked when Outgoing policy is disabled.";
-        }
-      }
-      // Other traffic
-      else {
-        if (outgoingEnabled) {
-          status = "Allowed";
-          matchedPolicy = "Default Outgoing Policy";
-          reason = "Allowed outbound globally by the generic TCP-UDP Outgoing ruleset.";
-        } else {
-          status = "Denied";
-          matchedPolicy = "Unhandled Internal Packet";
-          reason = "Dropped by default implicit deny. The Outgoing policy has been disabled, blocking all unhandled TCP/UDP egress.";
-        }
+  function record(input:Flow,manual:boolean) {
+    const problem=validateFlow(input);if(problem){setError(problem);return;}
+    setError('');
+    const packet:Packet={...input,...evaluateFlow(config,input),id:++counter.current,timestamp:new Date().toISOString().slice(11,19)};
+    setPackets(previous=>[packet,...previous].slice(0,50));
+    if(manual){
+      setInspectedPacket(packet);setAnimatingPacket({from:input.from,to:input.to,status:packet.status,protocol:input.protocol});
+      if(animationTimer.current)clearTimeout(animationTimer.current);
+      animationTimer.current=setTimeout(()=>setAnimatingPacket(null),1500);
+      if(challenge){
+        const intended={...defaultFlow,...challenge.flow};
+        const sameFlow=(['from','to','protocol','dstIP','dstPort','payload'] as const).every(key=>input[key]===intended[key]);
+        const expected=challenge.id==='gav'?'HTTPS-proxy with content inspection':challenge.id==='block'?'Blocked Sites':challenge.id==='udp'?'Unhandled Internal Packet':null;
+        const resultMatches=expected?packet.matchedPolicy===expected&&packet.status==='Denied'&&!packet.failureOrigin:packet.status==='Allowed';
+        if(sameFlow&&resultMatches&&challenge.solved(config,input)){setCompleted(ids=>ids.includes(challenge.id)?ids:[...ids,challenge.id]);setFeedback('Challenge complete. Explain the deciding step before moving on.');}
+        else setFeedback('Keep investigating. Use the decision trace and the hint, then run the challenge flow again.');
       }
     }
-
-    return {
-      id: Date.now(),
-      from,
-      to,
-      protocol,
-      srcIP,
-      dstIP,
-      srcPort,
-      dstPort,
-      payload,
-      status,
-      matchedPolicy,
-      timestamp,
-      reason
-    };
-  };
-
-  // Inject Packet Handler
-  const handleInjectPacket = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    
-    const srcPort = Math.floor(Math.random() * 40000) + 1024;
-    const packet = processPacket(
-      srcZone,
-      dstZone,
-      customProtocol,
-      customSrcIP,
-      customDstIP,
-      srcPort,
-      customPort,
-      customPayload
-    );
-
-    // Trigger visual animation
-    setAnimatingPacket({
-      from: srcZone,
-      to: dstZone,
-      status: packet.status,
-      protocol: packet.protocol
-    });
-
-    // Add to history list
-    setPackets(prev => [packet, ...prev.slice(0, 10)]);
-
-    // Construct Syslog string
-    const isDeny = packet.status === "Denied";
-    const logLine = `${packet.timestamp} ${isDeny ? "Deny" : "Allow"} ${packet.srcIP} ${packet.dstIP} ${packet.srcPort} ${packet.dstPort} ${packet.protocol} ${packet.from} -> ${packet.to} ${isDeny ? `(${packet.matchedPolicy})` : ""}`;
-    setActiveConsoleLog(prev => [logLine, ...prev.slice(0, 40)]);
-    setInspectedPacket(packet);
-
-    // Clear animation after 1.5 seconds
-    setTimeout(() => {
-      setAnimatingPacket(null);
-    }, 1500);
-  };
-
-  // Automated background packet flow generator
-  useEffect(() => {
-    if (!autoGen) return;
-
-    const interval = setInterval(() => {
-      const zones: Zone[] = ["trusted", "dmz", "external"];
-      const protocols: Protocol[] = ["TCP", "UDP", "ICMP", "HTTPS"];
-      
-      const from = zones[Math.floor(Math.random() * zones.length)];
-      let to = zones[Math.floor(Math.random() * zones.length)];
-      while (to === from) {
-        to = zones[Math.floor(Math.random() * zones.length)];
-      }
-
-      const protocol = protocols[Math.floor(Math.random() * protocols.length)];
-      
-      // Determine IPs
-      const srcIP = from === "trusted" ? `10.0.1.${Math.floor(Math.random() * 80) + 10}` : from === "dmz" ? `192.168.10.${Math.floor(Math.random() * 80) + 10}` : `203.0.113.${Math.floor(Math.random() * 200)}`;
-      const dstIP = to === "trusted" ? "10.0.1.5" : to === "dmz" ? "192.168.10.5" : `8.8.8.${Math.floor(Math.random() * 8) + 1}`;
-      
-      const srcPort = Math.floor(Math.random() * 40000) + 1024;
-      const dstPort = protocol === "HTTPS" ? 443 : protocol === "UDP" ? 53 : protocol === "ICMP" ? 0 : 80;
-
-      // Random payload
-      let payload = "Automated data flow";
-      if (protocol === "UDP" && dstPort === 53) payload = "DNS Query for watchguard.com";
-      if (protocol === "HTTPS" && dstPort === 443) {
-        payload = Math.random() > 0.5 ? "Infected payload EICAR signature" : "Secure browser bank transaction";
-      }
-
-      const packet = processPacket(from, to, protocol, srcIP, dstIP, srcPort, dstPort, payload);
-
-      setPackets(prev => [packet, ...prev.slice(0, 10)]);
-
-      const isDeny = packet.status === "Denied";
-      const logLine = `${packet.timestamp} ${isDeny ? "Deny" : "Allow"} ${packet.srcIP} ${packet.dstIP} ${packet.srcPort} ${packet.dstPort} ${packet.protocol} ${packet.from} -> ${packet.to} ${isDeny ? `(${packet.matchedPolicy})` : ""}`;
-      setActiveConsoleLog(prev => [logLine, ...prev.slice(0, 40)]);
-    }, 4500);
-
-    return () => clearInterval(interval);
-  }, [autoGen, outgoingEnabled, dnsPolicyEnabled, httpProxyEnabled, httpsContentInspection, certTrusted, blockedSites, blockedPorts]);
-
-  // Block handlers
-  const handleAddSiteBlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSiteBlock.trim()) return;
-    setBlockedSites(prev => [...prev, newSiteBlock.trim()]);
-    setNewSiteBlock("");
-  };
-
-  const handleAddPortBlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    const port = parseInt(newPortBlock, 10);
-    if (isNaN(port)) return;
-    setBlockedPorts(prev => [...prev, port]);
-    setNewPortBlock("");
-  };
-
-  return (
-    <div className="flex flex-col bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl h-full font-sans select-none">
-      
-      {/* Simulation Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 bg-watchguard-lightgray border-b border-watchguard-border text-xs font-semibold text-white">
-        <span className="flex items-center space-x-2">
-          <Cpu className="w-4 h-4 text-watchguard-orange animate-spin" />
-          <span>FSM Live Firewall & Interface Visualizer</span>
-        </span>
-        <div className="flex items-center space-x-2">
-          <span className="text-[10px] font-mono text-gray-400 bg-watchguard-dark px-2.5 py-1 rounded border border-watchguard-border/60">
-            M270 Enterprise Sandbox
-          </span>
-          <button 
-            onClick={() => setAutoGen(!autoGen)}
-            className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded transition-all ${
-              autoGen ? "bg-green-500/20 text-green-400 border border-green-500/40" : "bg-gray-700 text-gray-400 border border-gray-600"
-            }`}
-          >
-            {autoGen ? "● AUTO GENERATOR ON" : "○ MANUAL ONLY"}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Sandbox Interactive Split Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 border-b border-watchguard-border bg-watchguard-dark/10">
-        <PolicyController
-          outgoingEnabled={outgoingEnabled}
-          setOutgoingOutgoing={setOutgoingOutgoing}
-          dnsPolicyEnabled={dnsPolicyEnabled}
-          setDnsPolicyEnabled={setDnsPolicyEnabled}
-          httpProxyEnabled={httpProxyEnabled}
-          setHttpProxyEnabled={setHttpProxyEnabled}
-          httpsContentInspection={httpsContentInspection}
-          setHttpsContentInspection={setHttpsContentInspection}
-          certTrusted={certTrusted}
-          setCertTrusted={setCertTrusted}
-          blockedSites={blockedSites}
-          setBlockedSites={setBlockedSites}
-          blockedPorts={blockedPorts}
-          setBlockedPorts={setBlockedPorts}
-          newSiteBlock={newSiteBlock}
-          setNewSiteBlock={setNewSiteBlock}
-          newPortBlock={newPortBlock}
-          setNewPortBlock={setNewPortBlock}
-          handleAddSiteBlock={handleAddSiteBlock}
-          handleAddPortBlock={handleAddPortBlock}
-        />
-        
-        <FlowInjector
-          srcZone={srcZone}
-          setSrcZone={setSrcZone}
-          dstZone={dstZone}
-          setDstZone={setDstZone}
-          customProtocol={customProtocol}
-          setCustomProtocol={setCustomProtocol}
-          customPort={customPort}
-          setCustomPort={setCustomPort}
-          customSrcIP={customSrcIP}
-          setCustomSrcIP={setCustomSrcIP}
-          customDstIP={customDstIP}
-          setCustomDstIP={setCustomDstIP}
-          customPayload={customPayload}
-          setCustomPayload={setCustomPayload}
-          handleInjectPacket={handleInjectPacket}
-        />
-      </div>
-
-      <TopologyPanel animatingPacket={animatingPacket} />
-
-      <SyslogTerminal
-        inspectedPacket={inspectedPacket}
-        setInspectedPacket={setInspectedPacket}
-        activeConsoleLog={activeConsoleLog}
-        packetLookupMap={packetLookupMap}
-      />
+  }
+  useEffect(()=>{
+    if(!autoGen)return;
+    const timer=setInterval(()=>{
+      const sample=challenges[Math.floor(Math.random()*challenges.length)];
+      record({...defaultFlow,...sample.flow,srcPort:Math.floor(Math.random()*40000)+1024},false);
+    },4500);
+    return()=>clearInterval(timer);
+  },[autoGen,config]);
+  function loadChallenge(id:string){
+    const selected=challenges.find(c=>c.id===id);setChallengeId(id);setAutoGen(false);setInspectedPacket(null);setFeedback('');setError('');
+    if(selected){setConfig({...structuredClone(defaultConfig),...selected.config});setFlow({...defaultFlow,...selected.flow});}
+  }
+  function reset(){setConfig(structuredClone(defaultConfig));setFlow({...defaultFlow});setChallengeId('');setAutoGen(false);setInspectedPacket(null);setFeedback('');setError('');}
+  function addSite(e:FormEvent){e.preventDefault();const site=newSiteBlock.trim();if(!validIPv4(site)){setError('Use a valid IPv4 host address for a blocked site.');return;}patch('blockedSites',[...new Set([...config.blockedSites,site])]);setNewSiteBlock('');setError('');}
+  function addPort(e:FormEvent){e.preventDefault();const port=Number(newPortBlock);if(!/^\d+$/.test(newPortBlock)||!Number.isInteger(port)||port<1||port>65535){setError('Use a blocked port from 1 to 65535.');return;}patch('blockedPorts',[...new Set([...config.blockedPorts,port])]);setNewPortBlock('');setError('');}
+  function exportTrace(){const url=URL.createObjectURL(new Blob([JSON.stringify({kind:'WatchGuard teaching simulation',config,packets},null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='sandbox-trace.json';link.click();URL.revokeObjectURL(url);}
+  return <div className="sandbox-workspace">
+    <header className="section-heading"><div><p className="eyebrow">PACKET PATH LAB</p><h1>Follow the flow. Find the cause.</h1><p>Change a policy, send a test flow, and see exactly which decision changes.</p></div><span className="catalog-count"><FlaskConical size={18}/>6 guided challenges</span></header>
+    <section className="sandbox-mission" aria-label="Guided challenges">
+      <div className="sandbox-mission-top"><label>Choose a challenge<select aria-label="Sandbox challenge" value={challengeId} onChange={e=>loadChallenge(e.target.value)}><option value="">Free exploration</option>{challenges.map(c=><option key={c.id} value={c.id}>{completed.includes(c.id)?'✓ ':''}{c.title}</option>)}</select></label><span>{completed.length} / {challenges.length} completed this visit</span></div>
+      {challenge?<div className="sandbox-objective"><strong>{challenge.goal}</strong><details><summary>Need a hint?</summary><p>{challenge.hint}</p></details></div>:<p className="sandbox-description">Start with a challenge or build your own flow below. These are explicit teaching policies; this is not a live Firebox or a complete emulator. NAT, VPN, routing failures, and return sessions are outside this model.</p>}
+      {feedback&&<p role="status" className="sandbox-feedback"><CheckCircle2 size={18}/>{feedback}</p>}
+    </section>
+    <div className="sandbox-toolbar"><span>Simulation controls</span><div><button className="secondary-button" aria-pressed={autoGen} onClick={()=>setAutoGen(v=>!v)}>{autoGen?<Pause size={16}/>:<Play size={16}/>} {autoGen?'Pause traffic':'Auto traffic'}</button><button className="secondary-button" onClick={reset}><RotateCcw size={16}/>Reset policies</button><button className="secondary-button" disabled={!packets.length} onClick={exportTrace}><Download size={16}/>Export trace</button></div></div>
+    {error&&<p className="sandbox-error" role="alert">{error}</p>}
+    <div className="sandbox-panels">
+      <div><PolicyController outgoingEnabled={config.outgoing} setOutgoingOutgoing={v=>patch('outgoing',v)} dnsPolicyEnabled={config.dns} setDnsPolicyEnabled={v=>patch('dns',v)} httpProxyEnabled={config.httpProxy} setHttpProxyEnabled={v=>patch('httpProxy',v)} httpsContentInspection={config.inspectTls} setHttpsContentInspection={v=>patch('inspectTls',v)} certTrusted={config.trustCa} setCertTrusted={v=>patch('trustCa',v)} blockedSites={config.blockedSites} setBlockedSites={v=>setConfig(c=>({...c,blockedSites:typeof v==='function'?v(c.blockedSites):v}))} blockedPorts={config.blockedPorts} setBlockedPorts={v=>setConfig(c=>({...c,blockedPorts:typeof v==='function'?v(c.blockedPorts):v}))} newSiteBlock={newSiteBlock} setNewSiteBlock={setNewSiteBlock} newPortBlock={newPortBlock} setNewPortBlock={setNewPortBlock} handleAddSiteBlock={addSite} handleAddPortBlock={addPort}/>
+      <div className="sandbox-extra-policies">{([{key:'ping',label:'Ping policy',detail:'ICMP from Trusted/Optional to External.'},{key:'inboundWeb',label:'Published web policy',detail:'External → DMZ TCP/443 only. NAT is assumed outside this model.'},{key:'interZone',label:'Inter-zone lab policy',detail:'Permits Trusted ↔ Optional in this isolated exercise.'}] as const).map(item=><label key={item.key}><div><strong>{item.label}</strong><span>{item.detail}</span></div><input type="checkbox" checked={config[item.key]} onChange={e=>patch(item.key,e.target.checked)}/></label>)}</div></div>
+      <FlowInjector srcZone={flow.from} setSrcZone={v=>changeZone('from',v)} dstZone={flow.to} setDstZone={v=>changeZone('to',v)} customProtocol={flow.protocol} setCustomProtocol={changeProtocol} customPort={flow.dstPort} setCustomPort={v=>update('dstPort',v)} customSrcIP={flow.srcIP} setCustomSrcIP={v=>update('srcIP',v)} customDstIP={flow.dstIP} setCustomDstIP={v=>update('dstIP',v)} customPayload={flow.payload} setCustomPayload={v=>update('payload',v)} handleInjectPacket={e=>{e?.preventDefault();record(flow,true);}}/>
     </div>
-  );
+    <TopologyPanel animatingPacket={animatingPacket}/>
+    <SyslogTerminal inspectedPacket={inspectedPacket} setInspectedPacket={setInspectedPacket} packets={packets} onClear={()=>{setPackets([]);setInspectedPacket(null);}}/>
+    <p className="sandbox-reference">Check real-device behavior: <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/policies/policy_outgoing_about_c.html" target="_blank" rel="noreferrer">Outgoing policy</a> · <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/intrusionprevention/blocked_ports_about_c.html" target="_blank" rel="noreferrer">Blocked ports</a>. Sample blocks and policies are lab settings, not a complete factory configuration.</p>
+  </div>;
 }

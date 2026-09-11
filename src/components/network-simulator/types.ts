@@ -1,4 +1,6 @@
 export interface Packet {
+  trace?: {stage:string;detail:string;result:'pass'|'stop'|'skip'}[];
+  failureOrigin?: 'client';
   id: number;
   from: "trusted" | "dmz" | "external";
   to: "trusted" | "dmz" | "external";

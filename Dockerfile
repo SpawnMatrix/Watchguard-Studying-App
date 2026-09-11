@@ -33,6 +33,11 @@ RUN npm ci --omit=dev
 COPY --from=builder /usr/src/app/dist ./dist
 COPY scripts/backup.mjs ./scripts/backup.mjs
 
+ARG COMMIT_SHA="unknown"
+ARG BUILD_DATE="unknown"
+ENV APP_COMMIT_SHA=${COMMIT_SHA}
+ENV APP_BUILD_DATE=${BUILD_DATE}
+
 # Standard production environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
