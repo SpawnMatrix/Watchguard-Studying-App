@@ -83,8 +83,8 @@ export function TopologyPanel({ animatingPacket }: TopologyPanelProps) {
             <div className="absolute inset-0 border-2 border-dashed border-white/40 rounded-2xl animate-spin"></div>
           </div>
           <div className="space-y-0.5">
-            <div className="text-xs font-bold text-watchguard-orange uppercase tracking-wider">Fireware OS</div>
-            <div className="text-[9px] font-mono text-gray-500">v12.9.2 Active</div>
+            <div className="text-xs font-bold text-watchguard-orange uppercase tracking-wider">Teaching model</div>
+            <div className="text-[9px] font-mono text-gray-500">Local Firebox</div>
           </div>
         </div>
 

@@ -39,3 +39,20 @@ node scripts/smoke.mjs
 `SMOKE_URL` overrides localhost:3000. Set `SMOKE_USERNAME` for a repeatable test identity. After restarting/replacing the instance with the same data directory, set `SMOKE_VERIFY=true` to check that learner's saved progress. Do not point smoke tests at production learner accounts.
 
 HTTPS is expected for remote access. Session cookies are Secure when Express recognizes HTTPS through the existing trusted-proxy configuration. Configure the reverse proxy consistently with that existing trust boundary. Learner PINs are intentionally lightweight; per-account and per-IP limits, a recovery code, and hashed storage protect the study account flow. The separate administrator password still protects AI controls.
+
+## Check which version is running
+
+The footer shows the package release version, build commit (when supplied), and creator credit. `/api/version` returns the release version, commit, and build date without authentication. Compose uses the existing updater’s WATCHGUARD_IMAGE_TAG as the build commit, so the installed updater script does not need replacement. The footer abbreviates it; the API retains the supplied identifier. Build date is included when provided (for example by GitHub Actions), otherwise it is explicitly unknown.
+
+The supplied `watchguard-update.timer` runs two minutes after boot and then every five minutes, with up to 30 seconds of randomized delay. An open PR does not deploy; the updater follows `main` by default. This requires the timer to be installed and enabled on the Docker host.
+
+On that host, inspect it with:
+
+```sh
+systemctl status watchguard-update.timer
+systemctl list-timers watchguard-update.timer
+journalctl -u watchguard-update.service -n 50 --no-pager
+curl -fsS http://127.0.0.1:3001/api/version
+```
+
+After an approved merge, run `sudo systemctl start watchguard-update.service` to trigger the existing update workflow immediately instead of waiting for the next timer tick. This uses the same build, health check, and rollback logic. Keep the named data volume intact.

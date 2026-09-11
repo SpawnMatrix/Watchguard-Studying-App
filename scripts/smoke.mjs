@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 const base=process.env.SMOKE_URL||'http://127.0.0.1:3000';
@@ -8,6 +9,9 @@ const call=async(path,body,method='POST',cookie)=>{
  assert.equal(response.status,200,`${path}: ${response.status}`);return {data:await response.json(),cookie:response.headers.get('set-cookie')};
 };
 await call('/api/session');await call('/api/features');
+const release=(await call('/api/version')).data;
+assert.equal(release.version,JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version);
+if(process.env.SMOKE_EXPECT_COMMIT)assert.equal(release.commit,process.env.SMOKE_EXPECT_COMMIT);
 const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,425);assert.equal(catalog.templateCount,30);
 const page=await fetch(base);assert.match(await page.text(),/<div id="root">/);
 if(process.env.SMOKE_VERIFY==='true'){

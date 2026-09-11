@@ -1,3 +1,4 @@
+import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -73,7 +74,7 @@ export default function App() {
   const account = useAccount();
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") || "dark";
+    try { return localStorage.getItem("watchguard-portal-theme") === "light" ? "light" : "dark"; } catch { return "dark"; }
   });
   const savedProgress = useMemo(loadSavedProgress, []);
   const initialProfileName = useMemo(loadProfileName, []);
@@ -84,6 +85,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.style.colorScheme = theme;
     localStorage.setItem("watchguard-portal-theme", theme);
   }, [theme]);
   const [completedLabs, setCompletedLabs] = useState<string[]>(savedProgress.completedLabs);
@@ -307,9 +309,7 @@ export default function App() {
       </main>
 
       {/* Global Security Footer */}
-      <footer className="app-footer text-gray-500">
-        <p>Independent study companion · Fireware & Network+ · Build: {import.meta.env.VITE_APP_BUILD_DATE || "unknown"} ({import.meta.env.VITE_APP_COMMIT_SHA || "unknown"})</p>
-      </footer>
+      <ReleaseFooter />
 
       <AnimatePresence>
         {isProfileEditorOpen && (

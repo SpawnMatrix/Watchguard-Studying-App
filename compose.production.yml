@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        COMMIT_SHA: "${WATCHGUARD_IMAGE_TAG:-local}"
+        BUILD_DATE: "${WATCHGUARD_BUILD_DATE:-unknown}"
     image: watchguard-study-portal:${WATCHGUARD_IMAGE_TAG:-local}
     container_name: watchguard-study-portal
     restart: unless-stopped
