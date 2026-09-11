@@ -4,9 +4,11 @@ import { integer, pick, seededRandom, shuffle } from './random';
 import { numberToIPv4 as ip, subnet, smallestLanPrefix } from './network';
 import { validateQuestion } from './grading';
 import { CLOUD_SOURCE, NETWORK_SOURCE, localSource, type Track, type Variant } from './types';
+import { logScenarioBuilders } from './logScenarios';
+import { orderingScenarios } from './policyOrdering';
 
 type Scenario = Pick<Question, 'question' | 'options' | 'correctAnswers' | 'explanation'> &
-  Partial<Pick<Question, 'type' | 'logMessage' | 'networkDiagram'>>;
+  Partial<Pick<Question, 'type' | 'logMessage' | 'networkDiagram' | 'orderingDetails'>>;
 export interface QuestionTemplate {
   id: number; title: string; topic: Question['topic']; track: Track; section: string;
   build: (rng: Random) => Scenario;
@@ -196,6 +198,62 @@ export const questionTemplates: QuestionTemplate[] = [
       [time(total+duration),time(total-1),time(total+1)],`Use the configured duration, not an assumed default: ${time(hour*60+minute)} + ${duration} minutes = ${time(total)}. A new event or manual change can alter the actual expiry.`);
   }),
 ];
+
+/**
+ * Log-analysis and policy-ordering scenarios are registered as ordinary
+ * templates so they flow through the existing pool, filter, exam and
+ * grading paths untouched.
+ *
+ * Each builder's title, topic and section are fixed properties of the
+ * scenario rather than of the random draw, so probing once with a constant
+ * seed is a safe way to read them without duplicating the metadata.
+ */
+const PROBE_SEED = 1;
+
+logScenarioBuilders.forEach((build, index) => {
+  const probe = build(seededRandom(PROBE_SEED));
+  questionTemplates.push({
+    id: 10101 + index,
+    title: probe.title,
+    topic: probe.topic,
+    track: 'local',
+    section: probe.section,
+    build: r => {
+      const spec = build(r);
+      return {
+        question: `Read the Traffic Monitor entry below. Why did the Firebox drop the connection from ${spec.subject}? (Select one.)`,
+        options: [spec.cause, ...spec.distractors],
+        correctAnswers: [spec.cause],
+        explanation: `${spec.explanation}\n\nWhere to look in Fireware Web UI: ${spec.webUi}`,
+        type: 'log',
+        logMessage: spec.log,
+      };
+    },
+  });
+});
+
+orderingScenarios.forEach((build, index) => {
+  const probe = build(seededRandom(PROBE_SEED));
+  questionTemplates.push({
+    id: 10201 + index,
+    title: probe.title,
+    topic: probe.topic,
+    track: 'local',
+    section: probe.section,
+    build: r => {
+      const scenario = build(r);
+      const order = scenario.order.map(policy => policy.label);
+      return {
+        question: `${scenario.brief}\n\nDrag the five policies into the correct top-to-bottom processing order so that every policy can be reached.`,
+        options: order,
+        correctAnswers: order,
+        explanation: `Correct order:\n${order.map((label, position) => `${position + 1}. ${label}`).join('\n')}\n\n${scenario.explanation}\n\nWhere to look in Fireware Web UI: ${scenario.webUi}`,
+        type: 'ordering',
+        orderingDetails: Object.fromEntries(scenario.order.map(policy => [policy.label, policy.detail])),
+      };
+    },
+  });
+});
 
 export function generateQuestion(variant: Variant): Question {
   if (variant.version !== 1 || !Number.isInteger(variant.seed) || variant.seed < 0 || variant.seed > 0xffffffff) throw new Error('Unsupported question variant');

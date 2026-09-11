@@ -11,9 +11,11 @@ export interface Question extends QuestionMetadata {
   correctAnswersCount: number; // For multi-select
   topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring" | "IP Addressing" | "Network Services" | "Switching & Wireless" | "Troubleshooting" | "Network Operations" | "WatchGuard Cloud";
   explanation?: string;
-  type?: "standard" | "topology" | "log";
+  type?: "standard" | "topology" | "log" | "ordering";
   topologyImage?: string;
   logMessage?: string;
+  /** Ordering questions: label -> the policy detail shown under the name. */
+  orderingDetails?: Record<string, string>;
   hotspots?: { x: number; y: number; label: string; width: number; height: number }[];
 }
 

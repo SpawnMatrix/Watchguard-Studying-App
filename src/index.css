@@ -258,3 +258,69 @@ button:disabled{cursor:default}
 [data-theme=light] .flow-badge.allowed,[data-theme=light] .sandbox-log-row.allowed strong{color:#17694f}[data-theme=light] .flow-badge.denied,[data-theme=light] .sandbox-log-row.denied strong,[data-theme=light] .sandbox-error{color:#a52b1d}[data-theme=light] .flow-badge.client{color:#815600}
 @media(max-width:1050px){.sandbox-panels{grid-template-columns:1fr}.sandbox-panels>div:first-child{border-bottom:1px solid var(--color-wg-border)}}
 @media(max-width:600px){.sandbox-mission,.sandbox-trace,.sandbox-log{padding:16px}.sandbox-trace-heading{flex-wrap:wrap}.sandbox-log-row{grid-template-columns:65px minmax(0,1fr)}.sandbox-log-row>span:nth-child(3),.sandbox-log-row>span:last-child{grid-column:1 / -1}.sandbox-trace li{gap:8px;padding:10px}.sandbox-trace li small{display:none}.sandbox-toolbar>div{width:100%}.sandbox-toolbar .secondary-button{flex:1}.sandbox-mission-top label{flex-basis:100%}}
+
+/* ---------------------------------------------------------------------
+   Phase 2 — spaced repetition and interactive question types
+   --------------------------------------------------------------------- */
+
+.srs-focus {
+  margin: 0 0 1rem;
+  padding: .55rem .85rem;
+  border: 1px solid color-mix(in srgb, var(--color-watchguard-orange) 28%, transparent);
+  border-left-width: 3px;
+  border-radius: .6rem;
+  background: color-mix(in srgb, var(--color-watchguard-orange) 7%, transparent);
+  color: var(--color-wg-text-muted);
+  font-size: .74rem;
+  line-height: 1.5;
+  font-family: var(--font-mono);
+}
+[data-theme="light"] .srs-focus { color: #4a5b73; }
+
+/* The ordering list is a drag target on pointer devices and a button list
+   everywhere else; both need a clear grab affordance and a visible drop gap. */
+.question-body ol[aria-label="Firewall policy processing order"] { list-style: none; margin: 0; padding-left: 0; }
+.question-body ol[aria-label="Firewall policy processing order"] > li { touch-action: manipulation; }
+
+/* ---------------------------------------------------------------------
+   Phase 3 — interface polish
+   --------------------------------------------------------------------- */
+
+/* A single, consistent focus ring. Keyboard users previously fell back to
+   the browser default, which disappears entirely against the dark palette. */
+:where(a, button, select, input, textarea, [tabindex]:not([tabindex="-1"]), [draggable="true"]):focus-visible {
+  outline: 2px solid var(--color-watchguard-orange);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:where(button, a):focus:not(:focus-visible) { outline: none; }
+
+/* Scrollbars that belong to the palette rather than the operating system. */
+* { scrollbar-width: thin; scrollbar-color: var(--color-wg-border) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-wg-border);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--color-watchguard-orange) 55%, var(--color-wg-border)); background-clip: content-box; }
+
+::selection { background: color-mix(in srgb, var(--color-watchguard-orange) 32%, transparent); color: var(--color-wg-text); }
+
+/* Long log lines and policy names must never widen the page on a phone. */
+.question-body pre, .question-body code { overflow-x: auto; max-width: 100%; }
+.question-body { overflow-wrap: anywhere; }
+
+/* Tap targets on small screens: the ordering arrows and option buttons were
+   comfortably clickable with a mouse but tight under a thumb. */
+@media (max-width: 640px) {
+  .question-body button { min-height: 40px; }
+  .srs-focus { font-size: .7rem; }
+}
+
+@media (hover: hover) {
+  .primary-button, .secondary-button { transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease; }
+  .primary-button:hover:not(:disabled) { transform: translateY(-1px); }
+}
