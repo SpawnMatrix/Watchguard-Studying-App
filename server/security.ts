@@ -88,20 +88,26 @@ export function readCookie(req: Request, name: string): string | undefined {
  * Hand-rolled rather than pulled from `helmet` so the hardening work adds no
  * new dependency to the production image or the Proxmox build.
  *
- * The CSP matches how the app actually loads: Vite emits hashed module
- * scripts and a stylesheet, and the only runtime fetches are same-origin API
- * calls. `'unsafe-inline'` is allowed for styles because Tailwind v4 and the
- * `motion` library both set inline style attributes; scripts get no such
- * exemption.
+ * The CSP matches how the production build actually loads: Vite emits
+ * hashed module scripts and a stylesheet, and the only runtime fetches are
+ * same-origin API calls. `'unsafe-inline'` is allowed for styles because
+ * Tailwind v4 and the `motion` library both set inline style attributes;
+ * scripts get no such exemption in production.
+ *
+ * In dev (`npm run dev`), Vite's React plugin injects an inline preamble
+ * script for Fast Refresh and opens a `ws://localhost:*` HMR socket — both
+ * blocked by the production policy, which left `npm run dev` rendering a
+ * blank page. Dev is not the hardening target, so those two are relaxed
+ * only when `isProduction` is false; the production policy is untouched.
  */
 export function securityHeaders(isProduction: boolean) {
   const csp = [
     "default-src 'self'",
-    "script-src 'self'",
+    `script-src 'self'${isProduction ? '' : " 'unsafe-inline'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self'",
+    `connect-src 'self'${isProduction ? '' : ' ws://localhost:*'}`,
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",
