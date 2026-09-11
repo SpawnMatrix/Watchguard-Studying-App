@@ -20,7 +20,7 @@ export const examQuestions: Question[] = [
     question: "Which of these is a default Class B subnet mask? (Select one.)",
     options: ["/8", "/12", "/16", "/24", "/28"],
     correctAnswer: "/16",
-    correctAnswers: ["/16"],
+  correctAnswers: ["/16"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -35,7 +35,7 @@ export const examQuestions: Question[] = [
       "Allows Mobile VPN users to authenticate to the Firebox"
     ],
     correctAnswer: "Allows user connections to the Firebox Authentication Portal",
-    correctAnswers: ["Allows user connections to the Firebox Authentication Portal"],
+  correctAnswers: ["Allows user connections to the Firebox Authentication Portal"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -50,7 +50,7 @@ export const examQuestions: Question[] = [
       "Yes. The Outgoing policy allows HTTPS traffic from the trusted network."
     ],
     correctAnswer: "Yes. The Outgoing policy allows HTTPS traffic from the trusted network.",
-    correctAnswers: ["Yes. The Outgoing policy allows HTTPS traffic from the trusted network."],
+  correctAnswers: ["Yes. The Outgoing policy allows HTTPS traffic from the trusted network."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -60,7 +60,7 @@ export const examQuestions: Question[] = [
     question: "You can configure Dynamic NAT to route incoming connections from the Internet to two different FTP servers on the trusted network. (Select one.)",
     options: ["True", "False"],
     correctAnswer: "False",
-    correctAnswers: ["False"],
+  correctAnswers: ["False"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -70,7 +70,7 @@ export const examQuestions: Question[] = [
     question: "What port and protocol is used by default for DNS query resolution? (Select one.)",
     options: ["UDP/67", "UDP/53", "TCP/20", "TCP/25"],
     correctAnswer: "UDP/53",
-    correctAnswers: ["UDP/53"],
+  correctAnswers: ["UDP/53"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -85,7 +85,7 @@ export const examQuestions: Question[] = [
       "To allow clients on your trusted network to connect to a secure web server on a trusted or optional network using its public IP address"
     ],
     correctAnswer: "To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address",
-    correctAnswers: ["To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address"],
+  correctAnswers: ["To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -100,7 +100,7 @@ export const examQuestions: Question[] = [
       "IKEv2 Shared settings"
     ],
     correctAnswer: "BOVPN Tunnel settings",
-    correctAnswers: ["BOVPN Tunnel settings"],
+  correctAnswers: ["BOVPN Tunnel settings"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -115,7 +115,7 @@ export const examQuestions: Question[] = [
       "Route to 10.0.20.0/24, Gateway 192.168.10.5"
     ],
     correctAnswer: "Route to 10.0.20.0/24, Gateway 192.168.10.5 | Route to 10.0.20.80, Gateway 192.168.10.5",
-    correctAnswers: ["Route to 10.0.20.80, Gateway 192.168.10.5", "Route to 10.0.20.0/24, Gateway 192.168.10.5"],
+  correctAnswers: ["Route to 10.0.20.80, Gateway 192.168.10.5", "Route to 10.0.20.0/24, Gateway 192.168.10.5"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Routing"
@@ -125,7 +125,7 @@ export const examQuestions: Question[] = [
     question: "You can use the TCP-UDP proxy to control Web, FTP, and SIP traffic on ports other than standard 80, 21, and 5060. (Select one.)",
     options: ["True", "False"],
     correctAnswer: "True",
-    correctAnswers: ["True"],
+  correctAnswers: ["True"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -135,7 +135,7 @@ export const examQuestions: Question[] = [
     question: "Which authentication servers can be used with any type of Mobile VPN? (Select TWO.)",
     options: ["Firebox-DB", "Active Directory", "RADIUS", "LDAP"],
     correctAnswer: "Firebox-DB | RADIUS",
-    correctAnswers: ["Firebox-DB", "RADIUS"],
+  correctAnswers: ["Firebox-DB", "RADIUS"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Mobile VPN"
@@ -145,7 +145,7 @@ export const examQuestions: Question[] = [
     question: "When your device is in a default state, to which interface do you connect your management computer so you can use the Quick Setup Wizard? (Select one.)",
     options: ["Interface 0 (External)", "Console interface", "Interface 2 (Optional)", "Interface 1 (Trusted)"],
     correctAnswer: "Interface 1 (Trusted)",
-    correctAnswers: ["Interface 1 (Trusted)"],
+  correctAnswers: ["Interface 1 (Trusted)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -155,7 +155,7 @@ export const examQuestions: Question[] = [
     question: "In the default Firebox configuration file, which policies control management access to the device? (Select TWO.)",
     options: ["WatchGuard", "FTP", "Ping", "WatchGuard Web UI", "Outgoing"],
     correctAnswer: "WatchGuard | WatchGuard Web UI",
-    correctAnswers: ["WatchGuard", "WatchGuard Web UI"],
+  correctAnswers: ["WatchGuard", "WatchGuard Web UI"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Policies"
@@ -165,7 +165,7 @@ export const examQuestions: Question[] = [
     question: "To use the Web Setup Wizard or Quick Setup Wizard to configure your Firebox, your computer must have an IP address on which subnet? (Select one.)",
     options: ["10.0.10.0/24", "10.0.1.0/24", "172.16.10.0/24", "192.168.1.0/24"],
     correctAnswer: "10.0.1.0/24",
-    correctAnswers: ["10.0.1.0/24"],
+  correctAnswers: ["10.0.1.0/24"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -182,7 +182,7 @@ export const examQuestions: Question[] = [
       "Feature keys"
     ],
     correctAnswer: "Configuration file | Certificates | Passwords | Feature keys",
-    correctAnswers: ["Configuration file", "Certificates", "Passwords", "Feature keys"],
+  correctAnswers: ["Configuration file", "Certificates", "Passwords", "Feature keys"],
     isMultiSelect: true,
     correctAnswersCount: 4,
     topic: "Initial Setup"
@@ -192,7 +192,7 @@ export const examQuestions: Question[] = [
     question: "The policies in a default Firebox configuration do not allow outgoing traffic from optional interfaces. (Select one.)",
     options: ["True", "False"],
     correctAnswer: "False",
-    correctAnswers: ["False"],
+  correctAnswers: ["False"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -207,7 +207,7 @@ export const examQuestions: Question[] = [
       "The packet is denied because it matched a configured signature in the Intrusion Prevention Service."
     ],
     correctAnswer: "The packet is denied because it does not match any configured firewall policies.",
-    correctAnswers: ["The packet is denied because it does not match any configured firewall policies."],
+  correctAnswers: ["The packet is denied because it does not match any configured firewall policies."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -223,7 +223,7 @@ export const examQuestions: Question[] = [
       "Create a WebBlocker action with Deny as the disposition."
     ],
     correctAnswer: "Enable the AUTO-block sites that attempt to connect option in a deny policy. | On the Firebox System Manager > Blocked Sites tab, select Add. | In Policy Manager, select Setup > Default Threat Protection > Blocked Sites and click Add.",
-    correctAnswers: [
+  correctAnswers: [
       "Enable the AUTO-block sites that attempt to connect option in a deny policy.",
       "On the Firebox System Manager > Blocked Sites tab, select Add.",
       "In Policy Manager, select Setup > Default Threat Protection > Blocked Sites and click Add."
@@ -244,7 +244,7 @@ export const examQuestions: Question[] = [
       "IP spoofing"
     ],
     correctAnswer: "Denial of service attacks | Flood attacks | Port scans | IP spoofing",
-    correctAnswers: ["Denial of service attacks", "Flood attacks", "Port scans", "IP spoofing"],
+  correctAnswers: ["Denial of service attacks", "Flood attacks", "Port scans", "IP spoofing"],
     isMultiSelect: true,
     correctAnswersCount: 4,
     topic: "Security Services"
@@ -260,7 +260,7 @@ export const examQuestions: Question[] = [
       "DNS port 53"
     ],
     correctAnswer: "HTTP port 80 | HTTPS port 443 | DNS port 53",
-    correctAnswers: ["HTTP port 80", "HTTPS port 443", "DNS port 53"],
+  correctAnswers: ["HTTP port 80", "HTTPS port 443", "DNS port 53"],
     isMultiSelect: true,
     correctAnswersCount: 3,
     topic: "Policies"
@@ -275,7 +275,7 @@ export const examQuestions: Question[] = [
       "Only a proxy works at the application, network, and transport layers to examine all connection data."
     ],
     correctAnswer: "Only a proxy policy can prevent specific threats without blocking the entire connection. | Only a proxy works at the application, network, and transport layers to examine all connection data.",
-    correctAnswers: [
+  correctAnswers: [
       "Only a proxy policy can prevent specific threats without blocking the entire connection.",
       "Only a proxy works at the application, network, and transport layers to examine all connection data."
     ],
@@ -288,7 +288,7 @@ export const examQuestions: Question[] = [
     question: "For which of these third-party authentication methods must you specify a search base? (Select TWO.)",
     options: ["RADIUS", "Active Directory", "SecurID", "LDAP"],
     correctAnswer: "Active Directory | LDAP",
-    correctAnswers: ["Active Directory", "LDAP"],
+  correctAnswers: ["Active Directory", "LDAP"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Initial Setup"
@@ -303,7 +303,7 @@ export const examQuestions: Question[] = [
       "Create an alias for all subdomains and known IP addresses for example.com."
     ],
     correctAnswer: "Configure an FQDN for *.example.com.",
-    correctAnswers: ["Configure an FQDN for *.example.com."],
+  correctAnswers: ["Configure an FQDN for *.example.com."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -313,7 +313,7 @@ export const examQuestions: Question[] = [
     question: "Which takes precedence: a WebBlocker category match or a WebBlocker exception? (Select one.)",
     options: ["WebBlocker exception", "WebBlocker category match"],
     correctAnswer: "WebBlocker exception",
-    correctAnswers: ["WebBlocker exception"],
+  correctAnswers: ["WebBlocker exception"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -323,7 +323,7 @@ export const examQuestions: Question[] = [
     question: "Which of these options must you configure in an HTTPS-proxy policy to detect credit card numbers in HTTP traffic that is encrypted with SSL? (Select TWO.)",
     options: ["WebBlocker", "Gateway AntiVirus", "Application Control", "Content Inspection", "Data Loss Prevention"],
     correctAnswer: "Content Inspection | Data Loss Prevention",
-    correctAnswers: ["Content Inspection", "Data Loss Prevention"],
+  correctAnswers: ["Content Inspection", "Data Loss Prevention"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Proxies"
@@ -338,7 +338,7 @@ export const examQuestions: Question[] = [
       "TCP Port 1723 and GRE Protocol 47"
     ],
     correctAnswer: "UDP Port 500 and UDP Port 4500",
-    correctAnswers: ["UDP Port 500 and UDP Port 4500"],
+  correctAnswers: ["UDP Port 500 and UDP Port 4500"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -353,7 +353,7 @@ export const examQuestions: Question[] = [
       "WebBlocker Category Filters"
     ],
     correctAnswer: "HTTP Response > Body Content Types",
-    correctAnswers: ["HTTP Response > Body Content Types"],
+  correctAnswers: ["HTTP Response > Body Content Types"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -368,7 +368,7 @@ export const examQuestions: Question[] = [
       "Mismatched Perfect Forward Secrecy (PFS) settings"
     ],
     correctAnswer: "Mismatched pre-shared keys | Mismatched Phase 1 proposal encryption algorithms",
-    correctAnswers: ["Mismatched pre-shared keys", "Mismatched Phase 1 proposal encryption algorithms"],
+  correctAnswers: ["Mismatched pre-shared keys", "Mismatched Phase 1 proposal encryption algorithms"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "BOVPN"
@@ -383,7 +383,7 @@ export const examQuestions: Question[] = [
       "Routing Table Cost"
     ],
     correctAnswer: "Spillover",
-    correctAnswers: ["Spillover"],
+  correctAnswers: ["Spillover"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -398,7 +398,7 @@ export const examQuestions: Question[] = [
       "BGP route advertisements"
     ],
     correctAnswer: "ICMP Ping or TCP Port probes",
-    correctAnswers: ["ICMP Ping or TCP Port probes"],
+  correctAnswers: ["ICMP Ping or TCP Port probes"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -413,7 +413,7 @@ export const examQuestions: Question[] = [
       "It routes the connection through an isolated optional interface"
     ],
     correctAnswer: "It blocks the connection and returns a certificate warning page to the client",
-    correctAnswers: ["It blocks the connection and returns a certificate warning page to the client"],
+  correctAnswers: ["It blocks the connection and returns a certificate warning page to the client"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -428,7 +428,7 @@ export const examQuestions: Question[] = [
       "The Firebox crashes and triggers an active-passive cluster failover"
     ],
     correctAnswer: "Access is either blocked or allowed based on the WebBlocker server connection error action",
-    correctAnswers: ["Access is either blocked or allowed based on the WebBlocker server connection error action"],
+  correctAnswers: ["Access is either blocked or allowed based on the WebBlocker server connection error action"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -443,7 +443,7 @@ export const examQuestions: Question[] = [
       "172.16.1.0/24"
     ],
     correctAnswer: "192.168.113.0/24",
-    correctAnswers: ["192.168.113.0/24"],
+  correctAnswers: ["192.168.113.0/24"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -458,7 +458,7 @@ export const examQuestions: Question[] = [
       "Firebox System Manager (FSM)"
     ],
     correctAnswer: "Policy Manager",
-    correctAnswers: ["Policy Manager"],
+  correctAnswers: ["Policy Manager"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -471,7 +471,7 @@ export const examQuestions: Question[] = [
       "False"
     ],
     correctAnswer: "True",
-    correctAnswers: ["True"],
+  correctAnswers: ["True"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -486,7 +486,7 @@ export const examQuestions: Question[] = [
       "Data Loss Prevention (DLP)"
     ],
     correctAnswer: "APT Blocker | Data Loss Prevention (DLP)",
-    correctAnswers: ["APT Blocker", "Data Loss Prevention (DLP)"],
+  correctAnswers: ["APT Blocker", "Data Loss Prevention (DLP)"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Security Services"
@@ -501,7 +501,7 @@ export const examQuestions: Question[] = [
       "Manual administrative intervention via Web UI"
     ],
     correctAnswer: "Link Monitor status on Multi-WAN interfaces",
-    correctAnswers: ["Link Monitor status on Multi-WAN interfaces"],
+  correctAnswers: ["Link Monitor status on Multi-WAN interfaces"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -516,7 +516,7 @@ export const examQuestions: Question[] = [
       "Report Server"
     ],
     correctAnswer: "Firebox System Manager",
-    correctAnswers: ["Firebox System Manager"],
+  correctAnswers: ["Firebox System Manager"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -531,7 +531,7 @@ export const examQuestions: Question[] = [
       "No, because 1-to-1 NAT can only be mapped to Trusted zones, not External zones"
     ],
     correctAnswer: "No, you must still explicitly create firewall policies allowing traffic to the private IP address",
-    correctAnswers: ["No, you must still explicitly create firewall policies allowing traffic to the private IP address"],
+  correctAnswers: ["No, you must still explicitly create firewall policies allowing traffic to the private IP address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -546,7 +546,7 @@ export const examQuestions: Question[] = [
       "LDAP administrative client root passwords only"
     ],
     correctAnswer: "Search base, domain name, and server IP address",
-    correctAnswers: ["Search base, domain name, and server IP address"],
+  correctAnswers: ["Search base, domain name, and server IP address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -561,7 +561,7 @@ export const examQuestions: Question[] = [
       "Console Port"
     ],
     correctAnswer: "Interface 1 (Eth1)",
-    correctAnswers: ["Interface 1 (Eth1)"],
+  correctAnswers: ["Interface 1 (Eth1)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -571,7 +571,7 @@ export const examQuestions: Question[] = [
     question: "Which NAT type is bidirectional, mapping a single private IP address to a dedicated public IP address for both inbound and outbound traffic? (Select one.)",
     options: ["Dynamic NAT", "1-to-1 NAT", "Static NAT (SNAT)", "Policy-based NAT"],
     correctAnswer: "1-to-1 NAT",
-    correctAnswers: ["1-to-1 NAT"],
+  correctAnswers: ["1-to-1 NAT"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -586,7 +586,7 @@ export const examQuestions: Question[] = [
       "The dead interface remains in the routing table with a metric of 0."
     ],
     correctAnswer: "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
-    correctAnswers: ["The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces."],
+  correctAnswers: ["The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -596,7 +596,7 @@ export const examQuestions: Question[] = [
     question: "You want to allow users to view a blocked website category, but require them to acknowledge a warning page before proceeding. Which WebBlocker action should you configure? (Select one.)",
     options: ["Allow", "Deny", "Warn", "Bypass"],
     correctAnswer: "Warn",
-    correctAnswers: ["Warn"],
+  correctAnswers: ["Warn"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -606,7 +606,7 @@ export const examQuestions: Question[] = [
     question: "Which Firebox cluster configuration requires active-active load balancing switches to be deployed upstream and downstream of the cluster? (Select one.)",
     options: ["Active/Passive Cluster", "Active/Active Cluster", "Dynamic Routing Multi-Cluster", "Drop-In Clustering"],
     correctAnswer: "Active/Active Cluster",
-    correctAnswers: ["Active/Active Cluster"],
+  correctAnswers: ["Active/Active Cluster"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -621,7 +621,7 @@ export const examQuestions: Question[] = [
       "To synchronize DNS records with third-party domain registrars"
     ],
     correctAnswer: "To intercept and analyze DNS requests, blocking connections to known malicious domains",
-    correctAnswers: ["To intercept and analyze DNS requests, blocking connections to known malicious domains"],
+  correctAnswers: ["To intercept and analyze DNS requests, blocking connections to known malicious domains"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -631,7 +631,7 @@ export const examQuestions: Question[] = [
     question: "When configuring Mobile VPN with SSL, which of these is the default protocol and port used for VPN tunnels? (Select one.)",
     options: ["UDP port 500", "TCP port 443", "UDP port 1194", "TCP port 1723"],
     correctAnswer: "TCP port 443",
-    correctAnswers: ["TCP port 443"],
+  correctAnswers: ["TCP port 443"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -646,7 +646,7 @@ export const examQuestions: Question[] = [
       "Virtual IP pool subnet"
     ],
     correctAnswer: "Gateway pre-shared key and Phase 1 negotiation mode",
-    correctAnswers: ["Gateway pre-shared key and Phase 1 negotiation mode"],
+  correctAnswers: ["Gateway pre-shared key and Phase 1 negotiation mode"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -656,7 +656,7 @@ export const examQuestions: Question[] = [
     question: "Which tool inside WatchGuard System Manager (WSM) allows you to run diagnostic checks like Ping, DNS lookup, TCP Dump, or Traceroute? (Select one.)",
     options: ["Policy Manager", "Firebox System Manager", "Log Server", "Report Server"],
     correctAnswer: "Firebox System Manager",
-    correctAnswers: ["Firebox System Manager"],
+  correctAnswers: ["Firebox System Manager"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -666,7 +666,7 @@ export const examQuestions: Question[] = [
     question: "Which default WatchGuard Policy allows all traffic originating from a trusted or optional interface to connect to any external network? (Select one.)",
     options: ["WatchGuard Policy", "Any-Trusted Policy", "Outgoing Policy", "Default Route Policy"],
     correctAnswer: "Outgoing Policy",
-    correctAnswers: ["Outgoing Policy"],
+  correctAnswers: ["Outgoing Policy"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -681,7 +681,7 @@ export const examQuestions: Question[] = [
       "The Firebox Web UI Management Certificate"
     ],
     correctAnswer: "The Firebox Proxy Authority Certificate",
-    correctAnswers: ["The Firebox Proxy Authority Certificate"],
+  correctAnswers: ["The Firebox Proxy Authority Certificate"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -696,7 +696,7 @@ export const examQuestions: Question[] = [
       "To automatically update dynamic DNS records for the external interface"
     ],
     correctAnswer: "To change the source IP address of outbound packets from private IP addresses to a public IP address",
-    correctAnswers: ["To change the source IP address of outbound packets from private IP addresses to a public IP address"],
+  correctAnswers: ["To change the source IP address of outbound packets from private IP addresses to a public IP address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -706,7 +706,7 @@ export const examQuestions: Question[] = [
     question: "Which Multi-WAN routing method distributes outbound traffic proportionally among active interfaces based on user-defined weights? (Select one.)",
     options: ["Round-Robin", "Spillover", "Interface Failover", "Routing Table Cost"],
     correctAnswer: "Round-Robin",
-    correctAnswers: ["Round-Robin"],
+  correctAnswers: ["Round-Robin"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -721,7 +721,7 @@ export const examQuestions: Question[] = [
       "Port number order (lowest ports first)"
     ],
     correctAnswer: "Sequential order from top to bottom (most specific to least specific)",
-    correctAnswers: ["Sequential order from top to bottom (most specific to least specific)"],
+  correctAnswers: ["Sequential order from top to bottom (most specific to least specific)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -731,7 +731,7 @@ export const examQuestions: Question[] = [
     question: "Which of these proxies can be used to scan inbound and outbound email messages for virus signatures or spam content? (Select TWO.)",
     options: ["SMTP-proxy", "IMAP-proxy", "TCP-UDP-proxy", "HTTP-proxy"],
     correctAnswer: "SMTP-proxy | IMAP-proxy",
-    correctAnswers: ["SMTP-proxy", "IMAP-proxy"],
+  correctAnswers: ["SMTP-proxy", "IMAP-proxy"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Proxies"
@@ -741,7 +741,7 @@ export const examQuestions: Question[] = [
     question: "Which WatchGuard security subscription service scans files using cloud-based sandboxing to identify zero-day malware? (Select one.)",
     options: ["Gateway AntiVirus", "IntelligentAV", "APT Blocker", "Application Control"],
     correctAnswer: "APT Blocker",
-    correctAnswers: ["APT Blocker"],
+  correctAnswers: ["APT Blocker"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -751,7 +751,7 @@ export const examQuestions: Question[] = [
     question: "You are configuring Mobile VPN with IKEv2. Which client authentication databases are supported? (Select THREE.)",
     options: ["Firebox-DB", "RADIUS", "Active Directory / LDAP", "SAML SSO", "SecurID"],
     correctAnswer: "Firebox-DB | RADIUS | Active Directory / LDAP",
-    correctAnswers: ["Firebox-DB", "RADIUS", "Active Directory / LDAP"],
+  correctAnswers: ["Firebox-DB", "RADIUS", "Active Directory / LDAP"],
     isMultiSelect: true,
     correctAnswersCount: 3,
     topic: "Mobile VPN"
@@ -761,7 +761,7 @@ export const examQuestions: Question[] = [
     question: "What is the default IKE protocol version used for high-reliability, zero-touch VPN gateway configurations on modern Fireboxes? (Select one.)",
     options: ["IKEv1", "IKEv2", "IKEv3", "L2TP"],
     correctAnswer: "IKEv2",
-    correctAnswers: ["IKEv2"],
+  correctAnswers: ["IKEv2"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -771,7 +771,7 @@ export const examQuestions: Question[] = [
     question: "You are searching for denied traffic from a specific client IP address in real-time. Which application in WatchGuard System Manager should you open? (Select one.)",
     options: ["FSM > Log Server", "FSM > Traffic Monitor", "FSM > Status Report", "FSM > Policy Checker"],
     correctAnswer: "FSM > Traffic Monitor",
-    correctAnswers: ["FSM > Traffic Monitor"],
+  correctAnswers: ["FSM > Traffic Monitor"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -786,7 +786,7 @@ export const examQuestions: Question[] = [
       "No, replacement Fireboxes can only be configured from scratch using wizards."
     ],
     correctAnswer: "No, Backup Images can only be restored to the identical physical Firebox or identical model.",
-    correctAnswers: ["No, Backup Images can only be restored to the identical physical Firebox or identical model."],
+  correctAnswers: ["No, Backup Images can only be restored to the identical physical Firebox or identical model."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -796,7 +796,7 @@ export const examQuestions: Question[] = [
     question: "Which configuration allows internal users to connect to a local mail server on the Trusted zone using its public IP address? (Select one.)",
     options: ["1-to-1 NAT", "Dynamic NAT Pool", "NAT Loopback", "Static NAT (SNAT)"],
     correctAnswer: "NAT Loopback",
-    correctAnswers: ["NAT Loopback"],
+  correctAnswers: ["NAT Loopback"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -811,7 +811,7 @@ export const examQuestions: Question[] = [
       "The Firebox bypasses content inspection and allows the client to establish a direct TLS tunnel."
     ],
     correctAnswer: "The client browser will receive a security alert because the Firebox signs it with a self-signed certificate.",
-    correctAnswers: ["The client browser will receive a security alert because the Firebox signs it with a self-signed certificate."],
+  correctAnswers: ["The client browser will receive a security alert because the Firebox signs it with a self-signed certificate."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -826,7 +826,7 @@ export const examQuestions: Question[] = [
       "The interface is reserved strictly for high-availability cluster synchronization."
     ],
     correctAnswer: "The interface is active and is included in the default Outgoing policy, but has no default inbound policies.",
-    correctAnswers: ["The interface is active and is included in the default Outgoing policy, but has no default inbound policies."],
+  correctAnswers: ["The interface is active and is included in the default Outgoing policy, but has no default inbound policies."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -836,7 +836,7 @@ export const examQuestions: Question[] = [
     question: "Which subscription service assigns a reputational score to outbound connection destinations to optimize scanning latency? (Select one.)",
     options: ["DNSWatch", "Reputation Enabled Defense (RED)", "WebBlocker", "Application Control"],
     correctAnswer: "Reputation Enabled Defense (RED)",
-    correctAnswers: ["Reputation Enabled Defense (RED)"],
+  correctAnswers: ["Reputation Enabled Defense (RED)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -851,7 +851,7 @@ export const examQuestions: Question[] = [
       "The Firebox is in Drop-In mode instead of Mixed Routing mode."
     ],
     correctAnswer: "The virtual IP address pool overlaps with the client's local network subnet. | The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted.",
-    correctAnswers: ["The virtual IP address pool overlaps with the client's local network subnet.", "The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted."],
+  correctAnswers: ["The virtual IP address pool overlaps with the client's local network subnet.", "The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted."],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Mobile VPN"
@@ -866,7 +866,7 @@ export const examQuestions: Question[] = [
       "To encrypt the Gateway ID name in Phase 1 negotiations"
     ],
     correctAnswer: "To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys",
-    correctAnswers: ["To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys"],
+  correctAnswers: ["To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -876,7 +876,7 @@ export const examQuestions: Question[] = [
     question: "Where in the Fireware Web UI can you check the active routing table of your Firebox? (Select one.)",
     options: ["Dashboard > Front Panel", "System Status > Routes", "Firewall > Policies", "Subscription Services > Diagnostics"],
     correctAnswer: "System Status > Routes",
-    correctAnswers: ["System Status > Routes"],
+  correctAnswers: ["System Status > Routes"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -886,7 +886,7 @@ export const examQuestions: Question[] = [
     question: "To manage a Firebox that is in its factory-default state, you can connect your computer to Interface 1 and open a web browser to which URL? (Select one.)",
     options: ["http://10.0.1.1:4126", "https://10.0.1.1:8080", "https://10.0.1.1:4135", "http://10.0.1.1:80"],
     correctAnswer: "https://10.0.1.1:8080",
-    correctAnswers: ["https://10.0.1.1:8080"],
+  correctAnswers: ["https://10.0.1.1:8080"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -901,7 +901,7 @@ export const examQuestions: Question[] = [
       "Add a custom FTP-proxy action with WebBlocker filters."
     ],
     correctAnswer: "Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy.",
-    correctAnswers: ["Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy."],
+  correctAnswers: ["Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -911,7 +911,7 @@ export const examQuestions: Question[] = [
     question: "You have a single public IP address on your External interface (203.0.113.80). You want to host a web server (port 80) and a mail server (port 25) on different private internal IPs. Which NAT method should you use? (Select one.)",
     options: ["1-to-1 NAT", "Dynamic NAT", "Static NAT (SNAT)", "Policy-based NAT"],
     correctAnswer: "Static NAT (SNAT)",
-    correctAnswers: ["Static NAT (SNAT)"],
+  correctAnswers: ["Static NAT (SNAT)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -921,7 +921,7 @@ export const examQuestions: Question[] = [
     question: "What is the default subnet of Interface 1 (Trusted) on a factory-default Firebox? (Select one.)",
     options: ["192.168.1.1/24", "10.0.1.1/24", "10.0.0.1/24", "172.16.1.1/24"],
     correctAnswer: "10.0.1.1/24",
-    correctAnswers: ["10.0.1.1/24"],
+  correctAnswers: ["10.0.1.1/24"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -931,7 +931,7 @@ export const examQuestions: Question[] = [
     question: "In the HTTP Proxy, under which setting can you block files with specific extensions (like .zip or .rar) from being downloaded? (Select one.)",
     options: ["HTTP Request > Request Methods", "HTTP Response > Body Content Types", "HTTP Response > Header Fields", "WebBlocker Exception Rules"],
     correctAnswer: "HTTP Response > Body Content Types",
-    correctAnswers: ["HTTP Response > Body Content Types"],
+  correctAnswers: ["HTTP Response > Body Content Types"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -941,7 +941,7 @@ export const examQuestions: Question[] = [
     question: "Which WatchGuard security subscription uses machine learning to identify malware signatures without traditional daily definition updates? (Select one.)",
     options: ["Gateway AntiVirus", "IntelligentAV", "APT Blocker", "DNSWatch"],
     correctAnswer: "IntelligentAV",
-    correctAnswers: ["IntelligentAV"],
+  correctAnswers: ["IntelligentAV"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -951,7 +951,7 @@ export const examQuestions: Question[] = [
     question: "Which Mobile VPN type is native to major modern operating systems (Windows, macOS, iOS) and does not require third-party software installation? (Select one.)",
     options: ["Mobile VPN with SSL", "Mobile VPN with IKEv2", "Mobile VPN with OpenVPN", "Mobile VPN with IPSec (Legacy)"],
     correctAnswer: "Mobile VPN with IKEv2",
-    correctAnswers: ["Mobile VPN with IKEv2"],
+  correctAnswers: ["Mobile VPN with IKEv2"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -966,7 +966,7 @@ export const examQuestions: Question[] = [
       "Enable Perfect Forward Secrecy (PFS) in Gateway settings."
     ],
     correctAnswer: "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
-    correctAnswers: ["Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer."],
+  correctAnswers: ["Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -976,7 +976,7 @@ export const examQuestions: Question[] = [
     question: "Which service in a WatchGuard Dimension deployment stores historical reporting data? (Select one.)",
     options: ["Dimension Log Collector", "Dimension Server database", "Log Agent", "Report Engine Daemon"],
     correctAnswer: "Dimension Server database",
-    correctAnswers: ["Dimension Server database"],
+  correctAnswers: ["Dimension Server database"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -986,7 +986,7 @@ export const examQuestions: Question[] = [
     question: "Which status indicator light on the physical front panel of a Firebox indicates active management or configuration synchronization? (Select one.)",
     options: ["Power", "Arm/Disarm", "WIFI / Status", "Mode"],
     correctAnswer: "Arm/Disarm",
-    correctAnswers: ["Arm/Disarm"],
+  correctAnswers: ["Arm/Disarm"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1001,7 +1001,7 @@ export const examQuestions: Question[] = [
       "The Outgoing policy will override both policies."
     ],
     correctAnswer: "The policy for '10.0.1.25', because it is placed higher in the sequence.",
-    correctAnswers: ["The policy for '10.0.1.25', because it is placed higher in the sequence."],
+  correctAnswers: ["The policy for '10.0.1.25', because it is placed higher in the sequence."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1016,7 +1016,7 @@ export const examQuestions: Question[] = [
       "The outbound traffic is blocked unless Dynamic NAT is disabled."
     ],
     correctAnswer: "The source IP is translated to the corresponding public IP in the 1-to-1 NAT range.",
-    correctAnswers: ["The source IP is translated to the corresponding public IP in the 1-to-1 NAT range."],
+  correctAnswers: ["The source IP is translated to the corresponding public IP in the 1-to-1 NAT range."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -1031,7 +1031,7 @@ export const examQuestions: Question[] = [
       "The Firebox enters a safe bypass mode and acts as a standard unmanaged hub."
     ],
     correctAnswer: "The Firebox drops the traffic or routes it over backup dial-up resources if configured.",
-    correctAnswers: ["The Firebox drops the traffic or routes it over backup dial-up resources if configured."],
+  correctAnswers: ["The Firebox drops the traffic or routes it over backup dial-up resources if configured."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1041,7 +1041,7 @@ export const examQuestions: Question[] = [
     question: "Which of these proxies can intercept and control remote administrative sessions using protocols like RDP, SSH, or Telnet? (Select one.)",
     options: ["HTTP-proxy", "TCP-UDP-proxy", "SIP-proxy", "DNS-proxy"],
     correctAnswer: "TCP-UDP-proxy",
-    correctAnswers: ["TCP-UDP-proxy"],
+  correctAnswers: ["TCP-UDP-proxy"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -1051,7 +1051,7 @@ export const examQuestions: Question[] = [
     question: "You want to block access to specific online streaming applications (like YouTube or Netflix) regardless of their URL domain. Which service should you configure? (Select one.)",
     options: ["WebBlocker", "Application Control", "APT Blocker", "DNSWatch"],
     correctAnswer: "Application Control",
-    correctAnswers: ["Application Control"],
+  correctAnswers: ["Application Control"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1066,7 +1066,7 @@ export const examQuestions: Question[] = [
       "The same subnet as Interface 0 (External)"
     ],
     correctAnswer: "A subnet that does not overlap with any internal Trusted, Optional, or remote subnets",
-    correctAnswers: ["A subnet that does not overlap with any internal Trusted, Optional, or remote subnets"],
+  correctAnswers: ["A subnet that does not overlap with any internal Trusted, Optional, or remote subnets"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -1081,7 +1081,7 @@ export const examQuestions: Question[] = [
       "The Dynamic routing protocol"
     ],
     correctAnswer: "Firewall policies with the BOVPN tunnel configured as action/destination",
-    correctAnswers: ["Firewall policies with the BOVPN tunnel configured as action/destination"],
+  correctAnswers: ["Firewall policies with the BOVPN tunnel configured as action/destination"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1091,7 +1091,7 @@ export const examQuestions: Question[] = [
     question: "Which file format is used when you export log files from Firebox System Manager Traffic Monitor for offline analysis? (Select one.)",
     options: [".xml", ".log", ".csv", ".txt"],
     correctAnswer: ".log",
-    correctAnswers: [".log"],
+  correctAnswers: [".log"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -1101,7 +1101,7 @@ export const examQuestions: Question[] = [
     question: "To activate subscription services (like WebBlocker, GAV, etc.) on your Firebox, what must you import onto the device? (Select one.)",
     options: ["A Certificate Revocation List (CRL)", "A Feature Key file", "A firmware signature patch", "A WSM licensing template"],
     correctAnswer: "A Feature Key file",
-    correctAnswers: ["A Feature Key file"],
+  correctAnswers: ["A Feature Key file"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1111,7 +1111,7 @@ export const examQuestions: Question[] = [
     question: "Can a user-defined alias contain FQDNs, IP addresses, and other aliases? (Select one.)",
     options: ["Yes", "No"],
     correctAnswer: "Yes",
-    correctAnswers: ["Yes"],
+  correctAnswers: ["Yes"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1121,7 +1121,7 @@ export const examQuestions: Question[] = [
     question: "You are configuring a Static NAT (SNAT) mapping. What are the valid destinations you can specify in the SNAT action? (Select TWO.)",
     options: ["A single private IP address", "A domain name alias", "A virtual loopback IP address", "An IP address range or server pool with load balancing"],
     correctAnswer: "A single private IP address | An IP address range or server pool with load balancing",
-    correctAnswers: ["A single private IP address", "An IP address range or server pool with load balancing"],
+  correctAnswers: ["A single private IP address", "An IP address range or server pool with load balancing"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "NAT"
@@ -1131,7 +1131,7 @@ export const examQuestions: Question[] = [
     question: "Which WatchGuard feature tests the latency, jitter, and packet loss of an interface link to determine optimal path routing for specific applications? (Select one.)",
     options: ["Multi-WAN Spillover", "SD-WAN", "Dynamic Routing OSPF", "Policy-Based Routing (PBR)"],
     correctAnswer: "SD-WAN",
-    correctAnswers: ["SD-WAN"],
+  correctAnswers: ["SD-WAN"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1147,7 +1147,7 @@ export const examQuestions: Question[] = [
       "IP subnet zone"
     ],
     correctAnswer: "Exact URL match | Pattern match (using wildcards like *) | Regular Expression match",
-    correctAnswers: ["Exact URL match", "Pattern match (using wildcards like *)", "Regular Expression match"],
+  correctAnswers: ["Exact URL match", "Pattern match (using wildcards like *)", "Regular Expression match"],
     isMultiSelect: true,
     correctAnswersCount: 3,
     topic: "Security Services"
@@ -1157,7 +1157,7 @@ export const examQuestions: Question[] = [
     question: "What is the action options available in Gateway AntiVirus when a virus is detected in a scanned file? (Select THREE.)",
     options: ["Allow", "Block", "Drop", "Clean", "Quarantine"],
     correctAnswer: "Allow | Block | Drop",
-    correctAnswers: ["Allow", "Block", "Drop"],
+  correctAnswers: ["Allow", "Block", "Drop"],
     isMultiSelect: true,
     correctAnswersCount: 3,
     topic: "Security Services"
@@ -1167,7 +1167,7 @@ export const examQuestions: Question[] = [
     question: "Which Mobile VPN client uses an installer containing a configuration file with the extension '.ovpn'? (Select one.)",
     options: ["Mobile VPN with SSL", "Mobile VPN with IKEv2", "Mobile VPN with L2TP", "Mobile VPN with IPSec (Legacy)"],
     correctAnswer: "Mobile VPN with SSL",
-    correctAnswers: ["Mobile VPN with SSL"],
+  correctAnswers: ["Mobile VPN with SSL"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -1182,7 +1182,7 @@ export const examQuestions: Question[] = [
       "Virtual Interface BOVPN does not support IKEv2."
     ],
     correctAnswer: "Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules.",
-    correctAnswers: ["Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules."],
+  correctAnswers: ["Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1192,7 +1192,7 @@ export const examQuestions: Question[] = [
     question: "You want to investigate if a hardware interface might be dropping packets due to physical link issues. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
     options: ["Traffic Monitor", "FSM Status Report > Log Message Center", "FSM System Status > Interfaces", "WSM Dimension Reports"],
     correctAnswer: "Traffic Monitor",
-    correctAnswers: ["Traffic Monitor"],
+  correctAnswers: ["Traffic Monitor"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -1202,7 +1202,7 @@ export const examQuestions: Question[] = [
     question: "What is the default IP address of the Trusted interface on startup? (Select one.)",
     options: ["192.168.1.1", "10.0.1.1", "10.0.0.1", "192.168.0.1"],
     correctAnswer: "10.0.1.1",
-    correctAnswers: ["10.0.1.1"],
+  correctAnswers: ["10.0.1.1"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1212,7 +1212,7 @@ export const examQuestions: Question[] = [
     question: "What physical interfaces are automatically added to the default Outgoing policy destination group? (Select one.)",
     options: ["Any-Trusted", "Any-External", "Any-Optional", "Any-Trusted and Any-Optional"],
     correctAnswer: "Any-External",
-    correctAnswers: ["Any-External"],
+  correctAnswers: ["Any-External"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1227,7 +1227,7 @@ export const examQuestions: Question[] = [
       "To cycle outbound traffic through multiple external interfaces"
     ],
     correctAnswer: "To allow internal users to connect to local servers using their public IP addresses",
-    correctAnswers: ["To allow internal users to connect to local servers using their public IP addresses"],
+  correctAnswers: ["To allow internal users to connect to local servers using their public IP addresses"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -1237,7 +1237,7 @@ export const examQuestions: Question[] = [
     question: "What protocol does Link Monitor use to test the connectivity of a gateway when TCP Port Probes are configured? (Select one.)",
     options: ["ICMP", "TCP Syn handshake", "UDP diagnostic packets", "HTTP Get requests"],
     correctAnswer: "TCP Syn handshake",
-    correctAnswers: ["TCP Syn handshake"],
+  correctAnswers: ["TCP Syn handshake"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1252,7 +1252,7 @@ export const examQuestions: Question[] = [
       "No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox."
     ],
     correctAnswer: "No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox.",
-    correctAnswers: ["No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox."],
+  correctAnswers: ["No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -1262,7 +1262,7 @@ export const examQuestions: Question[] = [
     question: "Which WatchGuard security subscription service protects users from downloading files containing malware based on metadata reputation checks, before the file is fully downloaded? (Select one.)",
     options: ["Gateway AntiVirus", "APT Blocker", "Reputation Enabled Defense (RED)", "IntelligentAV"],
     correctAnswer: "Reputation Enabled Defense (RED)",
-    correctAnswers: ["Reputation Enabled Defense (RED)"],
+  correctAnswers: ["Reputation Enabled Defense (RED)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1277,7 +1277,7 @@ export const examQuestions: Question[] = [
       "The devices synchronize over Interface 0 (External)."
     ],
     correctAnswer: "The master automatically synchronizes its configuration and state over the dedicated HA interface.",
-    correctAnswers: ["The master automatically synchronizes its configuration and state over the dedicated HA interface."],
+  correctAnswers: ["The master automatically synchronizes its configuration and state over the dedicated HA interface."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1292,7 +1292,7 @@ export const examQuestions: Question[] = [
       "It is only supported on Cloud-Managed Fireboxes."
     ],
     correctAnswer: "It provides a way to pass BOVPN traffic through environments that block IPsec.",
-    correctAnswers: ["It provides a way to pass BOVPN traffic through environments that block IPsec."],
+  correctAnswers: ["It provides a way to pass BOVPN traffic through environments that block IPsec."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1307,7 +1307,7 @@ export const examQuestions: Question[] = [
       "Change the WebBlocker action for all categories to 'Allow'."
     ],
     correctAnswer: "Add a WebBlocker exception for the specific website URL.",
-    correctAnswers: ["Add a WebBlocker exception for the specific website URL."],
+  correctAnswers: ["Add a WebBlocker exception for the specific website URL."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1322,7 +1322,7 @@ export const examQuestions: Question[] = [
       "The default Outgoing policy is moved to the top."
     ],
     correctAnswer: "The Firebox sorts policies from most specific to least specific.",
-    correctAnswers: ["The Firebox sorts policies from most specific to least specific."],
+  correctAnswers: ["The Firebox sorts policies from most specific to least specific."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1337,7 +1337,7 @@ export const examQuestions: Question[] = [
       "Gateway AntiVirus"
     ],
     correctAnswer: "Application Control",
-    correctAnswers: ["Application Control"],
+  correctAnswers: ["Application Control"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1352,7 +1352,7 @@ export const examQuestions: Question[] = [
       "When you need to use NAT for all outbound traffic."
     ],
     correctAnswer: "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
-    correctAnswers: ["When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks."],
+  correctAnswers: ["When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1363,7 +1363,7 @@ export const examQuestions: Question[] = [
     question: "When configuring AuthPoint MFA, which of these are valid authentication methods for users logging into the Fireware Web UI? (Select TWO.)",
     options: ["Push notification", "SMS passcodes", "Hardware token (TOTP)", "Voice call verification"],
     correctAnswer: "Push notification | Hardware token (TOTP)",
-    correctAnswers: ["Push notification", "Hardware token (TOTP)"],
+  correctAnswers: ["Push notification", "Hardware token (TOTP)"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Security Services"
@@ -1373,7 +1373,7 @@ export const examQuestions: Question[] = [
     question: "WatchGuard ThreatSync correlates events from the Firebox and which other endpoint agent to detect and remediate threats? (Select one.)",
     options: ["AuthPoint Agent", "WatchGuard Endpoint Security (EPDR)", "DNSWatchGO Client", "WatchGuard Mobile VPN Client"],
     correctAnswer: "WatchGuard Endpoint Security (EPDR)",
-    correctAnswers: ["WatchGuard Endpoint Security (EPDR)"],
+  correctAnswers: ["WatchGuard Endpoint Security (EPDR)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1383,7 +1383,7 @@ export const examQuestions: Question[] = [
     question: "You want to divide your network into logical broadcast domains to separate the Accounting department from the Sales department on the same physical switch. What fundamental networking concept must be applied? (Select one.)",
     options: ["VLANs (Virtual Local Area Networks)", "STP (Spanning Tree Protocol)", "LACP (Link Aggregation Control Protocol)", "NAT (Network Address Translation)"],
     correctAnswer: "VLANs (Virtual Local Area Networks)",
-    correctAnswers: ["VLANs (Virtual Local Area Networks)"],
+  correctAnswers: ["VLANs (Virtual Local Area Networks)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1393,7 +1393,7 @@ export const examQuestions: Question[] = [
     question: "Which layer of the OSI model does the Firebox's standard Packet Filter policy primarily operate on to inspect source/destination IPs and port numbers? (Select TWO.)",
     options: ["Layer 2 (Data Link)", "Layer 3 (Network)", "Layer 4 (Transport)", "Layer 7 (Application)"],
     correctAnswer: "Layer 3 (Network) | Layer 4 (Transport)",
-    correctAnswers: ["Layer 3 (Network)", "Layer 4 (Transport)"],
+  correctAnswers: ["Layer 3 (Network)", "Layer 4 (Transport)"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Policies"
@@ -1403,7 +1403,7 @@ export const examQuestions: Question[] = [
     question: "What subnet mask is represented by the CIDR notation /27? (Select one.)",
     options: ["255.255.255.192", "255.255.255.224", "255.255.255.240", "255.255.255.248"],
     correctAnswer: "255.255.255.224",
-    correctAnswers: ["255.255.255.224"],
+  correctAnswers: ["255.255.255.224"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1413,7 +1413,7 @@ export const examQuestions: Question[] = [
     question: "When configuring a Firebox as a DHCP server, what must you do to ensure a specific printer always receives the same IP address 10.0.1.50? (Select one.)",
     options: ["Create a 1-to-1 NAT policy for the printer", "Create a static MAC-to-IP address reservation", "Set the IP address as the gateway IP", "Exclude 10.0.1.50 from the DHCP scope and configure nothing else"],
     correctAnswer: "Create a static MAC-to-IP address reservation",
-    correctAnswers: ["Create a static MAC-to-IP address reservation"],
+  correctAnswers: ["Create a static MAC-to-IP address reservation"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1423,7 +1423,7 @@ export const examQuestions: Question[] = [
     question: "Which common port is utilized by the RDP (Remote Desktop Protocol) service by default, which should be strictly secured or blocked from the external network? (Select one.)",
     options: ["TCP 22", "TCP 443", "TCP 3389", "UDP 500"],
     correctAnswer: "TCP 3389",
-    correctAnswers: ["TCP 3389"],
+  correctAnswers: ["TCP 3389"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1433,7 +1433,7 @@ export const examQuestions: Question[] = [
     question: "You want to deploy an SSL VPN. What must be true about the IP address pool you assign to the SSL VPN clients? (Select one.)",
     options: ["It must be in the exact same subnet as the Trusted interface.", "It must be a publicly routable IP address range.", "It must not overlap with any routed internal networks or remote VPN subnets.", "It must always use the 192.168.113.0/24 subnet regardless of your network topology."],
     correctAnswer: "It must not overlap with any routed internal networks or remote VPN subnets.",
-    correctAnswers: ["It must not overlap with any routed internal networks or remote VPN subnets."],
+  correctAnswers: ["It must not overlap with any routed internal networks or remote VPN subnets."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Mobile VPN"
@@ -1443,7 +1443,7 @@ export const examQuestions: Question[] = [
     question: "In a network topology utilizing OSPF (Open Shortest Path First), which routing metric does OSPF use to determine the best path? (Select one.)",
     options: ["Hop Count", "Cost (based on link bandwidth)", "Delay", "Reliability"],
     correctAnswer: "Cost (based on link bandwidth)",
-    correctAnswers: ["Cost (based on link bandwidth)"],
+  correctAnswers: ["Cost (based on link bandwidth)"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1458,7 +1458,7 @@ export const examQuestions: Question[] = [
       "Access ports connect to routers, Trunk ports connect to end-user workstations."
     ],
     correctAnswer: "Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs.",
-    correctAnswers: ["Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs."],
+  correctAnswers: ["Access ports carry traffic for a single untagged VLAN, Trunk ports carry traffic for multiple tagged VLANs."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1473,7 +1473,7 @@ export const examQuestions: Question[] = [
       "The ZIP file was downloaded via FTP."
     ],
     correctAnswer: "The ZIP file is password-encrypted. | The ZIP file exceeds the configured scan size limit.",
-    correctAnswers: ["The ZIP file is password-encrypted.", "The ZIP file exceeds the configured scan size limit."],
+  correctAnswers: ["The ZIP file is password-encrypted.", "The ZIP file exceeds the configured scan size limit."],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Security Services"
@@ -1483,7 +1483,7 @@ export const examQuestions: Question[] = [
     question: "Which IEEE protocol provides port-based network access control (PNAC) and can be used to authenticate devices before granting them access to the LAN? (Select one.)",
     options: ["802.11ax", "802.1Q", "802.1X", "802.3ad"],
     correctAnswer: "802.1X",
-    correctAnswers: ["802.1X"],
+  correctAnswers: ["802.1X"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1493,7 +1493,7 @@ export const examQuestions: Question[] = [
     question: "You are setting up WatchGuard AuthPoint. What component must you install on your local network to integrate AuthPoint with your on-premises Active Directory server? (Select one.)",
     options: ["AuthPoint Agent for Windows", "AuthPoint Gateway", "WatchGuard AD Helper", "Active Directory Federation Services (ADFS)"],
     correctAnswer: "AuthPoint Gateway",
-    correctAnswers: ["AuthPoint Gateway"],
+  correctAnswers: ["AuthPoint Gateway"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1503,7 +1503,7 @@ export const examQuestions: Question[] = [
     question: "When analyzing a subnet mask of 255.255.255.128 (/25), how many usable host IP addresses are available in the subnet? (Select one.)",
     options: ["128", "126", "256", "254"],
     correctAnswer: "126",
-    correctAnswers: ["126"],
+  correctAnswers: ["126"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1513,7 +1513,7 @@ export const examQuestions: Question[] = [
     question: "Which of the following actions can ThreatSync automatically perform if an endpoint is compromised? (Select TWO.)",
     options: ["Isolate the device from the network", "Kill the malicious process on the endpoint", "Format the endpoint's hard drive", "Uninstall the operating system"],
     correctAnswer: "Isolate the device from the network | Kill the malicious process on the endpoint",
-    correctAnswers: ["Isolate the device from the network", "Kill the malicious process on the endpoint"],
+  correctAnswers: ["Isolate the device from the network", "Kill the malicious process on the endpoint"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Security Services"
@@ -1523,7 +1523,7 @@ export const examQuestions: Question[] = [
     question: "To prevent DNS cache poisoning and man-in-the-middle attacks on DNS queries, what security extension can be enabled? (Select one.)",
     options: ["DNSSEC", "DNSWatch", "DoH (DNS over HTTPS)", "DMARC"],
     correctAnswer: "DNSSEC",
-    correctAnswers: ["DNSSEC"],
+  correctAnswers: ["DNSSEC"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1533,7 +1533,7 @@ export const examQuestions: Question[] = [
     question: "You want to combine multiple physical interfaces into a single logical interface to increase bandwidth and provide redundancy. What feature should you configure? (Select one.)",
     options: ["Multi-WAN", "Link Aggregation (LAG) / LACP", "Bridge Network", "Spanning Tree Protocol (STP)"],
     correctAnswer: "Link Aggregation (LAG) / LACP",
-    correctAnswers: ["Link Aggregation (LAG) / LACP"],
+  correctAnswers: ["Link Aggregation (LAG) / LACP"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1544,7 +1544,7 @@ export const examQuestions: Question[] = [
     question: "Which of the following ports does HTTPS use by default? (Select one.)",
     options: ["TCP/80", "TCP/443", "TCP/22", "UDP/53"],
     correctAnswer: "TCP/443",
-    correctAnswers: ["TCP/443"],
+  correctAnswers: ["TCP/443"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -1554,7 +1554,7 @@ export const examQuestions: Question[] = [
     question: "What subnet mask corresponds to a CIDR prefix of /24? (Select one.)",
     options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
     correctAnswer: "255.255.255.0",
-    correctAnswers: ["255.255.255.0"],
+  correctAnswers: ["255.255.255.0"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1564,7 +1564,7 @@ export const examQuestions: Question[] = [
     question: "Which protocol is primarily used to automatically assign IP addresses to devices on a network? (Select one.)",
     options: ["DNS", "DHCP", "ARP", "ICMP"],
     correctAnswer: "DHCP",
-    correctAnswers: ["DHCP"],
+  correctAnswers: ["DHCP"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1574,7 +1574,7 @@ export const examQuestions: Question[] = [
     question: "When managing a WatchGuard Firebox locally, what is the default URL to access the Fireware Web UI on the Trusted interface? (Select one.)",
     options: ["https://10.0.1.1:8080", "http://10.0.1.1:80", "https://10.0.1.1:4100", "https://192.168.1.1:8080"],
     correctAnswer: "https://10.0.1.1:8080",
-    correctAnswers: ["https://10.0.1.1:8080"],
+  correctAnswers: ["https://10.0.1.1:8080"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1584,7 +1584,7 @@ export const examQuestions: Question[] = [
     question: "In the locally managed Fireware Web UI, where can you perform built-in network troubleshooting tasks like Ping, Traceroute, and DNS Lookup? (Select one.)",
     options: ["Dashboard > FireWatch", "System > Backup", "System Status > Diagnostics", "Network > Interfaces"],
     correctAnswer: "System Status > Diagnostics",
-    correctAnswers: ["System Status > Diagnostics"],
+  correctAnswers: ["System Status > Diagnostics"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -1724,4 +1724,149 @@ examQuestions.push({
     { x: 40, y: 20, width: 20, height: 20, label: "Hotspot B" },
     { x: 70, y: 20, width: 20, height: 20, label: "Hotspot C" }
   ]
+});
+
+examQuestions.push({
+  id: 301,
+  question: "Which of the following is true about Fireware WebUI? (Select two.)",
+  options: [
+    "It requires the WatchGuard System Manager to be installed on the client PC.",
+    "It operates over port 8080 by default.",
+    "It can be accessed from any web browser.",
+    "It supports full configuration of all Firebox features.",
+    "It allows for real-time monitoring of device traffic and logs."
+  ],
+  correctAnswer: "",
+  correctAnswers: [
+    "It can be accessed from any web browser.",
+    "It operates over port 8080 by default."
+  ],
+  isMultiSelect: true,
+  correctAnswersCount: 2,
+  topic: "Initial Setup",
+  explanation: "Fireware Web UI is a web-based management tool that runs on the Firebox. You can access it using a web browser from any device, without needing WSM. By default, it operates on port 8080 (HTTPS)."
+});
+
+examQuestions.push({
+  id: 302,
+  question: "In Fireware, what is the default port for the Authentication Portal?",
+  options: ["8080", "4100", "4126", "4125", "443"],
+  correctAnswer: "4100",
+  correctAnswers: ["4100"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Security Services",
+  explanation: "The default port for the WatchGuard Authentication Portal is 4100."
+});
+
+examQuestions.push({
+  id: 303,
+  question: "What must be configured on the Firebox to use an Active Directory server for user authentication?",
+  options: [
+    "The Firebox must be joined to the AD domain.",
+    "LDAP or RADIUS authentication must be configured.",
+    "Single Sign-On (SSO) agent must be installed on the AD server.",
+    "Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers."
+  ],
+  correctAnswer: "Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers.",
+  correctAnswers: ["Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers."],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Security Services",
+  explanation: "To use Active Directory authentication, you must specify the Active Directory server settings, such as IP address, Base DN, and Search string, within the Authentication Servers configuration on the Firebox."
+});
+
+examQuestions.push({
+  id: 304,
+  question: "Which feature protects against Zero-Day malware by running suspicious files in a cloud-based sandbox?",
+  options: ["Gateway AntiVirus", "Intrusion Prevention Service (IPS)", "APT Blocker", "WebBlocker", "Botnet Detection"],
+  correctAnswer: "APT Blocker",
+  correctAnswers: ["APT Blocker"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Security Services",
+  explanation: "APT Blocker identifies zero-day threats by sending suspicious files to a cloud sandbox where they are executed and analyzed for malicious behavior."
+});
+
+examQuestions.push({
+  id: 305,
+  question: "Which Firebox proxy policy allows you to enforce YouTube Restricted mode?",
+  options: ["HTTP Proxy", "HTTPS Proxy", "TCP-UDP Proxy", "DNS Proxy", "FTP Proxy"],
+  correctAnswer: "HTTPS Proxy",
+  correctAnswers: ["HTTPS Proxy"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Proxies",
+  explanation: "Because YouTube uses HTTPS, you must use the HTTPS proxy with content inspection enabled. The HTTPS proxy includes a specific action to enforce YouTube restricted mode by injecting a header."
+});
+
+examQuestions.push({
+  id: 306,
+  question: "Which of the following routing protocols are supported by Fireware? (Select three.)",
+  options: ["OSPF", "BGP", "RIP", "EIGRP", "IS-IS"],
+  correctAnswer: "",
+  correctAnswers: ["OSPF", "BGP", "RIP"],
+  isMultiSelect: true,
+  correctAnswersCount: 3,
+  topic: "Routing",
+  explanation: "Fireware supports OSPF, BGP, and RIP for dynamic routing. EIGRP is Cisco-proprietary, and IS-IS is not currently supported natively by Fireware."
+});
+
+examQuestions.push({
+  id: 307,
+  question: "A client reports they cannot reach a server on another interface. You check Traffic Monitor and see traffic is being Denied. What is the most likely cause?",
+  options: [
+    "The server is down.",
+    "A firewall policy is denying the traffic or there is no policy allowing it.",
+    "The routing table is misconfigured on the Firebox.",
+    "The client is using the wrong default gateway."
+  ],
+  correctAnswer: "A firewall policy is denying the traffic or there is no policy allowing it.",
+  correctAnswers: ["A firewall policy is denying the traffic or there is no policy allowing it."],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Policies",
+  explanation: "If Traffic Monitor shows a 'Denied' log message for the traffic, it means the Firebox actively blocked it because of a denying policy (like Unhandled Packet or a specific deny rule)."
+});
+
+examQuestions.push({
+  id: 308,
+  question: "Which VPN protocol is used by the WatchGuard Mobile VPN with SSL?",
+  options: ["IPSec", "L2TP", "OpenVPN", "IKEv2", "PPTP"],
+  correctAnswer: "OpenVPN",
+  correctAnswers: ["OpenVPN"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Mobile VPN",
+  explanation: "WatchGuard Mobile VPN with SSL is based on the OpenVPN protocol."
+});
+
+examQuestions.push({
+  id: 309,
+  question: "When configuring a BOVPN between two Fireboxes, what settings must match exactly on both sides? (Select two.)",
+  options: [
+    "The external IP address",
+    "The pre-shared key (PSK)",
+    "The Phase 1 and Phase 2 proposals (transform sets)",
+    "The policy names",
+    "The internal IP address"
+  ],
+  correctAnswer: "",
+  correctAnswers: ["The pre-shared key (PSK)", "The Phase 1 and Phase 2 proposals (transform sets)"],
+  isMultiSelect: true,
+  correctAnswersCount: 2,
+  topic: "Mobile VPN",
+  explanation: "For a BOVPN to establish successfully, the Phase 1 and Phase 2 cryptographic settings (proposals) and the authentication method (e.g., PSK) must match exactly between the two peers."
+});
+
+examQuestions.push({
+  id: 310,
+  question: "Which diagnostic tool can you use from Fireware Web UI to see the path packets take to a destination?",
+  options: ["Ping", "Traceroute", "TCP Dump", "DNS Lookup", "Packet Capture"],
+  correctAnswer: "Traceroute",
+  correctAnswers: ["Traceroute"],
+  isMultiSelect: false,
+  correctAnswersCount: 1,
+  topic: "Logging & Monitoring",
+  explanation: "Traceroute shows the path and hop delays that packets take from the Firebox to a specific destination."
 });
