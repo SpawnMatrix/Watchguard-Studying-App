@@ -1,4 +1,5 @@
 import { advanceWeakness } from './weakness';
+import { emptySrsState, parseSrsState, recordAnswer, weightedPick, type SrsState } from './srs';
 import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../data/questions';
 import type { QuizHistoryItem } from '../components/QuizAnalyticsPanel';
@@ -17,11 +18,14 @@ interface Session {
   examStart:number;complete:boolean;
 }
 const SESSION_KEY='watchguard-quiz-session-v2';
+const SRS_KEY='watchguard-srs-v1';
 const DEFAULT_FILTERS:Filters={topic:'All',track:'local',content:'mixed'};
-function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:QuizHistoryItem[]=[]):Session {
+function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:QuizHistoryItem[]=[],srs:SrsState=emptySrsState()):Session {
   const pool=mode==='weakness-review'?Object.keys(deck).map(Number).map(id=>questionById.get(id)).filter((q):q is Question=>!!q):filterQuestions(filters);
   const queue=mode==='mock-exam'?createExam(pool,newSeed()):[];
-  const q=mode==='mock-exam'?queue[0]:pool.length?materialize(pick(seededRandom(newSeed()),pool)):null;
+  // Spaced repetition biases which question comes next; it never changes the
+  // pool itself, so every existing filter and mode keeps its meaning.
+  const q=mode==='mock-exam'?queue[0]:pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
   return {mode,filters,queue,index:0,current:q??null,selected:[],evaluation:null,history,seen:q?[q.id]:[],examStart:history.length,complete:false};
 }
 function load(deck:Record<number,number>):Session {
@@ -29,10 +33,11 @@ function load(deck:Record<number,number>):Session {
   if(saved&&['practice','mock-exam','weakness-review'].includes(saved.mode)&&saved.filters&&Array.isArray(saved.history)&&Array.isArray(saved.queue)&&Array.isArray(saved.selected)&&Array.isArray(saved.seen)&&Number.isInteger(saved.index)&&Number.isInteger(saved.examStart)&&
       (!saved.current||(questionById.has(saved.current.id)&&Array.isArray(saved.current.options)&&Array.isArray(saved.current.correctAnswers)))) return saved;
   const progress=readJSON<any>('watchguard-study-progress-v1',null);
-  return first('practice',DEFAULT_FILTERS,deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[]);
+  return first('practice',DEFAULT_FILTERS,deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[],parseSrsState(readJSON<any>(SRS_KEY,null)));
 }
 export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void) {
   const [deck,setDeck]=useState<Record<number,number>>(()=>readJSON('weakness_deck',{}));
+  const [srs,setSrs]=useState<SrsState>(()=>parseSrsState(readJSON<any>(SRS_KEY,null)));
   const [session,setSession]=useState(()=>load(deck));
   const [loading,setLoading]=useState(false),[notice,setNotice]=useState('');
   const busy=useRef(false),alive=useRef(true),request=useRef<AbortController|null>(null);
@@ -43,7 +48,7 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
   const report=(history:QuizHistoryItem[])=>onScoreUpdated({history,score:history.length?`${Math.round(history.filter(h=>h.isCorrect).length/history.length*100)}%`:'0%',topicWeaknesses:[...new Set(history.filter(h=>!h.isCorrect).map(h=>h.topic))]});
   function configure(mode:QuizMode,filters:Filters=session.filters) {
     if(busy.current)return;
-    setSession(first(mode,filters,deck,session.history));setNotice('');
+    setSession(first(mode,filters,deck,session.history,srs));setNotice('');
   }
   function toggle(option:string) {
     const q=session.current;if(!q||session.evaluation||busy.current)return;
@@ -68,6 +73,8 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
     if(!alive.current){busy.current=false;return;}
     const nextDeck=advanceWeakness(deck,q.id,isCorrect);
     setDeck(nextDeck);writeStudyValue('weakness_deck',JSON.stringify(nextDeck));
+    const nextSrs=recordAnswer(srs,q.id,q.topic,isCorrect);
+    setSrs(nextSrs);writeStudyValue(SRS_KEY,JSON.stringify(nextSrs));
     const history=[...session.history,{attemptId:crypto.randomUUID(),questionId:q.id,question:q.question,options:[...q.options],correctAnswers:[...q.correctAnswers],variant:q.variant,
       selectedAnswers:[...session.selected],explanation,topic:q.topic,isCorrect,answeredAt:new Date().toISOString()}];
     const next={...session,history,evaluation:{isCorrect,detailedExplanation:explanation,weaknessCategory:q.topic}};
@@ -82,9 +89,14 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
     }
     let pool=filtered.filter(q=>!session.seen.includes(q.id)),seen=session.seen;
     if(!pool.length){pool=filtered;seen=[];}
-    const q=pool.length?materialize(pick(seededRandom(newSeed()),pool)):null;
+    const q=pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
     setSession(s=>({...s,current:q,seen:q?[...seen,q.id]:[],selected:[],evaluation:null}));
   }
-  function reset(){if(busy.current)return;setSession(first(session.mode,session.filters,deck));setNotice('');report([]);}
-  return {session,deck,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset};
+  function reset(){if(busy.current)return;setSession(first(session.mode,session.filters,deck,[],srs));setNotice('');report([]);}
+  /** Replaces the whole selection at once, for ordering questions. */
+  function setOrder(order:string[]) {
+    if(session.evaluation||busy.current)return;
+    setSession(s=>({...s,selected:order}));
+  }
+  return {session,deck,srs,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset,setOrder};
 }

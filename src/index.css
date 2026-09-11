@@ -258,3 +258,20 @@ button:disabled{cursor:default}
 [data-theme=light] .flow-badge.allowed,[data-theme=light] .sandbox-log-row.allowed strong{color:#17694f}[data-theme=light] .flow-badge.denied,[data-theme=light] .sandbox-log-row.denied strong,[data-theme=light] .sandbox-error{color:#a52b1d}[data-theme=light] .flow-badge.client{color:#815600}
 @media(max-width:1050px){.sandbox-panels{grid-template-columns:1fr}.sandbox-panels>div:first-child{border-bottom:1px solid var(--color-wg-border)}}
 @media(max-width:600px){.sandbox-mission,.sandbox-trace,.sandbox-log{padding:16px}.sandbox-trace-heading{flex-wrap:wrap}.sandbox-log-row{grid-template-columns:65px minmax(0,1fr)}.sandbox-log-row>span:nth-child(3),.sandbox-log-row>span:last-child{grid-column:1 / -1}.sandbox-trace li{gap:8px;padding:10px}.sandbox-trace li small{display:none}.sandbox-toolbar>div{width:100%}.sandbox-toolbar .secondary-button{flex:1}.sandbox-mission-top label{flex-basis:100%}}
+
+/* ---------------------------------------------------------------------
+   Phase 2 — spaced repetition and interactive question types
+   --------------------------------------------------------------------- */
+
+.srs-focus {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--accent, #ff6a1f) 28%, transparent);
+  border-left-width: 3px;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--accent, #ff6a1f) 7%, transparent);
+  color: var(--text-muted, #9aa4b2);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
