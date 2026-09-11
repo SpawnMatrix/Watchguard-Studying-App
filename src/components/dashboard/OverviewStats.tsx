@@ -1,3 +1,4 @@
+import { watchguardLabs } from '../../data/labs';
 import React from 'react';
 import { Award, CheckCircle2, BookOpen } from 'lucide-react';
 
@@ -23,7 +24,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
       {/* Exam Readiness Score */}
       <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
         <div className="space-y-1">
-          <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Audited Exam Readiness</span>
+          <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Quiz accuracy</span>
           <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
         </div>
         <div className="p-3 bg-watchguard-orange/10 rounded-full">
@@ -35,7 +36,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
         <div className="space-y-1">
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Completed Core Labs</span>
-          <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / 5</div>
+          <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / {watchguardLabs.length}</div>
         </div>
         <div className="p-3 bg-green-500/10 rounded-full">
           <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -45,7 +46,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
       {/* Total Exam Questions Answered */}
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between">
         <div className="space-y-1">
-          <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Simulator Attempts</span>
+          <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Quiz attempts</span>
           <div className="text-3xl font-display font-bold text-white">
             {history.filter((h) => h.isCorrect).length} / {history.length} Correct
           </div>

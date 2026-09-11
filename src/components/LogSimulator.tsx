@@ -69,6 +69,7 @@ export default function LogSimulator({ question, selectedOptions, isSubmitted, i
           return (
             <button
               key={idx}
+              aria-pressed={isSelected}
               disabled={isSubmitted || isLoading}
               onClick={() => onOptionToggle(opt)}
               className={`w-full text-left px-5 py-3.5 rounded-xl border transition-all text-xs sm:text-sm flex items-start space-x-3 cursor-pointer ${optionStyle}`}

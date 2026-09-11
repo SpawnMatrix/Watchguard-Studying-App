@@ -1,3 +1,5 @@
+import { useAccount } from "./account/AccountGate";
+import { writeStudyValue } from "./account/storage";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
@@ -68,6 +70,7 @@ function loadProfileName() {
 }
 
 export default function App() {
+  const account = useAccount();
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     return (localStorage.getItem("watchguard-portal-theme") as "dark" | "light") || "dark";
@@ -77,7 +80,7 @@ export default function App() {
   const [quizStats, setQuizStats] = useState<QuizStats>(savedProgress.quizStats);
   const [profileName, setProfileName] = useState(initialProfileName);
   const [profileDraft, setProfileDraft] = useState(initialProfileName);
-  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(!initialProfileName);
+  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -140,7 +143,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ quizStats, completedLabs }));
+    writeStudyValue(PROGRESS_STORAGE_KEY, JSON.stringify({ quizStats, completedLabs }));
   }, [quizStats, completedLabs]);
 
   const handleScoreUpdated = (record: { score: string; topicWeaknesses: string[]; history: QuizHistoryItem[] }) => {
@@ -160,14 +163,14 @@ export default function App() {
     const cleanName = profileDraft.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim().slice(0, 32);
     if (!cleanName) return;
 
-    localStorage.setItem(PROFILE_STORAGE_KEY, cleanName);
+    writeStudyValue(PROFILE_STORAGE_KEY, cleanName);
     setProfileName(cleanName);
     setProfileDraft(cleanName);
     setIsProfileEditorOpen(false);
   };
 
   const handleProfileReset = () => {
-    localStorage.removeItem(PROFILE_STORAGE_KEY);
+    writeStudyValue(PROFILE_STORAGE_KEY, null);
     setProfileName("");
     setProfileDraft("");
   };
@@ -176,17 +179,18 @@ export default function App() {
     { id: "chat", label: "Study Q&A Desk", icon: Bot },
     { id: "quiz", label: "Practice Quiz", icon: Trophy },
     { id: "labs", label: "Lab Exercises", icon: Layers },
-    { id: "flashcards", label: "Flashcards Studio", icon: BookMarked },
-    { id: "sandbox", label: "FSM Sandbox", icon: Terminal },
-    { id: "admin", label: "Admin Panel", icon: BarChart3 }
+    { id: "flashcards", label: "Flashcards", icon: BookMarked },
+    { id: "sandbox", label: "Network Sandbox", icon: Terminal },
+    { id: "admin", label: "Progress & Admin", icon: BarChart3 }
   ];
 
   return (
-    <div className="min-h-screen bg-watchguard-dark text-gray-100 flex flex-col font-sans">
+    <div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
       
       {/* Top Professional Navigation Console Bar */}
-      <header className="bg-watchguard-gray border-b border-watchguard-border shadow-xl z-20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <a className="skip-link" href="#study-content">Skip to study content</a>
+      <header className="app-header bg-watchguard-gray border-b border-watchguard-border z-20">
+        <div className="app-header-inner">
           
           {/* Brand and Certification Metadata */}
           <div className="flex items-center space-x-3.5">
@@ -197,10 +201,10 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-display font-bold text-white tracking-tight text-lg sm:text-xl">
-                WatchGuard Certified Network Security Training Portal
+                WatchGuard Study Lab
               </h1>
               <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
-                Enterprise NSE locally-managed firebox curriculum
+                Local Firebox · Network+ · Cloud
               </p>
             </div>
           </div>
@@ -214,25 +218,23 @@ export default function App() {
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setProfileDraft(profileName);
-                  setIsProfileEditorOpen(true);
-                }}
+                onClick={account.open}
                 className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5 hover:text-white transition-colors cursor-pointer"
-                title="Edit the profile stored in this browser"
+                title="Your study account"
               >
                 <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span className="font-mono">{profileName || "Set your name"}</span>
-                <Pencil className="w-3 h-3 text-gray-500" />
+                <span className="font-mono">{account.username || profileName || "Your account"}</span>
+                <span className="sync-label">{account.status}</span>
               </button>
               <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
                 <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
-                <span className="font-mono" title={`${timeZone} • ${sessionIdentity.source} session`}>
+                <span className="font-mono" title={timeZone}>
                   {isOnline ? `${locale} • ${platform}` : "Browser offline"}
                 </span>
               </div>
             </div>
 
+            <button aria-label="Edit display name" title="Edit display name" className="text-gray-400" onClick={() => { setProfileDraft(profileName); setIsProfileEditorOpen(true); }}><Pencil size={16}/></button>
             {/* SvelteKit-Style Premium Theme Toggle */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -251,10 +253,11 @@ export default function App() {
       </header>
 
       {/* Main Study Arena Layout (Expanded Unified Container) */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-6 flex flex-col space-y-6 overflow-hidden">
+      <main className="study-layout">
         
         {/* Tab Navigation Tray */}
-        <nav className="flex items-center space-x-1 bg-watchguard-gray/80 p-1 rounded-xl border border-watchguard-border w-full">
+        <nav aria-label="Study sections" className="study-nav">
+          <p className="nav-caption">YOUR WORKSPACE</p>
           {tabsConfig.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -262,21 +265,19 @@ export default function App() {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id as Tab)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-2.5 px-4 text-xs font-semibold rounded-lg transition-all select-none cursor-pointer ${
-                  isActive 
-                    ? "bg-watchguard-orange text-white border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10" 
-                    : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray/40"
-                }`}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={t.label}
+                className={`study-nav-item ${isActive ? "is-active" : ""}`}
               >
                 <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{t.label}</span>
+                <span>{t.label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* Active Learning Component Panel */}
-        <div className="flex-1 w-full min-h-[500px]">
+        <div id="study-content" tabIndex={-1} className="study-content">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -306,8 +307,8 @@ export default function App() {
       </main>
 
       {/* Global Security Footer */}
-      <footer className="bg-watchguard-gray/40 border-t border-watchguard-border py-4.5 px-6 mt-auto text-center text-xs text-gray-500 font-mono">
-        <p>© 2026 WatchGuard training portal • Authorized certified technical study engine v12.9.2+ • Updated: {import.meta.env.VITE_APP_BUILD_DATE || "unknown"} ({import.meta.env.VITE_APP_COMMIT_SHA || "unknown"})</p>
+      <footer className="app-footer text-gray-500">
+        <p>Independent study companion · Fireware & Network+ · Build: {import.meta.env.VITE_APP_BUILD_DATE || "unknown"} ({import.meta.env.VITE_APP_COMMIT_SHA || "unknown"})</p>
       </footer>
 
       <AnimatePresence>
@@ -333,10 +334,10 @@ export default function App() {
                 </div>
                 <div>
                   <h2 id="profile-dialog-title" className="font-display text-lg font-bold text-white">
-                    {profileName ? "Edit your local profile" : "Choose your study name"}
+                    {profileName ? "Edit your display name" : "Choose your study name"}
                   </h2>
                   <p className="mt-1 text-xs leading-relaxed text-gray-400">
-                    This name and your learning progress stay in this browser. Your Pangolin email is not displayed or used as your study identity.
+                    Choose how your name appears in your study reports. Your sign-in username stays the same.
                   </p>
                 </div>
               </div>
@@ -357,7 +358,7 @@ export default function App() {
                     placeholder="For example: Alex or Sam"
                     className="w-full rounded-lg border border-watchguard-border bg-watchguard-dark px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-watchguard-orange"
                   />
-                  <p className="mt-1.5 text-[10px] font-mono text-gray-500">Browser-only • 32 characters maximum</p>
+                  <p className="mt-1.5 text-[10px] font-mono text-gray-500">32 characters maximum</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -367,7 +368,7 @@ export default function App() {
                       onClick={handleProfileReset}
                       className="text-xs text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
                     >
-                      Clear local profile
+                      Clear display name
                     </button>
                   ) : <span />}
                   <div className="flex gap-2">

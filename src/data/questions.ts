@@ -1,4 +1,7 @@
-export interface Question {
+import type { QuestionMetadata } from '../engine/types';
+import { authoredQuestions } from './authoredQuestions';
+
+export interface Question extends QuestionMetadata {
   id: number;
   question: string;
   options: string[];
@@ -6,7 +9,7 @@ export interface Question {
   correctAnswers: string[];
   isMultiSelect: boolean;
   correctAnswersCount: number; // For multi-select
-  topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring";
+  topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring" | "IP Addressing" | "Network Services" | "Switching & Wireless" | "Troubleshooting" | "Network Operations" | "WatchGuard Cloud";
   explanation?: string;
   type?: "standard" | "topology" | "log";
   topologyImage?: string;
@@ -172,7 +175,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 14,
-    question: "Which items are included in a Firebox backup image file (.fxi)? (Select FOUR.)",
+    question: "Which items are included in a standard Firebox backup image saved to the Firebox in Fireware 12.2.1 or higher? (Select FOUR.)",
     options: [
       "Configuration file",
       "Fireware OS image",
@@ -1870,3 +1873,6 @@ examQuestions.push({
   topic: "Logging & Monitoring",
   explanation: "Traceroute shows the path and hop delays that packets take from the Firebox to a specific destination."
 });
+
+// Additive catalog: historical question identifiers remain unchanged.
+examQuestions.push(...authoredQuestions);

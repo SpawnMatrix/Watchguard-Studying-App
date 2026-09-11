@@ -32,13 +32,13 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
             <div>
               <h3 className="font-display font-bold text-white flex items-center space-x-2 text-sm sm:text-base">
                 <span className="w-2.5 h-2.5 bg-watchguard-orange rounded-full animate-ping"></span>
-                <span>WATCHGUARD NSE READINESS AUDIT REPORT</span>
+                <span>STUDY PROGRESS REPORT</span>
               </h3>
-              <p className="text-[10px] font-mono text-gray-500 mt-0.5">Syllabus compliance audit • Fireware OS v12.9.2+</p>
+              <p className="text-[10px] font-mono text-gray-500 mt-0.5">Practice evidence · Review alongside hands-on lab work</p>
             </div>
             <div className="flex items-center space-x-3">
               <div className="text-right">
-                <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">Readiness Score</span>
+                <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">Practice score</span>
                 <div className="text-xl font-display font-bold text-watchguard-orange">{report.readinessScore}</div>
               </div>
             </div>
@@ -48,7 +48,7 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
             {/* Strengths & Vulnerabilities */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-bold text-green-400 font-mono tracking-wide uppercase mb-2">Verified Conceptual Strengths</h4>
+                <h4 className="text-xs font-bold text-green-400 font-mono tracking-wide uppercase mb-2">Observed strengths</h4>
                 <ul className="space-y-1.5 text-xs text-gray-300">
                   {report.strengths.map((s, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
@@ -59,7 +59,7 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
                 </ul>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-red-400 font-mono tracking-wide uppercase mb-2">Namespace Vulnerabilities</h4>
+                <h4 className="text-xs font-bold text-red-400 font-mono tracking-wide uppercase mb-2">Topics to review</h4>
                 <ul className="space-y-1.5 text-xs text-gray-300">
                   {report.criticalVulnerabilities.map((v, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
@@ -99,7 +99,7 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
           {report.isDemo && (
             <div className="mt-6 pt-3 border-t border-watchguard-border flex items-center space-x-2 text-[10px] font-mono text-gray-500">
               <AlertTriangle className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span>Simulated Audit Analysis Powered by Local Ruleset daemon</span>
+              <span>Report calculated from your submitted study results</span>
             </div>
           )}
         </motion.div>

@@ -1,3 +1,4 @@
+import { buildStudyReport } from '../engine/progress';
 import { handleError } from "../utils/errorHandler";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -440,7 +441,7 @@ Keep up the great work! Understanding these concepts is key to mastering network
     } else if (topic === "Routing") {
       detailedExplanation += `**Hint on Routing:** Static routes require manual configuration, whereas dynamic routing (like OSPF or BGP) adapts to network changes. Multi-WAN features like Round-Robin or Failover dictate how outgoing traffic is handled across multiple ISPs.`;
     } else if (topic === "Proxies" || topic === "Security Services") {
-      detailedExplanation += `**Hint on Proxies & Security Services:** Security services (like Gateway AntiVirus, WebBlocker, IPS) typically require a Proxy policy to function because they need to inspect the application-layer payload.`;
+      detailedExplanation += `**Hint on Proxies & Security Services:** Gateway AntiVirus and WebBlocker use supported proxy policies. IPS and Application Control can also operate with supported packet filter policies; check service and policy compatibility.`;
     } else if (topic === "Initial Setup") {
       detailedExplanation += `**Hint on Initial Setup:** By default, Interface 1 (Trusted) is 10.0.1.1/24, Interface 0 (External) gets DHCP, and Interface 2 (Optional) is for DMZ. The Web UI runs on port 8080.`;
     } else if (topic === "Logging & Monitoring") {
@@ -515,33 +516,5 @@ The described problem ("${technicianIssue}") points to a configuration discrepan
 }
 
 function getLocalPerformanceFallback(sessionHistory: any) {
-  const quizAttempts = sessionHistory.totalQuizAttempts || 0;
-  const quizScoreStr = sessionHistory.quizScore || "0%";
-  const quizScoreNum = parseInt(quizScoreStr.replace("%", ""), 10) || 0;
-
-  let readinessScore = "65%";
-  let strengths = ["Initial Setup Wizards", "Default Threat Protection Settings"];
-  let criticalVulnerabilities = ["BOVPN Mismatched Proposals", "HTTPS Proxy Content Inspection Certificates"];
-  let recommendedLabs = ["Lab Exercise 11: Proxies", "Lab Exercise 16: BOVPNs"];
-  let summary = "Local diagnostic telemetry indicates stable fundamentals in initial deployment setup. However, advanced tasks like route failovers, multi-WAN configurations, and Layer 7 deep content filters need immediate study. Practicing the hands-on lab guides will rapidly improve the readiness score.";
-
-  if (quizAttempts >= 3) {
-    if (quizScoreNum >= 75) {
-      readinessScore = `${Math.min(95, quizScoreNum + 5)}%`;
-      strengths = ["Policy Precedence Rules", "Static Routing Mappings", "RFC 1918 Private Ranges"];
-      criticalVulnerabilities = ["Complex Multi-WAN routing tables"];
-      recommendedLabs = ["Lab Exercise 8: Link Monitor and SD-WAN"];
-      summary = "Excellent comprehension shown. Your quiz accuracy scores exceed the 75% standard goal. Core security zoning, DNS query resolutions, and packet filters are fully understood. Focus on reviewing high-availability SD-WAN multi-WAN routing tables before attempting the official certification.";
-    } else {
-      readinessScore = `${quizScoreNum}%`;
-    }
-  }
-
-  return {
-    readinessScore,
-    strengths,
-    criticalVulnerabilities,
-    recommendedLabs,
-    summary
-  };
+  return buildStudyReport(sessionHistory);
 }

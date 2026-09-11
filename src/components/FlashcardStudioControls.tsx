@@ -43,6 +43,7 @@ export default function FlashcardStudioControls({
       <div className="flex items-center space-x-3.5">
         <button
           type="button"
+          aria-label="Previous flashcard"
           onClick={handlePrev}
           className="p-2.5 bg-watchguard-lightgray hover:bg-watchguard-lightgray/80 text-gray-300 hover:text-white rounded-lg border border-watchguard-border hover:border-watchguard-orange/40 transition-all cursor-pointer"
         >
@@ -53,6 +54,7 @@ export default function FlashcardStudioControls({
         </span>
         <button
           type="button"
+          aria-label="Next flashcard"
           onClick={handleNext}
           className="p-2.5 bg-watchguard-lightgray hover:bg-watchguard-lightgray/80 text-gray-300 hover:text-white rounded-lg border border-watchguard-border hover:border-watchguard-orange/40 transition-all cursor-pointer"
         >

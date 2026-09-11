@@ -26,6 +26,8 @@ export default function FlashcardStudioCard({
   return (
     <div
       id={`flashcard-${activeCard.id}`}
+      role="button" tabIndex={0} aria-label={isFlipped?"Hide answer":"Reveal answer"}
+      onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setIsFlipped(!isFlipped);}}}
       onClick={() => setIsFlipped(!isFlipped)}
       className="w-full min-h-[260px] bg-watchguard-gray border border-watchguard-border rounded-xl p-6 shadow-2xl relative cursor-pointer select-none overflow-hidden hover:border-watchguard-orange/40 transition-all flex flex-col justify-between"
       style={{
@@ -77,7 +79,7 @@ export default function FlashcardStudioCard({
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-emerald-400 font-semibold uppercase flex items-center space-x-1">
                   <CheckCircle2 className="w-3 h-3" />
-                  <span>Syllabus Verification</span>
+                  <span>Answer & explanation</span>
                 </span>
                 <span className="text-xs text-watchguard-orange font-mono font-medium">#{activeCard.id}</span>
               </div>
