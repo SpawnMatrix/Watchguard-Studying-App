@@ -1,3 +1,5 @@
+import { authoredQuestions } from '../data/authoredQuestions';
+import { writeStudyValue } from "../account/storage";
 import React, { useState, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
 import FlashcardStudioStats from "./FlashcardStudioStats";
@@ -10,7 +12,7 @@ interface Flashcard {
   id: number;
   question: string;
   answer: string;
-  category: "Setup" | "Policies" | "VPN" | "Diagnostics" | "Routing";
+  category: "Setup" | "Policies" | "VPN" | "Diagnostics" | "Routing" | "Network+" | "Cloud";
   keyConcept: string;
   examTip?: string;
   officialReference?: string;
@@ -183,21 +185,27 @@ const HIGH_YIELD_FLASHCARDS: Flashcard[] = [
     id: 19,
     category: "Setup",
     question: "How do Active/Passive and Active/Active FireCluster deployments differ in interface load balancing?",
-    answer: "• Active/Passive: The master Firebox processes all traffic while the backup synchronizes states. Only one device is active at any time.\n• Active/Active: Both Fireboxes process traffic simultaneously. The master load-balances incoming WAN connections to the backup unit using multicast ARP, expanding total bandwidth capabilities.",
+    answer: "• Active/Passive: The master Firebox processes all traffic while the backup synchronizes states. Only one device is active at any time.\n• Active/Active: Both Fireboxes process traffic simultaneously. The cluster distributes eligible connections between members and uses multicast MAC addresses. Plan switch compatibility and remember that not all traffic can be load balanced.",
     keyConcept: "FireCluster Cluster Modes",
-    examTip: "Active/Active requires network switches that support static multicast ARP entries to prevent network packet flooding.",
+    examTip: "Check switch support for multicast MAC forwarding and static MAC entries where required by the FireCluster deployment guide.",
     officialReference: "About FireCluster"
   },
   {
     id: 20,
     category: "Setup",
     question: "Explain the difference between saving a backup XML configuration and an FXI Flash Backup Image.",
-    answer: "• XML Config File: Contains only the plain text configuration settings. It is model-independent and can be used to migrate policies to newer Firebox models.\n• FXI Flash Backup Image: A comprehensive bit-level snapshot of the Firebox's flash memory. It includes the exact Fireware OS, active certificates, feature licenses, and configurations. It is strictly hardware-model-specific.",
+    answer: "XML configuration files support offline Policy Manager editing and supported migrations after checking interfaces and version compatibility. An FXI backup is device-specific and includes configuration, certificates, feature keys, and passphrases. Fireware OS inclusion depends on the backup method and version; ordinary backups from 12.2.1 onward do not necessarily include the OS.",
     keyConcept: "XML Configs vs. FXI Images",
-    examTip: "Use XML configuration files for migrations between different hardware models, and FXI backup images for fast disaster recovery on identical hardware.",
+    examTip: "Use XML configuration files for migrations between different hardware models, and device-specific FXI images for recovery according to the documented restore procedure.",
     officialReference: "Backup and Restore Firebox Configuration"
   }
 ];
+
+HIGH_YIELD_FLASHCARDS.push(...authoredQuestions.map(q=>({
+  id:20000+q.id, question:q.question, answer:q.correctAnswers.join('; ')+"\n\n"+q.explanation,
+  category:(q.track==='network-plus'?'Network+':q.track==='cloud'?'Cloud':q.topic==='Initial Setup'?'Setup':q.topic.includes('VPN')?'VPN':q.topic==='Routing'?'Routing':(q.topic==='Logging & Monitoring'||q.topic==='Troubleshooting')?'Diagnostics':'Policies') as Flashcard['category'],
+  keyConcept:q.topic, officialReference:q.sources?.map(s=>[s.title,s.section].filter(Boolean).join(' · ')).join('; ')
+})));
 
 export default function FlashcardStudio() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -215,7 +223,7 @@ export default function FlashcardStudio() {
     }
   });
 
-  const categories = ["All", "Setup", "Policies", "Routing", "VPN", "Diagnostics"];
+  const categories = ["All", "Setup", "Policies", "Routing", "VPN", "Diagnostics", "Network+", "Cloud"];
 
   // Filter cards based on category and search query
   const filteredCards = useMemo(() => {
@@ -261,7 +269,7 @@ export default function FlashcardStudio() {
       const updated = prev.includes(id) 
         ? prev.filter(item => item !== id) 
         : [...prev, id];
-      localStorage.setItem("watchguard_mastered_flashcards", JSON.stringify(updated));
+      writeStudyValue("watchguard_mastered_flashcards", JSON.stringify(updated));
       return updated;
     });
   };
@@ -269,7 +277,7 @@ export default function FlashcardStudio() {
   const handleResetProgress = () => {
     if (window.confirm("Are you sure you want to reset your mastered flashcards status?")) {
       setMasteredIds([]);
-      localStorage.removeItem("watchguard_mastered_flashcards");
+      writeStudyValue("watchguard_mastered_flashcards", null);
     }
   };
 

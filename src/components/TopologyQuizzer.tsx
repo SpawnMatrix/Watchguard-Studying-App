@@ -28,6 +28,7 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
         )}
       </div>
 
+      {question.networkDiagram&&<ol className="network-diagram" aria-label="Network topology">{question.networkDiagram.map((node,i)=><li key={i}><strong>{node.label}</strong><span>{node.detail}</span></li>)}</ol>}
       {/* Topology Image with Hotspots */}
       {question.topologyImage && (
         <div className="relative w-full overflow-hidden rounded-xl border border-watchguard-border bg-watchguard-dark p-2 flex flex-col items-center">
@@ -40,6 +41,8 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
                  {question.hotspots.map((spot, idx) => (
                     <button
                       key={idx}
+                      aria-label={spot.label}
+                      aria-pressed={selectedOptions.includes(spot.label)}
                       disabled={isSubmitted || isLoading}
                       onClick={() => onOptionToggle(spot.label)}
                       className={`absolute pointer-events-auto border-2 rounded transition-colors ${
@@ -102,6 +105,7 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
             return (
               <button
                 key={idx}
+                aria-pressed={isSelected}
                 disabled={isSubmitted || isLoading}
                 onClick={() => onOptionToggle(opt)}
                 className={`w-full text-left px-5 py-3.5 rounded-xl border transition-all text-xs sm:text-sm flex items-start space-x-3 cursor-pointer ${optionStyle}`}

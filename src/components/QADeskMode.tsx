@@ -34,10 +34,10 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
       <div className="space-y-1.5">
         <div className="flex items-center space-x-2">
           <HelpCircle className="w-4 h-4 text-watchguard-orange" />
-          <h3 className="font-display font-semibold text-white">Verified Local Q&A Database</h3>
+          <h3 className="font-display font-semibold text-white">Local Q&A Reference Desk</h3>
         </div>
         <p className="text-xs text-gray-400 leading-relaxed font-sans">
-          AI features are offline by default to conserve your server quota. Browse and query the curated local knowledge base. It contains verified, click-by-click configuration specifications directly matching your network security essentials syllabus.
+          Search configuration notes for locally managed Fireboxes. Practice Quiz and Flashcards include the expanded scenario bank. Check the linked documentation for your Fireware version.
         </p>
       </div>
 

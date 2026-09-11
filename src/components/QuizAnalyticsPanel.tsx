@@ -1,6 +1,12 @@
 import { Award, BarChart } from "lucide-react";
 
 export interface QuizHistoryItem {
+  attemptId?: string;
+  question?: string;
+  options?: string[];
+  correctAnswers?: string[];
+  variant?: import('../engine/types').Variant;
+  answeredAt?: string;
   questionId: number;
   selectedAnswers: string[];
   isCorrect: boolean;
@@ -34,7 +40,7 @@ export default function QuizAnalyticsPanel({ quizHistory, correctCount, totalQue
             <Award className="w-4 h-4 text-watchguard-orange" />
             <span>Training Analytics</span>
           </h3>
-          <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">Exam Goal: 75%</span>
+          <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">Practice target: 85%</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -45,9 +51,9 @@ export default function QuizAnalyticsPanel({ quizHistory, correctCount, totalQue
             </div>
           </div>
           <div className="p-3 bg-watchguard-dark rounded-lg border border-watchguard-border text-center">
-            <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">Completed</div>
+            <div className="text-[10px] font-mono text-gray-500 uppercase tracking-wide">Answers reviewed</div>
             <div className="text-2xl font-display font-bold text-white mt-1">
-              {quizHistory.length} / {totalQuestions}
+              {quizHistory.length}
             </div>
           </div>
         </div>
@@ -58,21 +64,21 @@ export default function QuizAnalyticsPanel({ quizHistory, correctCount, totalQue
         <div className="flex items-center justify-between border-b border-watchguard-border pb-3">
           <h3 className="font-display font-semibold text-white flex items-center space-x-2">
             <BarChart className="w-4 h-4 text-watchguard-orange" />
-            <span>Zonal Performance</span>
+            <span>Topic performance</span>
           </h3>
           <span className="text-[10px] font-mono text-gray-500">Correct / Attempt</span>
         </div>
 
         {quizHistory.length === 0 ? (
           <div className="text-center py-6 text-xs text-gray-500">
-            Complete quiz questions to view your certified topic metrics.
+            Complete quiz questions to view your topic metrics.
           </div>
         ) : (
           <div className="space-y-3.5">
             {Object.entries(topicStats).map(([topic, statsVal]) => {
               const stats = statsVal as { total: number; correct: number };
               const percentage = Math.round((stats.correct / stats.total) * 100);
-              const isFailing = percentage < 75;
+              const isFailing = percentage < 85;
               return (
                 <div key={topic} className="space-y-1">
                   <div className="flex justify-between text-xs">

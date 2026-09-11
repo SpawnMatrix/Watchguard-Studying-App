@@ -8,12 +8,19 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - DATA_DIR=/data
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - PORT=3000
       - NODE_ENV=production
       - ENABLE_AI_FEATURES=${ENABLE_AI_FEATURES:-false}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      - study-data:/data
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  study-data:

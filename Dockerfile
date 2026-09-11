@@ -31,10 +31,13 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
+COPY scripts/backup.mjs ./scripts/backup.mjs
 
 # Standard production environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV DATA_DIR=/data
+RUN mkdir -p /data
 
 EXPOSE 3000
 

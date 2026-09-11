@@ -189,7 +189,7 @@ const LOCAL_QA_DATABASE: QAItem[] = [
     id: 21,
     category: "Setup",
     question: "What is the difference between Active/Passive and Active/Active FireCluster High Availability?",
-    answer: "FireCluster allows you to group two physical Fireboxes of the same exact model into a high-availability cluster:\n\n• **Active/Passive**: One master device handles 100% of the active traffic. The second backup device stays synchronized over dedicated HA links. If the master fails, the passive device inherits virtual MACs instantly with zero dropped sessions.\n• **Active/Active**: Both devices actively inspect traffic simultaneously. The master device receives external packets and load-balances them to the backup device using multicast. This increases total processing throughput, but requires a switch that correctly handles static multicast ARP tables.",
+    answer: "FireCluster allows you to group two physical Fireboxes of the same exact model into a high-availability cluster:\n\n• **Active/Passive**: One master device handles 100% of the active traffic. The second backup device stays synchronized over dedicated HA links. If the master fails, the passive device takes over the cluster role; session preservation depends on traffic type, synchronized state, and the failure.\n• **Active/Active**: Both devices actively inspect traffic simultaneously. The master device receives external packets and load-balances them to the backup device using multicast. This increases total processing throughput, but requires compatible multicast MAC forwarding; static MAC or ARP configuration may be needed on connected switches and routers.",
     keywords: ["firecluster", "active passive", "active active", "high availability", "multicast", "failover", "cluster"],
     refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/firecluster/firecluster_about_c.html"
   },
@@ -205,7 +205,7 @@ const LOCAL_QA_DATABASE: QAItem[] = [
     id: 23,
     category: "Setup",
     question: "How do backups on a Firebox work, and what is the difference between FXI and XML files?",
-    answer: "Firebox recovery and backup configurations are handled in two different formats:\n\n• **XML Configuration File**: Saves only the network, policy, and routing configurations. It is model-independent, meaning you can export an XML file from an older model (like a T35) and import it onto a newer model (like a T40) to migrate policies.\n• **FXI Flash Backup Image**: An exact bit-by-bit recovery snapshot of the entire Firebox, including the operating system (Fireware OS version), active feature keys, local certificates, and configuration. These are strictly model-specific and can only be restored on the exact same hardware model.",
+    answer: "XML configuration files support offline Policy Manager editing and supported migrations after checking interfaces and version compatibility. FXI backups are device-specific and contain configuration, certificates, feature keys, and passphrases. Fireware OS inclusion depends on the backup method and version. Standard backups saved to the Firebox in 12.2.1 and higher do not include the OS; plan the supported restore procedure and retain the saved management credentials.",
     keywords: ["backup", "fxi", "xml", "restore", "migration", "flash image", "recovery"],
     refLink: "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/initial_setup/backup_and_restore_c.html"
   },
@@ -232,7 +232,7 @@ export default function GeneralChat() {
     {
       id: "init",
       sender: "bot",
-      text: "Hello! I am your WatchGuard Certified Network Security Essentials tutor. I am a Level 3 Systems Engineer here to help you study policy configuration, routing, NAT structures, and VPN configurations for locally-managed Fireboxes. \n\nWhat are you currently reviewing? Ask me anything, or pick one of the quick study paths below!",
+      text: "Hello! I am your AI study tutor for Network Security Essentials. I can help you study policy configuration, routing, NAT structures, and VPN configurations for locally-managed Fireboxes. \n\nWhat are you currently reviewing? Ask me anything, or pick one of the quick study paths below!",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -353,7 +353,7 @@ export default function GeneralChat() {
           </div>
           <div>
             <h2 className="font-display font-semibold text-white tracking-tight">
-              WatchGuard Certified Study Companion
+              WatchGuard Study Companion
             </h2>
             <div className="flex items-center space-x-1.5">
               <span className={`w-1.5 h-1.5 rounded-full ${isAIFeaturesEnabledState ? "bg-green-500 animate-ping" : "bg-gray-500"}`}></span>

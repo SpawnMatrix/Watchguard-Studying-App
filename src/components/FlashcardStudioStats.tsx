@@ -34,7 +34,7 @@ export default function FlashcardStudioStats({
             ></div>
           </div>
           <p className="text-[11px] text-gray-400 mt-1.5 font-sans leading-normal">
-            {masteredCount} of {totalCount} essential NSE topics flagged as mastered.
+            {masteredCount} of {totalCount} study cards marked as mastered.
           </p>
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function FlashcardStudioStats({
           <Layers className="w-6 h-6 text-watchguard-orange" />
         </div>
         <div>
-          <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Coded Syllabus Areas</span>
+          <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Learning tracks</span>
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Setup</span>
             <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Policies</span>
@@ -64,7 +64,7 @@ export default function FlashcardStudioStats({
         <div>
           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Study Guide Links</span>
           <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-            Based directly on the <strong>locally managed firebox syllabus</strong> for the Network Security Essentials exam.
+            Local Firebox, Network+, and Cloud concepts. Reveal the answer, explain it in your own words, then mark the card mastered.
           </p>
           <button
             onClick={handleResetProgress}

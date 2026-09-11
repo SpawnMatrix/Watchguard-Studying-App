@@ -1,0 +1,58 @@
+name: Study regression checks
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+  container:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: docker build -t study-test .
+      - name: Start production image with persistent data
+        run: docker run -d --name study-smoke -p 3000:3000 -e ENABLE_AI_FEATURES=false -v study-smoke-data:/data study-test
+      - name: Wait for health and test study flows
+        env:
+          SMOKE_USERNAME: smoke_ci
+        run: |
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/session; then break; fi
+            sleep 2
+          done
+          node scripts/smoke.mjs
+      - name: Replace container and verify persisted account
+        env:
+          SMOKE_USERNAME: smoke_ci
+          SMOKE_VERIFY: 'true'
+        run: |
+          docker rm -f study-smoke
+          docker run -d --name study-smoke -p 3000:3000 -e ENABLE_AI_FEATURES=false -v study-smoke-data:/data study-test
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/session; then break; fi
+            sleep 2
+          done
+          node scripts/smoke.mjs
+      - name: Container logs
+        if: always()
+        run: docker logs study-smoke

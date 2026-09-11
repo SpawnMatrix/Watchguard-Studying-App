@@ -6,10 +6,10 @@ export default function FlashcardStudioResources() {
     <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl space-y-4">
       <div className="flex items-center space-x-2 border-b border-watchguard-border pb-3">
         <BookOpen className="w-4 h-4 text-watchguard-orange" />
-        <h3 className="font-display font-semibold text-white">WatchGuard NSE Official Reference Catalog</h3>
+        <h3 className="font-display font-semibold text-white">Study Reference Catalog</h3>
       </div>
       <p className="text-xs text-gray-400 leading-relaxed font-sans">
-        To prepare to **PASS** your WatchGuard Network Security exam (Locally-Managed Fireboxes), use these highly recommended study materials, curated video tutorials, and interactive reference sets.
+        Pair practice questions with the official study guide, hands-on labs, and documentation for your Fireware release.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -56,7 +56,7 @@ export default function FlashcardStudioResources() {
             <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider font-bold">Quizlet Study Sets</span>
             <h4 className="text-xs font-semibold text-white">High-Yield Exam Prep Sets</h4>
             <p className="text-[11px] text-gray-400 leading-normal font-sans">
-              Review verified flashcards on Quizlet prepared by engineers studying for the Network Security Essentials certification.
+              Browse community study sets and check their answers against the official documentation.
             </p>
           </div>
           <a

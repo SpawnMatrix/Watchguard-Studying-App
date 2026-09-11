@@ -2,6 +2,11 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import { AccountStore } from './server/accounts';
+import { accountRoutes } from './server/accountRoutes';
+import { studyQuestions, questionById } from './src/engine/catalog';
+import { generateQuestion, questionTemplates } from './src/engine/templates';
+import { gradeQuestion } from './src/engine/grading';
 
 import { rateLimit } from "express-rate-limit";
 
@@ -34,7 +39,9 @@ const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
 const PORT = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
 app.set("trust proxy", (ip: string) => isTrustedProxy(ip));
-app.use(express.json());
+app.use(express.json({limit:'3mb'}));
+const accountStore = new AccountStore(path.resolve(process.env.DATA_DIR || 'data', 'study.sqlite'));
+app.use('/api/account', accountRoutes(accountStore));
 
 function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
@@ -140,6 +147,26 @@ app.post("/api/chat", async (req, res) => {
 app.post("/api/quiz/evaluate", async (req, res) => {
   const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body;
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
+  let canonical = questionById.get(questionId);
+  if (req.body.variant !== undefined || canonical?.variant) {
+    try {
+      canonical = generateQuestion(req.body.variant);
+      if(canonical.id!==questionId) throw new Error('Mismatched template');
+    } catch { return res.status(400).json({message:'Invalid or unsupported question variant.'}); }
+  }
+  if(canonical) {
+    const answers = selectedOptions ?? (typeof selectedAnswer==='string'?selectedAnswer.split(' | '):[]);
+    if(!Array.isArray(answers)||answers.some(a=>typeof a!=='string')||answers.length>20) return res.status(400).json({message:'Invalid answers.'});
+    const isCorrect=gradeQuestion(canonical,answers);
+    let explanation=canonical.explanation;
+    if(!explanation) {
+      try {
+        const feedback=await evaluateQuizAnswer(canonical.question,canonical.options,answers.join(' | '),canonical.correctAnswers.join(' | '),canonical.id,answers,customApiKey);
+        explanation=feedback.detailedExplanation;
+      } catch { explanation=`Correct answer: ${canonical.correctAnswers.join('; ')}.`; }
+    }
+    return res.json({isCorrect,detailedExplanation:explanation,weaknessCategory:canonical.topic,correctAnswers:canonical.correctAnswers,isDemoMode:!isAIFeaturesEnabled(customApiKey)});
+  }
   try {
     const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer, questionId, selectedOptions, customApiKey);
     res.json({
@@ -219,7 +246,7 @@ async function startServer() {
   });
 }
 
-startServer();
+
 
 // Fetch Question Stats
 app.get("/api/stats", async (req, res) => {
@@ -243,8 +270,11 @@ app.get("/api/stats", async (req, res) => {
 app.get("/api/questions", async (req, res) => {
   try {
     // Return a mock response or import questions
-    res.json({ success: true, count: 100 });
+    res.json({ success: true, count: studyQuestions.filter(q=>!q.variant).length,
+      templateCount: questionTemplates.length, topics: [...new Set(studyQuestions.map(q=>q.topic))] });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch questions" });
   }
 });
+
+startServer();

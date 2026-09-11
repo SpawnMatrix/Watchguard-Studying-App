@@ -1,8 +1,20 @@
-# WatchGuard Certified Network Security Essentials (NSE) Training Portal
+# WatchGuard Study Lab
 
 A high-performance, responsive self-hosted interactive study companion designed for junior security engineers preparing for the WatchGuard NSE Certification.
 
 This portal features an interactive **Firebox Live Network & Interface Simulator**, a **Practice Quiz Engine** with full-syllabus coverage, **Hands-on Labs** walkthrough guides, and a **Certification Readiness Reports** dashboard. It is designed to be **100% self-hosted, offline-capable**, with optional server-side Gemini AI features.
+
+
+## Study upgrade
+
+- **425 authored questions**, including 280 new questions, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **30 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.
+- **300 flashcards**, resumable quizzes and mock exams, and a weakness deck that requires three correct answers to clear a concept.
+- **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
+- Responsive navigation and quiz layout; all six existing study sections remain available.
+
+Read [engine and compatibility](docs/study-engine.md), [source/reuse audit](docs/content-sources.md), and [persistent deployment and backups](docs/deployment-data.md). Use Node >=22.13. Keep the Compose data volume across upgrades. This independent practice tool does not guarantee an exam result; check the current objectives and Fireware version.
+
 
 ---
 

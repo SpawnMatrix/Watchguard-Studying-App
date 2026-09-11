@@ -16,7 +16,7 @@ export default function AuditReportBuilder({ historyLength, isLoading, onGenerat
           <h3 className="font-display font-semibold text-white">Generate Executive Performance Audit</h3>
         </div>
         <p className="text-xs text-gray-400 leading-relaxed font-sans">
-          Compile your training progress logs into a structured audit report using the Gemini Deep reasoning engine. This report maps conceptual vulnerabilities back to WatchGuard Lab exercises to establish a customized engineering remediation study plan.
+          Review your quiz results and completed labs to identify what to practice next. A local report works without an AI key; optional tutor feedback can add study suggestions.
         </p>
       </div>
 
