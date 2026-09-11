@@ -21,6 +21,12 @@ import { integer, pick } from './random';
 export interface LogScenarioSpec {
   /** Short label used in the template catalogue. */
   title: string;
+  /**
+   * The specific connection this entry describes, quoted back in the
+   * question stem. It anchors the question to the log line in front of the
+   * learner instead of asking about "this traffic" in the abstract.
+   */
+  subject: string;
   topic: Question['topic'];
   /** The correct diagnosis. */
   cause: string;
@@ -63,6 +69,7 @@ export const logScenarioBuilders: ((r: Random) => LogScenarioSpec)[] = [
     const n = net(r), port = pick(r, [8080, 3389, 1433, 5060, 8443, 9100]);
     return {
       title: 'Unhandled internal packet',
+      subject: `${n.trusted} to ${n.server} on TCP ${port}`,
       topic: 'Policies',
       cause: 'No policy matched the traffic, so the Firebox dropped it under the implicit final deny.',
       distractors: [
@@ -86,6 +93,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.server} ${n.sport} ${port} tcp 20
     const n = net(r);
     return {
       title: 'Default packet handling drops a spoofed source',
+      subject: `${n.trusted} to ${n.internet} on TCP 443`,
       topic: 'Troubleshooting',
       cause: 'The source address arrived on an interface that does not own that network, so anti-spoofing dropped it.',
       distractors: [
@@ -109,6 +117,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 443 tcp 20 1
     const n = net(r), type = pick(r, ['application/x-msdownload', 'application/x-dosexec', 'application/zip']);
     return {
       title: 'HTTP proxy denies content by body type',
+      subject: `${n.trusted} to downloads.example.net on TCP 80`,
       topic: 'Proxies',
       cause: 'A proxy policy matched and allowed the connection, then the proxy action denied the content itself.',
       distractors: [
@@ -132,6 +141,7 @@ ${ts(r)} firebox http-proxy[2100]: ProxyDrop: HTTP Body Content Type match (HTTP
     const n = net(r);
     return {
       title: 'An explicit Deny policy matched first',
+      subject: `${n.trusted} to ${n.internet} on TCP 443`,
       topic: 'Policies',
       cause: 'A policy with a Deny action sat above the permitting policy, and the first match wins.',
       distractors: [
@@ -155,6 +165,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 443 tcp 20 6
     const n = net(r);
     return {
       title: 'Traffic denied for want of a route',
+      subject: `${n.trusted} to ${n.optional} on TCP 445`,
       topic: 'Routing',
       cause: 'The Firebox had no route to the destination network, so it could not forward the packet.',
       distractors: [
@@ -178,6 +189,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.optional} ${n.sport} 445 tcp 20 1
     const n = net(r);
     return {
       title: 'Source is on the Blocked Sites list',
+      subject: `${n.internet} to ${n.fbx} on TCP 443`,
       topic: 'Security Services',
       cause: 'The source address was on the Blocked Sites list, which is enforced ahead of the policy list.',
       distractors: [
@@ -201,6 +213,7 @@ ${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp 20 118 (
     const n = net(r);
     return {
       title: 'Policy matched but was outside its schedule',
+      subject: `${n.trusted} to ${n.internet} on TCP 80`,
       topic: 'Policies',
       cause: 'The matching policy was inactive at that time of day because a schedule was applied to it.',
       distractors: [
@@ -224,6 +237,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 80 tcp 20 63
     const n = net(r);
     return {
       title: 'Branch traffic missed the BOVPN tunnel route',
+      subject: `${n.trusted} to ${n.optional} on TCP 3389`,
       topic: 'BOVPN',
       cause: 'The traffic did not match the tunnel route, so it was sent to the default gateway and denied instead of being encrypted.',
       distractors: [

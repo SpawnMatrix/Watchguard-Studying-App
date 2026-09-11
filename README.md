@@ -8,13 +8,78 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 ## Study upgrade
 
 - **425 authored questions**, including 280 new questions, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
-- **30 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.
+- **42 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.
+- **Traffic Monitor log analysis**: read a simulated Fireware log line and identify why the packet was dropped — unhandled packet, explicit deny, ProxyDrop, spoofing, Blocked Sites, missing route, inactive schedule, or a BOVPN tunnel-route miss.
+- **Interactive policy ordering**: drag five firewall policies into the correct top-to-bottom processing order. Graded on sequence, and fully usable by keyboard.
+- **Spaced repetition (Leitner)**: five boxes with 0/1/3/7/21-day intervals, plus a topic layer that automatically weights your weak areas into future questions.
+- **"Explain like I'm an L1"**: on a missed answer, a beginner-level breakdown citing the Fireware Web UI menu path and the underlying Network+ concept. Works with AI disabled.
 - **300 flashcards**, resumable quizzes and mock exams, and a weakness deck that requires three correct answers to clear a concept.
 - **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
 - Responsive navigation and quiz layout; all six existing study sections remain available.
 
 Read [engine and compatibility](docs/study-engine.md), [source/reuse audit](docs/content-sources.md), and [persistent deployment and backups](docs/deployment-data.md). Use Node >=22.13. Keep the Compose data volume across upgrades. This independent practice tool does not guarantee an exam result; check the current objectives and Fireware version.
 
+
+---
+
+## 🔐 Security configuration
+
+The portal is designed to run internet-facing. Four settings decide whether
+its protections actually work — set them deliberately rather than leaving
+them at defaults that suit a LAN.
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `TRUSTED_PROXY_HOPS` | `0` | Number of reverse proxies in front of the app. **This value decides which address rate limiting treats as the client.** Set `1` behind a single Pangolin/Traefik/nginx layer. Leaving it at `0` while proxied means every limiter counts the proxy instead of the visitor. |
+| `TRUSTED_PROXY_CIDR` | unset | Alternative to the hop count: an explicit list of proxy addresses or CIDRs. Takes precedence when set. |
+| `COOKIE_SECURE` | `true` in production | Whether session cookies carry `Secure`. Set `false` **only** for plain-HTTP LAN use — otherwise browsers silently discard the cookie over HTTP and sign-in appears to do nothing. |
+| `ADMIN_BOOTSTRAP_USER` | unset | The account registered with this username becomes the first administrator. |
+| `ADMIN_PASSWORD` | unset | Optional break-glass credential. The server **refuses to start** if it is a known default (`admin123`, `admin`, `password`, `changeme`, `watchguard`) or shorter than 12 characters. |
+
+### How administrator access works
+
+Administrator authority is a role on a study account, not a shared password.
+
+1. Set `ADMIN_BOOTSTRAP_USER=yourname` and register that account — it is an
+   administrator immediately.
+2. Or, with `ADMIN_PASSWORD` set, sign in to your study account and enter the
+   password once in the admin console. That promotes your account, and you
+   never need the password again.
+3. Further administrators are promoted from the console by an existing one.
+
+Administrator sessions are separate from study sessions, live in an
+`HttpOnly` cookie, and expire after 30 minutes of inactivity. Demoting an
+account revokes its administrator sessions immediately, and the last
+remaining administrator cannot be removed.
+
+### Authentication protections
+
+- **Layered throttling.** Three persisted buckets — per username, per source
+  address across *all* usernames, and a global failure floor — so guessing one
+  account, spraying one PIN across many accounts, and distributed spraying are
+  each bounded. State lives in SQLite, so restarting the container does not
+  reset an attack in progress.
+- **PIN strength.** Repeats, straight runs (including wraparound), repeated
+  groups and embedded years are rejected when a PIN is set. Strength is never
+  checked at sign-in, so the error message cannot be used to probe.
+- **Versioned hashing.** Every stored secret records the key-derivation scheme
+  that produced it and is transparently re-hashed on the next successful
+  sign-in, so the work factor can be raised later without invalidating
+  existing credentials.
+- **Session lifecycle.** Rolling idle timeout, a per-account session cap, and
+  `POST /api/account/logout-everywhere` to sign out every device.
+
+### Container hardening
+
+The image runs as the unprivileged `node` user and execs node directly, so it
+tolerates a read-only root filesystem. Both Compose files set `read_only`,
+`cap_drop: ALL`, `no-new-privileges` and a tmpfs for `/tmp`. Health checks use
+`/healthz`, which touches no authentication or database code.
+
+> Upgrading an existing deployment: the database migration is additive and
+> preserves all accounts and study progress. Keep the `study-data` volume.
+> After upgrading, set `TRUSTED_PROXY_HOPS` and `COOKIE_SECURE` to match your
+> deployment before letting learners back in.
 
 ---
 

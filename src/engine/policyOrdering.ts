@@ -13,6 +13,16 @@
  */
 import type { Question } from '../data/questions';
 import type { Random } from './random';
+import { integer, pick } from './random';
+
+/**
+ * Scenario details are randomised per seed — addresses, ports and the
+ * department in the brief — so a learner re-reads the policy set rather
+ * than recognising a fixed puzzle and recalling the answer.
+ */
+const host = (r: Random, third: number) => `10.0.${third}.${integer(r, 10, 250)}`;
+const publicHost = (r: Random) => `203.0.113.${integer(r, 2, 250)}`;
+const hostileNet = (r: Random) => `198.51.100.${integer(r, 0, 3) * 64}/26`;
 
 
 export interface PolicyCard {
@@ -34,13 +44,15 @@ export interface OrderingScenario {
 }
 
 export const orderingScenarios: ((r: Random) => OrderingScenario)[] = [
-  () => ({
+  r => {
+    const kiosk = host(r, 10), finance = host(r, 20), vendor = publicHost(r);
+    return {
     title: 'Deny one host inside a permitted subnet',
     topic: 'Policies',
-    brief: 'A kiosk must be blocked from the internet while the rest of the trusted network browses normally, and the finance server reaches its vendor over HTTPS only.',
+    brief: `A kiosk at ${kiosk} must be blocked from the internet while the rest of the trusted network browses normally, and the finance server at ${finance} reaches its vendor at ${vendor} over HTTPS only.`,
     order: [
-      { label: 'Block-Kiosk-00', detail: 'Deny · From: 10.0.10.55 · To: Any-External · Any service' },
-      { label: 'Finance-Vendor-HTTPS-00', detail: 'Allow · From: 10.0.20.8 · To: 198.51.100.40 · HTTPS' },
+      { label: 'Block-Kiosk-00', detail: `Deny · From: ${kiosk} · To: Any-External · Any service` },
+      { label: 'Finance-Vendor-HTTPS-00', detail: `Allow · From: ${finance} · To: ${vendor} · HTTPS` },
       { label: 'HTTPS-proxy-00', detail: 'Allow · From: Trusted · To: Any-External · HTTPS (proxy action applied)' },
       { label: 'HTTP-proxy-00', detail: 'Allow · From: Trusted · To: Any-External · HTTP (proxy action applied)' },
       { label: 'Outgoing-00', detail: 'Allow · From: Any-Trusted, Any-Optional · To: Any-External · TCP and UDP' },
@@ -51,14 +63,17 @@ export const orderingScenarios: ((r: Random) => OrderingScenario)[] = [
       'Block-Kiosk-00 must sit above every permitting policy or the kiosk simply matches one of them first.',
     webUi: 'Firewall → Firewall Policies → Manual Order',
     section: 'Policy Precedence and Ordering',
-  }),
+    };
+  },
 
-  () => ({
+  r => {
+    const scanner = host(r, 30);
+    return {
     title: 'Keep proxy inspection reachable',
     topic: 'Proxies',
-    brief: 'Web traffic must be inspected by the proxies, an internal scanner needs unrestricted outbound access, and everything else may use the general outbound rule.',
+    brief: `Web traffic must be inspected by the proxies, the vulnerability scanner at ${scanner} needs unrestricted outbound access, and everything else may use the general outbound rule.`,
     order: [
-      { label: 'Scanner-Unrestricted-00', detail: 'Allow · From: 10.0.30.12 · To: Any-External · Any service' },
+      { label: 'Scanner-Unrestricted-00', detail: `Allow · From: ${scanner} · To: Any-External · Any service` },
       { label: 'HTTPS-proxy-Inspect-00', detail: 'Allow · From: Any-Trusted · To: Any-External · HTTPS (TLS inspection on)' },
       { label: 'HTTP-proxy-Inspect-00', detail: 'Allow · From: Any-Trusted · To: Any-External · HTTP' },
       { label: 'DNS-proxy-00', detail: 'Allow · From: Any-Trusted · To: Any-External · DNS' },
@@ -69,17 +84,20 @@ export const orderingScenarios: ((r: Random) => OrderingScenario)[] = [
       'A proxy policy that appears configured correctly but logs nothing is almost always sitting underneath Outgoing.',
     webUi: 'Firewall → Firewall Policies → Manual Order',
     section: 'About Proxy Policies and Actions',
-  }),
+    };
+  },
 
-  () => ({
+  r => {
+    const web = host(r, 50), jump = publicHost(r), hostile = hostileNet(r);
+    return {
     title: 'Published server with a management exception',
     topic: 'NAT',
-    brief: 'A public web server is published with SNAT, administrators reach it over RDP from one jump host only, and a known bad network must be denied outright.',
+    brief: `A public web server at ${web} is published with SNAT, administrators reach it over RDP from the jump host ${jump} only, and the known bad network ${hostile} must be denied outright.`,
     order: [
-      { label: 'Block-Hostile-Net-00', detail: 'Deny · From: 198.51.100.0/24 · To: Any · Any service' },
-      { label: 'Admin-RDP-Jump-00', detail: 'Allow · From: 203.0.113.77 · To: SNAT 10.0.50.20 · RDP' },
-      { label: 'Web-Server-HTTPS-00', detail: 'Allow · From: Any-External · To: SNAT 10.0.50.20 · HTTPS' },
-      { label: 'Web-Server-HTTP-00', detail: 'Allow · From: Any-External · To: SNAT 10.0.50.20 · HTTP' },
+      { label: 'Block-Hostile-Net-00', detail: `Deny · From: ${hostile} · To: Any · Any service` },
+      { label: 'Admin-RDP-Jump-00', detail: `Allow · From: ${jump} · To: SNAT ${web} · RDP` },
+      { label: 'Web-Server-HTTPS-00', detail: `Allow · From: Any-External · To: SNAT ${web} · HTTPS` },
+      { label: 'Web-Server-HTTP-00', detail: `Allow · From: Any-External · To: SNAT ${web} · HTTP` },
       { label: 'Outgoing-00', detail: 'Allow · From: Any-Trusted, Any-Optional · To: Any-External · TCP and UDP' },
     ],
     explanation:
@@ -88,25 +106,29 @@ export const orderingScenarios: ((r: Random) => OrderingScenario)[] = [
       'Outgoing-00 concerns outbound traffic and stays at the bottom, where it cannot shadow the inbound rules.',
     webUi: 'Firewall → Firewall Policies, and Firewall → SNAT for the published address',
     section: 'Static NAT and Policy Order',
-  }),
+    };
+  },
 
-  () => ({
+  r => {
+    const printer = host(r, 40), room = pick(r, ['conference room', 'training room', 'reception', 'break room']);
+    return {
     title: 'Guest network with a captive exception',
     topic: 'Policies',
-    brief: 'Guests may browse the web but must not reach internal networks, while the conference room printer is reachable from the guest VLAN.',
+    brief: `Guests may browse the web but must not reach internal networks, while the ${room} printer at ${printer} stays reachable from the guest VLAN.`,
     order: [
-      { label: 'Guest-Printer-00', detail: 'Allow · From: Guest-VLAN · To: 10.0.40.9 · IPP, Raw printing' },
+      { label: 'Guest-Printer-00', detail: `Allow · From: Guest-VLAN · To: ${printer} · IPP, Raw printing` },
       { label: 'Guest-Deny-Internal-00', detail: 'Deny · From: Guest-VLAN · To: Any-Trusted · Any service' },
       { label: 'Guest-Web-00', detail: 'Allow · From: Guest-VLAN · To: Any-External · HTTP, HTTPS' },
       { label: 'Trusted-Outbound-00', detail: 'Allow · From: Any-Trusted · To: Any-External · TCP and UDP' },
       { label: 'Outgoing-00', detail: 'Allow · From: Any-Trusted, Any-Optional · To: Any-External · TCP and UDP' },
     ],
     explanation:
-      'The printer at 10.0.40.9 sits on a trusted subnet, so Guest-Deny-Internal-00 would block it. In manual order Fireware stops at the first matching policy and does not look further, ' +
+      `The printer at ${printer} sits on a trusted subnet, so Guest-Deny-Internal-00 would block it. In manual order Fireware stops at the first matching policy and does not look further, ` +
       'so an exception placed below the rule it is an exception to is dead configuration. Guest-Printer-00 therefore has to sit above the deny. ' +
       'Once the deny has run, the remaining guest and trusted policies are ordered narrowest to broadest as usual, with Outgoing-00 last. ' +
       'The general lesson: an exception is only an exception if the traffic reaches it first.',
     webUi: 'Firewall → Firewall Policies → Manual Order',
     section: 'Policy Precedence and Ordering',
-  }),
+    };
+  },
 ];

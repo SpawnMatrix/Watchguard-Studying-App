@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { GraduationCap, ChevronDown, Compass, BookOpen, Wrench } from 'lucide-react';
 import type { Question } from '../data/questions';
 import { explainLikeL1 } from '../engine/eli1';
@@ -63,7 +63,7 @@ export default function ExplainLikeL1({ question, selectedAnswers }: ExplainLike
   );
 }
 
-function Panel({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function Panel({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
     <div className="rounded-lg border border-watchguard-border bg-watchguard-dark/60 p-3">
       <h4 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide font-bold text-watchguard-orange/90 font-mono mb-1.5">

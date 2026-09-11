@@ -221,7 +221,7 @@ logScenarioBuilders.forEach((build, index) => {
     build: r => {
       const spec = build(r);
       return {
-        question: 'Read the Traffic Monitor entry below. Why did the Firebox drop this traffic? (Select one.)',
+        question: `Read the Traffic Monitor entry below. Why did the Firebox drop the connection from ${spec.subject}? (Select one.)`,
         options: [spec.cause, ...spec.distractors],
         correctAnswers: [spec.cause],
         explanation: `${spec.explanation}\n\nWhere to look in Fireware Web UI: ${spec.webUi}`,
