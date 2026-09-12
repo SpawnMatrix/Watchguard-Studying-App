@@ -1,5 +1,6 @@
 import type { QuestionMetadata } from '../engine/types';
 import { authoredQuestions } from './authoredQuestions';
+import { legacyRevisions } from './legacyExplanations';
 
 export interface Question extends QuestionMetadata {
   id: number;
@@ -115,12 +116,12 @@ export const examQuestions: Question[] = [
     question: "You want to route traffic from clients on the 192.168.10.0/24 subnet to a server at 10.0.20.80 behind a router with IP 192.168.10.5. Which static routes could you add? (Select TWO.)",
     options: [
       "Route to 10.0.20.0/24, Gateway 10.0.2.1",
-      "Route to 10.0.20.80, Gateway 192.168.10.5",
+      "Route to 10.0.20.80/32, Gateway 192.168.10.5",
       "Route to 192.168.10.5, Gateway 192.168.10.1",
       "Route to 10.0.20.0/24, Gateway 192.168.10.5"
     ],
     correctAnswer: "Route to 10.0.20.0/24, Gateway 192.168.10.5 | Route to 10.0.20.80, Gateway 192.168.10.5",
-  correctAnswers: ["Route to 10.0.20.80, Gateway 192.168.10.5", "Route to 10.0.20.0/24, Gateway 192.168.10.5"],
+  correctAnswers: ["Route to 10.0.20.80/32, Gateway 192.168.10.5", "Route to 10.0.20.0/24, Gateway 192.168.10.5"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Routing"
@@ -137,7 +138,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 10,
-    question: "Which authentication servers can be used with any type of Mobile VPN? (Select TWO.)",
+    question: "Which authentication server types can authenticate users for EVERY Mobile VPN type the Firebox supports — IPSec, L2TP, SSL, and IKEv2? (Select TWO.)",
     options: ["Firebox-DB", "Active Directory", "RADIUS", "LDAP"],
     correctAnswer: "Firebox-DB | RADIUS",
   correctAnswers: ["Firebox-DB", "RADIUS"],
@@ -274,15 +275,15 @@ export const examQuestions: Question[] = [
     id: 20,
     question: "How is a proxy policy different from a packet filter policy? (Select TWO.)",
     options: [
-      "Only a proxy policy examines information in the IP header.",
+      "Only a packet filter policy can be applied to traffic on a non-standard port.",
       "Only a proxy policy uses the IP source, destination, and port to control network traffic.",
       "Only a proxy policy can prevent specific threats without blocking the entire connection.",
-      "Only a proxy works at the application, network, and transport layers to examine all connection data."
+      "Only a proxy policy examines application-layer content in addition to the network and transport headers."
     ],
     correctAnswer: "Only a proxy policy can prevent specific threats without blocking the entire connection. | Only a proxy works at the application, network, and transport layers to examine all connection data.",
   correctAnswers: [
       "Only a proxy policy can prevent specific threats without blocking the entire connection.",
-      "Only a proxy works at the application, network, and transport layers to examine all connection data."
+      "Only a proxy policy examines application-layer content in addition to the network and transport headers."
     ],
     isMultiSelect: true,
     correctAnswersCount: 2,
@@ -410,15 +411,15 @@ export const examQuestions: Question[] = [
   },
   {
     id: 30,
-    question: "What is the default behavior of the Firebox HTTPS Proxy when it encounters an expired SSL certificate on an external server during HTTPS inspection? (Select one.)",
+    question: "HTTPS content inspection is enabled, and the Firebox certificate validation rejects an external server expired certificate. What does the client experience? (Select one.)",
     options: [
-      "It blocks the connection and returns a certificate warning page to the client",
+      "The connection is blocked and the Firebox returns a certificate warning page to the client",
       "It bypasses the scanner and allows the connection without warning",
       "It automatically repairs the signature and re-keys the stream",
       "It routes the connection through an isolated optional interface"
     ],
-    correctAnswer: "It blocks the connection and returns a certificate warning page to the client",
-  correctAnswers: ["It blocks the connection and returns a certificate warning page to the client"],
+    correctAnswer: "The connection is blocked and the Firebox returns a certificate warning page to the client",
+  correctAnswers: ["The connection is blocked and the Firebox returns a certificate warning page to the client"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -608,7 +609,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 44,
-    question: "Which Firebox cluster configuration requires active-active load balancing switches to be deployed upstream and downstream of the cluster? (Select one.)",
+    question: "In a WatchGuard FireCluster, which configuration has every member process traffic at the same time instead of holding one member idle as a standby? (Select one.)",
     options: ["Active/Passive Cluster", "Active/Active Cluster", "Dynamic Routing Multi-Cluster", "Drop-In Clustering"],
     correctAnswer: "Active/Active Cluster",
   correctAnswers: ["Active/Active Cluster"],
@@ -718,22 +719,22 @@ export const examQuestions: Question[] = [
   },
   {
     id: 53,
-    question: "When multiple policies are configured in Policy Manager, how does the Firebox determine the order of policy precedence? (Select one.)",
+    question: "Two enabled policies could both match the same new connection. How does a Firebox decide which one applies? (Select one.)",
     options: [
       "Alphabetical order of policy names",
       "Creation date order (oldest policy first)",
-      "Sequential order from top to bottom (most specific to least specific)",
+      "By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies",
       "Port number order (lowest ports first)"
     ],
-    correctAnswer: "Sequential order from top to bottom (most specific to least specific)",
-  correctAnswers: ["Sequential order from top to bottom (most specific to least specific)"],
+    correctAnswer: "By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies",
+  correctAnswers: ["By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
   },
   {
     id: 54,
-    question: "Which of these proxies can be used to scan inbound and outbound email messages for virus signatures or spam content? (Select TWO.)",
+    question: "Which of these proxy policies can apply spamBlocker and Gateway AntiVirus to email traffic? (Select TWO.)",
     options: ["SMTP-proxy", "IMAP-proxy", "TCP-UDP-proxy", "HTTP-proxy"],
     correctAnswer: "SMTP-proxy | IMAP-proxy",
   correctAnswers: ["SMTP-proxy", "IMAP-proxy"],
@@ -811,12 +812,12 @@ export const examQuestions: Question[] = [
     question: "What happens if you configure an HTTPS Proxy to allow connections with unrecognized SSL/TLS certificate authority signatures? (Select one.)",
     options: [
       "The Firebox blocks the connection and drops the packet.",
-      "The Firebox intercepts and signs the connection using its Proxy Authority certificate, bypassing inspections.",
-      "The client browser will receive a security alert because the Firebox signs it with a self-signed certificate.",
+      "The Firebox removes TLS from the session and delivers the page to the client over plain HTTP.",
+      "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning.",
       "The Firebox bypasses content inspection and allows the client to establish a direct TLS tunnel."
     ],
-    correctAnswer: "The client browser will receive a security alert because the Firebox signs it with a self-signed certificate.",
-  correctAnswers: ["The client browser will receive a security alert because the Firebox signs it with a self-signed certificate."],
+    correctAnswer: "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning.",
+  correctAnswers: ["The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -848,12 +849,12 @@ export const examQuestions: Question[] = [
   },
   {
     id: 64,
-    question: "If a Mobile VPN with SSL client cannot browse resources on the Trusted network, what is the most likely cause? (Select TWO.)",
+    question: "A Mobile VPN with SSL client connects and the tunnel is established, but it cannot reach any resource on the Trusted network. Which TWO causes are consistent with that symptom?",
     options: [
       "The virtual IP address pool overlaps with the client's local network subnet.",
       "The client computer does not have the administrative certificate installed.",
       "The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted.",
-      "The Firebox is in Drop-In mode instead of Mixed Routing mode."
+      "The client received its virtual IP address from the Trusted-interface DHCP server instead of the VPN pool."
     ],
     correctAnswer: "The virtual IP address pool overlaps with the client's local network subnet. | The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted.",
   correctAnswers: ["The virtual IP address pool overlaps with the client's local network subnet.", "The SSL-VPN policy does not allow traffic from the SSL-VPN group to Any-Trusted."],
@@ -988,10 +989,10 @@ export const examQuestions: Question[] = [
   },
   {
     id: 76,
-    question: "Which status indicator light on the physical front panel of a Firebox indicates active management or configuration synchronization? (Select one.)",
-    options: ["Power", "Arm/Disarm", "WIFI / Status", "Mode"],
-    correctAnswer: "Arm/Disarm",
-  correctAnswers: ["Arm/Disarm"],
+    question: "Nobody knows the admin passphrase for a locally managed Firebox and you must return it to factory-default settings. Which procedure does that? (Select one.)",
+    options: ["Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset", "Delete the device feature key in the WatchGuard support portal", "Disconnect the external interface and power-cycle the Firebox twice", "Change the Trusted interface IP address from Policy Manager"],
+    correctAnswer: "Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset",
+  correctAnswers: ["Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1043,7 +1044,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 80,
-    question: "Which of these proxies can intercept and control remote administrative sessions using protocols like RDP, SSH, or Telnet? (Select one.)",
+    question: "Which proxy policy handles TCP or UDP traffic for which no protocol-specific proxy exists, such as RDP or SSH? (Select one.)",
     options: ["HTTP-proxy", "TCP-UDP-proxy", "SIP-proxy", "DNS-proxy"],
     correctAnswer: "TCP-UDP-proxy",
   correctAnswers: ["TCP-UDP-proxy"],
@@ -1093,10 +1094,10 @@ export const examQuestions: Question[] = [
   },
   {
     id: 84,
-    question: "Which file format is used when you export log files from Firebox System Manager Traffic Monitor for offline analysis? (Select one.)",
-    options: [".xml", ".log", ".csv", ".txt"],
-    correctAnswer: ".log",
-  correctAnswers: [".log"],
+    question: "Traffic Monitor only shows messages as they arrive. What has to be in place before a manager can run a report covering last week? (Select one.)",
+    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A larger Traffic Monitor scroll-back buffer on the management workstation", "An SNMP trap receiver on the Trusted network", "A second administrator account with Device Monitor access"],
+    correctAnswer: "A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies",
+  correctAnswers: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -1159,8 +1160,8 @@ export const examQuestions: Question[] = [
   },
   {
     id: 90,
-    question: "What is the action options available in Gateway AntiVirus when a virus is detected in a scanned file? (Select THREE.)",
-    options: ["Allow", "Block", "Drop", "Clean", "Quarantine"],
+    question: "On the HTTP-proxy, which actions can you assign to Gateway AntiVirus for a file in which it detects a virus? (Select THREE.)",
+    options: ["Allow", "Block", "Drop", "Disinfect the file and deliver the cleaned copy", "Re-encode the file into a safe format"],
     correctAnswer: "Allow | Block | Drop",
   correctAnswers: ["Allow", "Block", "Drop"],
     isMultiSelect: true,
@@ -1194,7 +1195,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 93,
-    question: "You want to investigate if a hardware interface might be dropping packets due to physical link issues. Where can you view physical link-state logs (such as 'Link down')? (Select one.)",
+    question: "Which Firebox System Manager tool shows log messages such as Link down as the Firebox generates them? (Select one.)",
     options: ["Traffic Monitor", "FSM Status Report > Log Message Center", "FSM System Status > Interfaces", "WSM Dimension Reports"],
     correctAnswer: "Traffic Monitor",
   correctAnswers: ["Traffic Monitor"],
@@ -1249,25 +1250,25 @@ export const examQuestions: Question[] = [
   },
   {
     id: 98,
-    question: "You want to allow remote administrators to connect via SSH to an internal server on port 22, but prevent them from executing specific file-transfer commands over SSH. Can a standard TCP-UDP packet filter accomplish this? (Select one.)",
+    question: "Remote administrators reach an internal server over SSH on TCP 22. You want to stop them using the SSH file-transfer subsystem while still allowing shell access. Can a Firebox policy enforce that? (Select one.)",
     options: [
-      "Yes, packet filters can parse SSH sub-commands.",
-      "No, you must use an SSH-proxy with command filters.",
-      "Yes, by restricting the source IP address.",
-      "No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox."
+      "Yes. A packet filter can be configured to parse SSH subsystem requests.",
+      "Yes, if you enable Gateway AntiVirus on the SSH policy.",
+      "Yes, by restricting which source IP addresses may reach TCP 22.",
+      "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another."
     ],
-    correctAnswer: "No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox.",
-  correctAnswers: ["No, because SSH traffic is encrypted and cannot be inspected at all by the Firebox."],
+    correctAnswer: "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another.",
+  correctAnswers: ["No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
   },
   {
     id: 99,
-    question: "Which WatchGuard security subscription service protects users from downloading files containing malware based on metadata reputation checks, before the file is fully downloaded? (Select one.)",
-    options: ["Gateway AntiVirus", "APT Blocker", "Reputation Enabled Defense (RED)", "IntelligentAV"],
-    correctAnswer: "Reputation Enabled Defense (RED)",
-  correctAnswers: ["Reputation Enabled Defense (RED)"],
+    question: "Which Firebox subscription service classifies inbound messages as spam, bulk, suspect, or not spam so the SMTP-proxy can act on them? (Select one.)",
+    options: ["spamBlocker", "Reputation Enabled Defense (RED)", "WebBlocker", "Application Control"],
+    correctAnswer: "spamBlocker",
+  correctAnswers: ["spamBlocker"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -1365,10 +1366,10 @@ export const examQuestions: Question[] = [
 ,
   {
     id: 106,
-    question: "When configuring AuthPoint MFA, which of these are valid authentication methods for users logging into the Fireware Web UI? (Select TWO.)",
-    options: ["Push notification", "SMS passcodes", "Hardware token (TOTP)", "Voice call verification"],
+    question: "Which of these are AuthPoint authentication methods a user can use to satisfy an MFA prompt? (Select TWO.)",
+    options: ["Push notification approved in the AuthPoint mobile app", "An SMS text passcode sent by AuthPoint", "A one-time password from the AuthPoint app or a hardware token", "An automated voice call placed by AuthPoint"],
     correctAnswer: "Push notification | Hardware token (TOTP)",
-  correctAnswers: ["Push notification", "Hardware token (TOTP)"],
+  correctAnswers: ["Push notification approved in the AuthPoint mobile app", "A one-time password from the AuthPoint app or a hardware token"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "Security Services"
@@ -1395,7 +1396,7 @@ export const examQuestions: Question[] = [
   },
   {
     id: 109,
-    question: "Which layer of the OSI model does the Firebox's standard Packet Filter policy primarily operate on to inspect source/destination IPs and port numbers? (Select TWO.)",
+    question: "Which TWO OSI layers supply the fields a standard packet filter policy matches on — source and destination IP address, and source and destination port?",
     options: ["Layer 2 (Data Link)", "Layer 3 (Network)", "Layer 4 (Transport)", "Layer 7 (Application)"],
     correctAnswer: "Layer 3 (Network) | Layer 4 (Transport)",
   correctAnswers: ["Layer 3 (Network)", "Layer 4 (Transport)"],
@@ -1475,7 +1476,7 @@ export const examQuestions: Question[] = [
       "The ZIP file is password-encrypted.",
       "The ZIP file exceeds the configured scan size limit.",
       "The ZIP file contains a recognized executable.",
-      "The ZIP file was downloaded via FTP."
+      "The ZIP file contains more than one compressed file."
     ],
     correctAnswer: "The ZIP file is password-encrypted. | The ZIP file exceeds the configured scan size limit.",
   correctAnswers: ["The ZIP file is password-encrypted.", "The ZIP file exceeds the configured scan size limit."],
@@ -1688,14 +1689,14 @@ examQuestions.push({
 
 examQuestions.push({
   id: 206,
-  question: "Which Subscription Service utilizes full-system emulation to analyze suspicious files and detect zero-day threats?",
-  options: ["Gateway AntiVirus", "Intrusion Prevention Service (IPS)", "APT Blocker", "WebBlocker"],
-  correctAnswer: "APT Blocker",
-  correctAnswers: ["APT Blocker"],
+  question: "Which Firebox security service uses a WatchGuard-maintained list of known botnet command-and-control sites to block traffic to and from infected internal hosts?",
+  options: ["Botnet Detection", "Gateway AntiVirus", "APT Blocker", "WebBlocker"],
+  correctAnswer: "Botnet Detection",
+  correctAnswers: ["Botnet Detection"],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Security Services",
-  explanation: "APT Blocker sends files to a cloud-based sandbox where they are executed in full-system emulation to monitor for malicious behavior characteristic of advanced persistent threats."
+  explanation: "Botnet Detection, part of the Reputation Enabled Defense subscription, compares each connection endpoint against a maintained list of known botnet command-and-control addresses and blocks the matches. The strongest distractor is APT Blocker, but that service decides by detonating a file and watching its behaviour, not by the reputation of the destination."
 });
 
 examQuestions.push({
@@ -1735,21 +1736,21 @@ examQuestions.push({
   id: 301,
   question: "Which of the following is true about Fireware WebUI? (Select two.)",
   options: [
-    "It requires the WatchGuard System Manager to be installed on the client PC.",
-    "It operates over port 8080 by default.",
-    "It can be accessed from any web browser.",
-    "It supports full configuration of all Firebox features.",
-    "It allows for real-time monitoring of device traffic and logs."
+    "It operates over HTTPS on TCP port 8080 by default.",
+    "It is reached with a web browser, with no WatchGuard software installed on the client.",
+    "It is the only supported way to configure a locally managed Firebox.",
+    "It supports every Firebox feature that WatchGuard System Manager supports.",
+    "It is also the management interface for cloud-managed Fireboxes."
   ],
   correctAnswer: "",
   correctAnswers: [
-    "It can be accessed from any web browser.",
-    "It operates over port 8080 by default."
+    "It operates over HTTPS on TCP port 8080 by default.",
+    "It is reached with a web browser, with no WatchGuard software installed on the client."
   ],
   isMultiSelect: true,
   correctAnswersCount: 2,
   topic: "Initial Setup",
-  explanation: "Fireware Web UI is a web-based management tool that runs on the Firebox. You can access it using a web browser from any device, without needing WSM. By default, it operates on port 8080 (HTTPS)."
+  explanation: "Fireware Web UI is served by the Firebox itself over HTTPS on TCP 8080, so a browser is all the client needs. It is not the only way in: Policy Manager, Firebox System Manager and the CLI also configure a locally managed Firebox, and a few features remain WSM-only. Cloud-managed Fireboxes are configured in WatchGuard Cloud instead."
 });
 
 examQuestions.push({
@@ -1795,14 +1796,14 @@ examQuestions.push({
 
 examQuestions.push({
   id: 305,
-  question: "Which Firebox proxy policy allows you to enforce YouTube Restricted mode?",
-  options: ["HTTP Proxy", "HTTPS Proxy", "TCP-UDP Proxy", "DNS Proxy", "FTP Proxy"],
-  correctAnswer: "HTTPS Proxy",
-  correctAnswers: ["HTTPS Proxy"],
+  question: "You must enforce YouTube Restricted mode for users who reach youtube.com over TLS. Besides selecting the restricted-mode setting itself, what must the HTTPS-proxy policy have enabled?",
+  options: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header", "WebBlocker, with the Streaming Media category set to Deny", "Gateway AntiVirus, with the default scan size limits", "Application Control, with the YouTube application set to Drop"],
+  correctAnswer: "Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header",
+  correctAnswers: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header"],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Proxies",
-  explanation: "Because YouTube uses HTTPS, you must use the HTTPS proxy with content inspection enabled. The HTTPS proxy includes a specific action to enforce YouTube restricted mode by injecting a header."
+  explanation: "Restricted mode is enforced by adding a header to the request for youtube.com. Over TLS the Firebox cannot add that header until it decrypts the session, so content inspection has to be enabled on the HTTPS-proxy. The strongest distractor is Application Control: it can drop YouTube entirely, but blocking a site is not the same as restricting it to safe content."
 });
 
 examQuestions.push({
@@ -1860,7 +1861,7 @@ examQuestions.push({
   correctAnswers: ["The pre-shared key (PSK)", "The Phase 1 and Phase 2 proposals (transform sets)"],
   isMultiSelect: true,
   correctAnswersCount: 2,
-  topic: "Mobile VPN",
+  topic: "BOVPN",
   explanation: "For a BOVPN to establish successfully, the Phase 1 and Phase 2 cryptographic settings (proposals) and the authentication method (e.g., PSK) must match exactly between the two peers."
 });
 
@@ -1875,6 +1876,18 @@ examQuestions.push({
   topic: "Logging & Monitoring",
   explanation: "Traceroute shows the path and hop delays that packets take from the Firebox to a specific destination."
 });
+
+// The original bank shipped without explanations, and some of its questions were filed under a
+// topic or track that did not match what they test. Applying the corrections here keeps the
+// historical question objects and their identifiers untouched while giving every one of them a
+// rationale. See legacyExplanations.ts for the revisions themselves.
+for (const question of examQuestions) {
+  const revision = legacyRevisions[question.id];
+  if (!revision) continue;
+  if (!question.explanation) question.explanation = revision.explanation;
+  if (revision.topic) question.topic = revision.topic;
+  if (revision.track) question.track = revision.track;
+}
 
 // Additive catalog: historical question identifiers remain unchanged.
 examQuestions.push(...authoredQuestions);
