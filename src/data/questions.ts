@@ -723,13 +723,13 @@ export const examQuestions: Question[] = [
     id: 53,
     question: "Two enabled policies could both match the same new connection. How does a Firebox decide which one applies? (Select one.)",
     options: [
-      "Alphabetical order of policy names",
-      "Creation date order (oldest policy first)",
-      "By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies",
-      "Port number order (lowest ports first)"
+      "In alphabetical order of policy name, so renaming a policy changes which one is evaluated first",
+      "In creation order, with the oldest policy evaluated first and newer ones reached only if it does not match",
+      "By policy precedence: most specific first by default, or the list order top to bottom when manual order is enabled",
+      "By destination port, with the policy covering the lowest port number evaluated ahead of the others"
     ],
-    correctAnswer: "By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies",
-  correctAnswers: ["By policy precedence: ranked automatically from most specific to least specific, unless manual order is enabled, in which case the list order from top to bottom applies"],
+    correctAnswer: "By policy precedence: most specific first by default, or the list order top to bottom when manual order is enabled",
+  correctAnswers: ["By policy precedence: most specific first by default, or the list order top to bottom when manual order is enabled"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Policies"
@@ -813,13 +813,13 @@ export const examQuestions: Question[] = [
     id: 61,
     question: "What happens if you configure an HTTPS Proxy to allow connections with unrecognized SSL/TLS certificate authority signatures? (Select one.)",
     options: [
-      "The Firebox blocks the connection and drops the packet.",
+      "The Firebox blocks the connection and drops the packet without returning anything to the client.",
       "The Firebox removes TLS from the session and delivers the page to the client over plain HTTP.",
-      "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning.",
+      "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns.",
       "The Firebox bypasses content inspection and allows the client to establish a direct TLS tunnel."
     ],
-    correctAnswer: "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning.",
-  correctAnswers: ["The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser shows a security warning."],
+    correctAnswer: "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns.",
+  correctAnswers: ["The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -992,9 +992,9 @@ export const examQuestions: Question[] = [
   {
     id: 76,
     question: "Nobody knows the admin passphrase for a locally managed Firebox and you must return it to factory-default settings. Which procedure does that? (Select one.)",
-    options: ["Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset", "Delete the device feature key in the WatchGuard support portal", "Disconnect the external interface and power-cycle the Firebox twice", "Change the Trusted interface IP address from Policy Manager"],
-    correctAnswer: "Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset",
-  correctAnswers: ["Hold the physical Reset button down while you power the Firebox on, and release it when the indicator signals the reset"],
+    options: ["Hold the physical Reset button down while you power the Firebox on, releasing it at the indicator signal", "Delete the device feature key in the WatchGuard support portal, then re-import it to clear stored passphrases", "Disconnect the external interface and power-cycle the Firebox twice so it falls back to its setup defaults", "Change the Trusted interface IP address from Policy Manager and reconnect on the factory setup address"],
+    correctAnswer: "Hold the physical Reset button down while you power the Firebox on, releasing it at the indicator signal",
+  correctAnswers: ["Hold the physical Reset button down while you power the Firebox on, releasing it at the indicator signal"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1184,10 +1184,10 @@ export const examQuestions: Question[] = [
     id: 92,
     question: "What is the difference between a Virtual Interface BOVPN and a Policy-Based BOVPN? (Select one.)",
     options: [
-      "Virtual Interface BOVPN does not encrypt tunnel traffic.",
+      "A virtual interface BOVPN carries traffic in cleartext and relies on the underlying link for privacy.",
       "Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules.",
-      "Policy-Based BOVPN is only supported on wireless Fireboxes.",
-      "Virtual Interface BOVPN does not support IKEv2."
+      "A policy-based BOVPN is supported only on Firebox models that have a wireless interface.",
+      "A virtual interface BOVPN supports IKEv1 only and cannot be built on an IKEv2 gateway."
     ],
     correctAnswer: "Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules.",
   correctAnswers: ["Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules."],
@@ -1254,13 +1254,13 @@ export const examQuestions: Question[] = [
     id: 98,
     question: "Remote administrators reach an internal server over SSH on TCP 22. You want to stop them using the SSH file-transfer subsystem while still allowing shell access. Can a Firebox policy enforce that? (Select one.)",
     options: [
-      "Yes. A packet filter can be configured to parse SSH subsystem requests.",
-      "Yes, if you enable Gateway AntiVirus on the SSH policy.",
-      "Yes, by restricting which source IP addresses may reach TCP 22.",
-      "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another."
+      "Yes. A packet filter can be configured to read the SSH subsystem request and deny the file-transfer channel.",
+      "Yes, if you enable Gateway AntiVirus on the policy, because it inspects the files moved over the session.",
+      "Yes, by restricting which source IP addresses may reach TCP 22, which limits what those sessions carry.",
+      "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports."
     ],
-    correctAnswer: "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another.",
-  correctAnswers: ["No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports, so it cannot tell one SSH subsystem from another."],
+    correctAnswer: "No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports.",
+  correctAnswers: ["No. Fireware has no SSH proxy, and a packet filter matches only addresses, protocol and ports."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -1762,13 +1762,13 @@ examQuestions.push({
   id: 303,
   question: "What must be configured on the Firebox to use an Active Directory server for user authentication?",
   options: [
-    "The Firebox must be joined to the AD domain.",
-    "LDAP or RADIUS authentication must be configured.",
-    "Single Sign-On (SSO) agent must be installed on the AD server.",
-    "Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers."
+    "The Firebox must be joined to the Active Directory domain as a member server before users can log in.",
+    "A separate LDAP or RADIUS authentication server must be configured to broker the directory lookup.",
+    "The Single Sign-On agent must be installed on the domain controller before any authentication works.",
+    "Active Directory server details, including IP address, base DN and search string, in Authentication Servers."
   ],
-  correctAnswer: "Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers.",
-  correctAnswers: ["Active Directory details (IP, Base DN, Search String) must be defined in the Firebox Authentication Servers."],
+  correctAnswer: "Active Directory server details, including IP address, base DN and search string, in Authentication Servers.",
+  correctAnswers: ["Active Directory server details, including IP address, base DN and search string, in Authentication Servers."],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Security Services",
@@ -1777,14 +1777,14 @@ examQuestions.push({
 
 examQuestions.push({
   id: 304,
-  question: "Which feature protects against Zero-Day malware by running suspicious files in a cloud-based sandbox?",
-  options: ["Gateway AntiVirus", "Intrusion Prevention Service (IPS)", "APT Blocker", "WebBlocker", "Botnet Detection"],
-  correctAnswer: "APT Blocker",
-  correctAnswers: ["APT Blocker"],
+  question: "Which Firebox security service blocks a connection based on the country associated with the remote IP address?",
+  options: ["Geolocation", "Botnet Detection", "Reputation Enabled Defense (RED)", "WebBlocker", "Application Control"],
+  correctAnswer: "Geolocation",
+  correctAnswers: ["Geolocation"],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Security Services",
-  explanation: "APT Blocker identifies zero-day threats by sending suspicious files to a cloud sandbox where they are executed and analyzed for malicious behavior."
+  explanation: "Geolocation maps the remote IP address to a country using a maintained database and blocks the connection when that country is denied, which is useful for services that should never be reached from abroad. The strongest distractor is Botnet Detection: it also blocks by remote address, but it matches known command-and-control hosts regardless of where they are, so it would not stop ordinary traffic from a blocked country."
 });
 
 examQuestions.push({

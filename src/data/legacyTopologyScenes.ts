@@ -108,11 +108,11 @@ export const legacyTopologyScenes: Record<number, LegacyTopologyScene> = {
     },
   },
   208: {
-    question: 'The DMZ web server must be reachable from the Internet at a public address. Select the device where the static NAT (SNAT) action is configured.',
-    options: ['Firebox', 'Edge router', 'Core switch', 'Web server'],
-    answer: 'Firebox',
+    question: 'Internet clients reach the web server at 203.0.113.80, and the Firebox static NAT rewrites that destination to 10.0.2.80. Select the device that receives the packet after the rewrite.',
+    options: ['Web server', 'Firebox', 'Edge router', 'Core switch'],
+    answer: 'Web server',
     topic: 'NAT',
-    explanation: 'Static NAT is a Fireware action, so it lives on the Firebox, which rewrites the destination address of inbound connections before the policy lookup runs. The edge router forwards packets toward the Firebox external address but performs no translation of its own, and the web server never sees the public address at all - it only ever receives packets addressed to its private IP.',
+    explanation: 'Static NAT rewrites the destination on the Firebox, so the packet leaves it addressed to 10.0.2.80 and the web server is the only device on this path that ever receives that form. The edge router and the Firebox both handle the packet while it still carries the public address. That ordering is why the server access log shows the private IP, and why the inbound policy has to be written to 10.0.2.80 rather than to 203.0.113.80. The core switch sits on the trusted side and is not on this path at all.',
     topology: {
       version: 1, title: 'Publishing a DMZ server', width: 1070, height: 460,
       nodes: [
@@ -129,10 +129,10 @@ export const legacyTopologyScenes: Record<number, LegacyTopologyScene> = {
         { id: 'e4', from: 'fw', to: 'web', label: 'Eth2 DMZ', zone: 'dmz', flow: true },
       ],
       hotspots: [
+        { target: 'node', targetId: 'web', answer: 'Web server' },
         { target: 'node', targetId: 'fw', answer: 'Firebox' },
         { target: 'node', targetId: 'rtr', answer: 'Edge router' },
         { target: 'node', targetId: 'sw', answer: 'Core switch' },
-        { target: 'node', targetId: 'web', answer: 'Web server' },
       ],
     },
   },
