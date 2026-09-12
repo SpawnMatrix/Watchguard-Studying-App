@@ -133,7 +133,7 @@ const localScenarios: Question[] = [
     answer: '198.51.100.25, the public address mapped to that host by the 1-to-1 NAT rule',
     wrong: [
       '203.0.113.1, the primary address of the external interface',
-      '10.0.2.25, because 1-to-1 NAT only translates inbound connections',
+      '10.0.2.25, because a 1-to-1 NAT rule only ever translates inbound connections',
       'A port-translated address drawn from the dynamic NAT pool',
     ],
     explanation: '1-to-1 NAT is bidirectional: the mapped host is reached at 198.51.100.25 from outside, and it also leaves as 198.51.100.25. That consistency is the reason to use it for a mail server, since receiving mail systems check that the sending address matches the published records. Static NAT, by contrast, is the inbound-only variant, and dynamic NAT would give this host the external interface address instead.',
@@ -156,7 +156,7 @@ const localScenarios: Question[] = [
     question: 'An SNAT action maps 203.0.113.80:443 to the internal server 10.0.2.80:443. When you write the policy that permits this inbound traffic, which destination should it use?',
     answer: 'The private address 10.0.2.80, because NAT is applied before the policy lookup for inbound traffic',
     wrong: [
-      'The public address 203.0.113.80, because that is what the external client targets',
+      'The public address 203.0.113.80, because that is the address the external client actually targets',
       'The external interface alias Any-External, so any published address matches',
       'Either address, because the Firebox resolves the SNAT mapping in both directions',
     ],
@@ -178,7 +178,7 @@ const localScenarios: Question[] = [
     question: 'Site A defines its policy-based BOVPN tunnel route as local 10.10.0.0/24, remote 10.20.0.0/24. No VPN NAT is configured. What must Site B define?',
     answer: 'Local 10.20.0.0/24, remote 10.10.0.0/24',
     wrong: [
-      'Local 10.10.0.0/24, remote 10.20.0.0/24',
+      'Local 10.10.0.0/24, remote 10.20.0.0/24 as well',
       'Local 10.10.0.0/24, remote 10.10.0.0/24',
       'Local 10.20.0.0/24, remote 10.20.0.0/24',
     ],
@@ -228,7 +228,7 @@ const localScenarios: Question[] = [
     answer: 'It breaks, and the client must reconnect over Eth3; only new connections use the surviving link.',
     wrong: [
       'It continues uninterrupted, because the Firebox moves the existing session to Eth3.',
-      'It continues uninterrupted, because the source address does not change during failover.',
+      'It continues uninterrupted, because the source address does not change at any point during failover.',
       'It is queued until Eth0 recovers, then resumes where it stopped.',
     ],
     explanation: 'Failover redirects new connections to the surviving interface. Existing sessions cannot survive it, because their NAT state and source address belong to the failed interface and the far end has no way to accept the change. Multi-WAN protects continuity of service, not individual sessions - which is why a failover still looks like a brief outage to users.',
@@ -277,7 +277,7 @@ const localScenarios: Question[] = [
     wrong: [
       'The Phase 2 proposal, so it matches the client settings',
       'The authentication server, from Firebox-DB to Active Directory',
-      'The client default gateway, so it points at the Firebox external address',
+      'The client default gateway, so that it points at the external address of the Firebox instead',
     ],
     explanation: 'The client resolves 192.168.113.x to its own local network, so traffic for the corporate side never enters the tunnel - a tunnel that is up but carries nothing. Change the virtual IP pool to a range no user site is likely to have, which is the main reason to move off the 192.168.113.0/24 default. Phase 2 proposals belong to IPSec rather than SSL, and an authentication problem would have stopped the connection instead of allowing it.',
     nodes: [
@@ -299,7 +299,7 @@ const localScenarios: Question[] = [
     question: 'Clients reach an external HTTPS site through an HTTPS-proxy with content inspection enabled. Which certificate must the client trust for the session to complete without a warning?',
     answer: 'The Firebox Proxy Authority certificate, which signs the connection presented to the client',
     wrong: [
-      'The external site certificate, which the Firebox forwards to the client unchanged',
+      'The external site certificate, which the Firebox simply forwards on to the client unchanged',
       'The Firebox Web UI management certificate on TCP 8080',
       'The certificate of the WebBlocker cloud lookup service',
     ],
@@ -322,7 +322,7 @@ const localScenarios: Question[] = [
     answer: 'The Firebox permitted the traffic, so the failure is somewhere past the policy decision.',
     wrong: [
       'The application transaction completed successfully.',
-      'The server replied and the client received the full response.',
+      'The server replied and the client successfully received the complete response.',
       'The policy is misconfigured and should be rewritten.',
     ],
     explanation: 'An Allow entry records one thing: the firewall permitted the connection. It says nothing about whether the server was listening, whether TLS negotiated, or whether the application returned an error - so the next step is to test from the client and look at the server, not to rewrite a policy that is already doing what it should.',
@@ -453,7 +453,7 @@ const networkScenarios: Question[] = [
     answer: 'The gateway address is outside the workstation own subnet, so it cannot be reached',
     wrong: [
       'The subnet mask is too small for the number of hosts on the segment',
-      'The switch uplink port is configured as an access port instead of a trunk',
+      'The switch uplink port has been configured as an access port rather than as a trunk',
       'DNS is unreachable, so no destination outside the subnet resolves',
     ],
     explanation: 'With a /24 the host can only speak directly to 10.100.1.0 through 10.100.1.255, and 10.100.2.1 is not in that range, so every off-subnet packet is dropped before it reaches a router. Local traffic still works because it never needs a gateway - which is precisely the pattern that identifies this fault. A DNS problem would break name lookups while connections by IP address still succeeded.',

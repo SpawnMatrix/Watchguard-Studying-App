@@ -37,7 +37,7 @@ export const examQuestions: Question[] = [
     id: 2,
     question: "What is the purpose of the WatchGuard Authentication policy? (Select one.)",
     options: [
-      "Allows management users to authenticate to Fireware Web UI",
+      "Allows management users to authenticate to the Fireware Web UI",
       "Allows branch office VPN connections between two Fireboxes",
       "Allows user connections to the Firebox Authentication Portal",
       "Allows Mobile VPN users to authenticate to the Firebox"
@@ -87,7 +87,7 @@ export const examQuestions: Question[] = [
     id: 6,
     question: "What is the purpose of a Static NAT (SNAT) policy mapping public IP 203.0.113.80 to private IP 10.0.20.80 on port 80? (Select one.)",
     options: [
-      "To allow clients on an external network to connect to a secure web server on a trusted or optional network using its private IP address",
+      "To allow clients on an external network to connect to a secure web server on a trusted or optional network by using its private IP address",
       "To allow clients on your trusted network to connect to a secure web server on an external network using its private IP address",
       "To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address",
       "To allow clients on your trusted network to connect to a secure web server on a trusted or optional network using its public IP address"
@@ -305,7 +305,7 @@ export const examQuestions: Question[] = [
     id: 22,
     question: "You need to create an HTTP-proxy policy to a specific domain for software updates (example.com). The update site has multiple subdomains and dynamic IP addresses on a CDN. Which of these is the best way to define the destination? (Select one.)",
     options: [
-      "Configure a host name for update.example.com.",
+      "Configure an individual host name for update.example.com.",
       "Configure an FQDN for *.example.com.",
       "Add IP addresses that correspond to each software update server in the domain.",
       "Create an alias for all subdomains and known IP addresses for example.com."
@@ -341,8 +341,8 @@ export const examQuestions: Question[] = [
     question: "Which ports and protocols must be allowed through external network firewalls to support Mobile VPN with IKEv2? (Select one.)",
     options: [
       "UDP Port 500 and UDP Port 4500",
-      "TCP Port 443 only",
-      "UDP Port 1194 only",
+      "TCP Port 443 and TCP Port 80",
+      "UDP Port 1194 and TCP Port 443",
       "TCP Port 1723 and GRE Protocol 47"
     ],
     correctAnswer: "UDP Port 500 and UDP Port 4500",
@@ -416,7 +416,7 @@ export const examQuestions: Question[] = [
     question: "HTTPS content inspection is enabled, and the Firebox certificate validation rejects an external server expired certificate. What does the client experience? (Select one.)",
     options: [
       "The connection is blocked and the Firebox returns a certificate warning page to the client",
-      "It bypasses the scanner and allows the connection without warning",
+      "It bypasses the scanner entirely and allows the connection through without any warning at all",
       "It automatically repairs the signature and re-keys the stream",
       "It routes the connection through an isolated optional interface"
     ],
@@ -431,8 +431,8 @@ export const examQuestions: Question[] = [
     question: "If a Firebox cannot connect to the cloud-hosted WebBlocker servers, what is the default response configuration? (Select one.)",
     options: [
       "Access is either blocked or allowed based on the WebBlocker server connection error action",
-      "Access is always allowed to avoid disrupting client browsing",
-      "Access is always blocked to ensure strict security bounds",
+      "Access is always allowed, so that client browsing is never disrupted in any way at all",
+      "Access is always blocked, to ensure strict security boundaries",
       "The Firebox crashes and triggers an active-passive cluster failover"
     ],
     correctAnswer: "Access is either blocked or allowed based on the WebBlocker server connection error action",
@@ -534,8 +534,8 @@ export const examQuestions: Question[] = [
     question: "If you configure a 1-to-1 NAT mapping on your External interface, does this configuration automatically create policies to allow inbound connections? (Select one.)",
     options: [
       "No, you must still explicitly create firewall policies allowing traffic to the private IP address",
-      "Yes, the Firebox automatically creates inbound and outbound wide-open policies",
-      "Yes, but only for ICMP Ping packets",
+      "Yes, the Firebox automatically creates both inbound and outbound wide-open policies for the mapping",
+      "Yes, but only for ICMP Ping packets sent to the private IP address",
       "No, because 1-to-1 NAT can only be mapped to Trusted zones, not External zones"
     ],
     correctAnswer: "No, you must still explicitly create firewall policies allowing traffic to the private IP address",
@@ -550,8 +550,8 @@ export const examQuestions: Question[] = [
     options: [
       "Search base, domain name, and server IP address",
       "Active Directory schema GUID and master key",
-      "A RADIUS shared secret password",
-      "LDAP administrative client root passwords only"
+      "A RADIUS shared secret password string",
+      "LDAP administrative client root passwords alone"
     ],
     correctAnswer: "Search base, domain name, and server IP address",
   correctAnswers: ["Search base, domain name, and server IP address"],
@@ -590,8 +590,8 @@ export const examQuestions: Question[] = [
     options: [
       "The Firebox drops all outgoing traffic to prevent data leakage.",
       "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
-      "The Firebox triggers an administrative reboot.",
-      "The dead interface remains in the routing table with a metric of 0."
+      "The Firebox triggers an administrative reboot of the device.",
+      "The dead interface simply remains in the routing table with a metric of 0."
     ],
     correctAnswer: "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
   correctAnswers: ["The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces."],
@@ -623,9 +623,9 @@ export const examQuestions: Question[] = [
     id: 45,
     question: "What is the primary security goal of WatchGuard DNSWatch? (Select one.)",
     options: [
-      "To cache internal DNS queries for faster page loads",
+      "To cache internal DNS query results so that pages load more quickly",
       "To intercept and analyze DNS requests, blocking connections to known malicious domains",
-      "To assign local DNS names to private IP addresses on the Trusted zone",
+      "To assign local DNS names to the private IP addresses used on the Trusted zone",
       "To synchronize DNS records with third-party domain registrars"
     ],
     correctAnswer: "To intercept and analyze DNS requests, blocking connections to known malicious domains",
@@ -648,10 +648,10 @@ export const examQuestions: Question[] = [
     id: 47,
     question: "In a branch office VPN configuration, which of these is a Phase 1 proposal setting that must match on both Fireboxes? (Select one.)",
     options: [
-      "Tunnel Route subnets",
+      "Tunnel route subnet definitions on both of the sides",
       "PFS (Perfect Forward Secrecy) key group",
       "Gateway pre-shared key and Phase 1 negotiation mode",
-      "Virtual IP pool subnet"
+      "Virtual IP address pool subnet range"
     ],
     correctAnswer: "Gateway pre-shared key and Phase 1 negotiation mode",
   correctAnswers: ["Gateway pre-shared key and Phase 1 negotiation mode"],
@@ -698,10 +698,10 @@ export const examQuestions: Question[] = [
     id: 51,
     question: "What is the function of Dynamic NAT (DNAT)? (Select one.)",
     options: [
-      "To map inbound connections to internal servers based on ports",
+      "To map inbound connections through to internal servers based on their destination port numbers",
       "To change the source IP address of outbound packets from private IP addresses to a public IP address",
-      "To map an internal subnet to an external zone bidirectionally",
-      "To automatically update dynamic DNS records for the external interface"
+      "To map an entire internal subnet onto an external zone in both directions",
+      "To automatically update the dynamic DNS records for the external interface"
     ],
     correctAnswer: "To change the source IP address of outbound packets from private IP addresses to a public IP address",
   correctAnswers: ["To change the source IP address of outbound packets from private IP addresses to a public IP address"],
@@ -724,7 +724,7 @@ export const examQuestions: Question[] = [
     question: "Two enabled policies could both match the same new connection. How does a Firebox decide which one applies? (Select one.)",
     options: [
       "In alphabetical order of policy name, so renaming a policy changes which one is evaluated first",
-      "In creation order, with the oldest policy evaluated first and newer ones reached only if it does not match",
+      "In creation order, with the oldest policy always evaluated first and any newer ones reached only if it does not match",
       "By policy precedence: most specific first by default, or the list order top to bottom when manual order is enabled",
       "By destination port, with the policy covering the lowest port number evaluated ahead of the others"
     ],
@@ -788,10 +788,10 @@ export const examQuestions: Question[] = [
     id: 59,
     question: "You need to restore a configuration onto a brand new replacement Firebox of a different model. Can you use a Backup Image (.fxi) file? (Select one.)",
     options: [
-      "Yes, Backup Images are model-independent.",
+      "Yes, because Backup Images are completely model-independent artifacts.",
       "No, Backup Images can only be restored to the identical physical Firebox or identical model.",
-      "Yes, but you must first decrypt the feature keys.",
-      "No, replacement Fireboxes can only be configured from scratch using wizards."
+      "Yes, but you must first decrypt the feature keys it contains.",
+      "No, because replacement Fireboxes can only ever be configured from scratch using the setup wizards."
     ],
     correctAnswer: "No, Backup Images can only be restored to the identical physical Firebox or identical model.",
   correctAnswers: ["No, Backup Images can only be restored to the identical physical Firebox or identical model."],
@@ -813,7 +813,7 @@ export const examQuestions: Question[] = [
     id: 61,
     question: "What happens if you configure an HTTPS Proxy to allow connections with unrecognized SSL/TLS certificate authority signatures? (Select one.)",
     options: [
-      "The Firebox blocks the connection and drops the packet without returning anything to the client.",
+      "The Firebox blocks the connection and silently drops the packet without returning anything at all to the client.",
       "The Firebox removes TLS from the session and delivers the page to the client over plain HTTP.",
       "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns.",
       "The Firebox bypasses content inspection and allows the client to establish a direct TLS tunnel."
@@ -828,8 +828,8 @@ export const examQuestions: Question[] = [
     id: 62,
     question: "What occurs when you assign an interface to the 'Optional' zone during setup? (Select one.)",
     options: [
-      "The interface is disabled and cannot pass any traffic.",
-      "The interface can route traffic, but is not included in the default Outgoing policy by default.",
+      "The interface is disabled immediately and cannot pass any traffic at all.",
+      "The interface can route traffic, but it is not included in the default Outgoing policy as shipped by default.",
       "The interface is active and is included in the default Outgoing policy, but has no default inbound policies.",
       "The interface is reserved strictly for high-availability cluster synchronization."
     ],
@@ -868,10 +868,10 @@ export const examQuestions: Question[] = [
     id: 65,
     question: "What is the purpose of enabling 'Perfect Forward Secrecy' (PFS) in your BOVPN Tunnel configuration? (Select one.)",
     options: [
-      "To speed up Phase 1 negotiations using static DH keys",
+      "To speed up the Phase 1 negotiations by re-using static Diffie-Hellman key material",
       "To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys",
       "To automatically rotate the gateway pre-shared key every 24 hours",
-      "To encrypt the Gateway ID name in Phase 1 negotiations"
+      "To encrypt the Gateway ID name used during Phase 1 negotiations"
     ],
     correctAnswer: "To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys",
   correctAnswers: ["To ensure a new Diffie-Hellman key exchange is performed during Phase 2 SA rekeys"],
@@ -904,9 +904,9 @@ export const examQuestions: Question[] = [
     question: "You want to allow the marketing group to use FTP, but block all other departments. Which policy configuration accomplishes this? (Select one.)",
     options: [
       "Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy.",
-      "Add the FTP policy with Source 'Any-Trusted' and Destination 'Any-External', with an exception for Marketing.",
-      "Disable the default Outgoing policy and create FTP policies for each group.",
-      "Add a custom FTP-proxy action with WebBlocker filters."
+      "Add the FTP policy with Source 'Any-Trusted' and Destination 'Any-External', and then add an exception for Marketing.",
+      "Disable the default Outgoing policy and create separate FTP policies for each group.",
+      "Add a custom FTP-proxy action that includes WebBlocker category filters."
     ],
     correctAnswer: "Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy.",
   correctAnswers: ["Add the FTP policy with Source 'Marketing-Group' and Destination 'Any-External', placed above the Outgoing policy."],
@@ -968,10 +968,10 @@ export const examQuestions: Question[] = [
     id: 74,
     question: "While reviewing logs, you observe 'proposes phase two negotiation failed: Mismatched SA life'. How would you adjust the configuration to resolve this? (Select one.)",
     options: [
-      "Configure a new pre-shared key in the Gateway settings.",
+      "Configure an entirely new pre-shared key within the BOVPN Gateway settings.",
       "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
-      "Change the Phase 1 Diffie-Hellman group in Gateway settings.",
-      "Enable Perfect Forward Secrecy (PFS) in Gateway settings."
+      "Change the Phase 1 Diffie-Hellman group within the Gateway settings.",
+      "Enable Perfect Forward Secrecy (PFS) within the Gateway settings."
     ],
     correctAnswer: "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
   correctAnswers: ["Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer."],
@@ -982,7 +982,7 @@ export const examQuestions: Question[] = [
   {
     id: 75,
     question: "Which service in a WatchGuard Dimension deployment stores historical reporting data? (Select one.)",
-    options: ["Dimension Log Collector", "Dimension Server database", "Log Agent", "Report Engine Daemon"],
+    options: ["Dimension Log Collector", "Dimension Server database", "Dimension Log Agent", "Report Engine Daemon"],
     correctAnswer: "Dimension Server database",
   correctAnswers: ["Dimension Server database"],
     isMultiSelect: false,
@@ -1005,8 +1005,8 @@ export const examQuestions: Question[] = [
     options: [
       "The 'Any-Trusted' policy, because it allows traffic.",
       "The policy for '10.0.1.25', because it is placed higher in the sequence.",
-      "Neither, the Firebox will alternate between allowing and denying.",
-      "The Outgoing policy will override both policies."
+      "Neither of them, because the Firebox will alternate between allowing and denying.",
+      "The Outgoing policy will override both of the other policies."
     ],
     correctAnswer: "The policy for '10.0.1.25', because it is placed higher in the sequence.",
   correctAnswers: ["The policy for '10.0.1.25', because it is placed higher in the sequence."],
@@ -1018,9 +1018,9 @@ export const examQuestions: Question[] = [
     id: 78,
     question: "When configuring 1-to-1 NAT, what happens to outbound traffic originating from the mapped private host? (Select one.)",
     options: [
-      "The source IP is translated to the external interface primary IP.",
+      "The source IP address is translated to the primary IP of the external interface.",
       "The source IP is translated to the corresponding public IP in the 1-to-1 NAT range.",
-      "The source IP is not translated.",
+      "The source IP address is not translated in any way whatsoever.",
       "The outbound traffic is blocked unless Dynamic NAT is disabled."
     ],
     correctAnswer: "The source IP is translated to the corresponding public IP in the 1-to-1 NAT range.",
@@ -1033,9 +1033,9 @@ export const examQuestions: Question[] = [
     id: 79,
     question: "What happens to outbound internet traffic if all WAN connections become unavailable in an SD-WAN configuration? (Select one.)",
     options: [
-      "The traffic is automatically routed over the high-availability sync interface.",
+      "The traffic is automatically routed out over the high-availability cluster sync interface.",
       "The Firebox drops the traffic or routes it over backup dial-up resources if configured.",
-      "The traffic loopbacks to the Trusted interface.",
+      "The traffic simply loops back out of the Trusted interface instead.",
       "The Firebox enters a safe bypass mode and acts as a standard unmanaged hub."
     ],
     correctAnswer: "The Firebox drops the traffic or routes it over backup dial-up resources if configured.",
@@ -1070,8 +1070,8 @@ export const examQuestions: Question[] = [
     options: [
       "A subnet that is identical to your local Trusted network subnet",
       "A subnet that does not overlap with any internal Trusted, Optional, or remote subnets",
-      "A public class-C subnet to allow external routing",
-      "The same subnet as Interface 0 (External)"
+      "A public class-C subnet, chosen specifically to allow external routing to work correctly",
+      "Exactly the same subnet as that used by Interface 0 (External)"
     ],
     correctAnswer: "A subnet that does not overlap with any internal Trusted, Optional, or remote subnets",
   correctAnswers: ["A subnet that does not overlap with any internal Trusted, Optional, or remote subnets"],
@@ -1083,10 +1083,10 @@ export const examQuestions: Question[] = [
     id: 83,
     question: "In a Policy-Based BOVPN, what controls which traffic is allowed to traverse the VPN tunnel? (Select one.)",
     options: [
-      "The Virtual Interface static routing table",
-      "The VPN Gateway ID names",
+      "The static routing table configured on the Virtual Interface BOVPN tunnel",
+      "The VPN Gateway ID names configured on each peer",
       "Firewall policies with the BOVPN tunnel configured as action/destination",
-      "The Dynamic routing protocol"
+      "The dynamic routing protocol in use on the tunnel"
     ],
     correctAnswer: "Firewall policies with the BOVPN tunnel configured as action/destination",
   correctAnswers: ["Firewall policies with the BOVPN tunnel configured as action/destination"],
@@ -1097,7 +1097,7 @@ export const examQuestions: Question[] = [
   {
     id: 84,
     question: "Traffic Monitor only shows messages as they arrive. What has to be in place before a manager can run a report covering last week? (Select one.)",
-    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A larger Traffic Monitor scroll-back buffer on the management workstation", "An SNMP trap receiver collecting counters from the Trusted network", "A second administrator account holding Device Monitor access rights"],
+    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A considerably larger Traffic Monitor scroll-back buffer on the management workstation itself", "An SNMP trap receiver collecting counters from the Trusted network", "A second administrator account holding Device Monitor access rights"],
     correctAnswer: "A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies",
   correctAnswers: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies"],
     isMultiSelect: false,
@@ -1184,7 +1184,7 @@ export const examQuestions: Question[] = [
     id: 92,
     question: "What is the difference between a Virtual Interface BOVPN and a Policy-Based BOVPN? (Select one.)",
     options: [
-      "A virtual interface BOVPN carries traffic in cleartext and relies on the underlying link for privacy.",
+      "A virtual interface BOVPN carries its traffic in cleartext and relies entirely on the underlying link for privacy.",
       "Virtual Interface BOVPN creates a virtual interface that allows you to use standard static or dynamic routing rules.",
       "A policy-based BOVPN is supported only on Firebox models that have a wireless interface.",
       "A virtual interface BOVPN supports IKEv1 only and cannot be built on an IKEv2 gateway."
@@ -1229,9 +1229,9 @@ export const examQuestions: Question[] = [
     id: 96,
     question: "What is NAT Loopback used for? (Select one.)",
     options: [
-      "To test the external interface viability by pinging itself",
+      "To test whether the external interface is viable by pinging the interface itself",
       "To allow internal users to connect to local servers using their public IP addresses",
-      "To bridge a VPN tunnel back to the trusted interface",
+      "To bridge a VPN tunnel back onto the trusted interface once more",
       "To cycle outbound traffic through multiple external interfaces"
     ],
     correctAnswer: "To allow internal users to connect to local servers using their public IP addresses",
@@ -1279,10 +1279,10 @@ export const examQuestions: Question[] = [
     id: 100,
     question: "In a Firebox high availability Active/Passive configuration, how are configurations synchronized between the master and backup devices? (Select one.)",
     options: [
-      "Administrators must manually upload the configuration to both devices.",
+      "Administrators must manually upload the running configuration to each of the two devices in turn.",
       "The master automatically synchronizes its configuration and state over the dedicated HA interface.",
       "The backup device pulls the configuration periodically from WatchGuard Cloud.",
-      "The devices synchronize over Interface 0 (External)."
+      "The devices synchronize their state over Interface 0 (External)."
     ],
     correctAnswer: "The master automatically synchronizes its configuration and state over the dedicated HA interface.",
   correctAnswers: ["The master automatically synchronizes its configuration and state over the dedicated HA interface."],
@@ -1294,10 +1294,10 @@ export const examQuestions: Question[] = [
     id: 101,
     question: "Which of the following is true regarding BOVPN over TLS? (Select one.)",
     options: [
-      "It uses UDP port 500 for key exchange.",
+      "It uses UDP port 500 to perform its key exchange messages.",
       "It provides a way to pass BOVPN traffic through environments that block IPsec.",
-      "It requires a third-party client installed on all hosts.",
-      "It is only supported on Cloud-Managed Fireboxes."
+      "It requires a third-party client application to be installed on all of the hosts.",
+      "It is only ever supported on Cloud-Managed Firebox devices."
     ],
     correctAnswer: "It provides a way to pass BOVPN traffic through environments that block IPsec.",
   correctAnswers: ["It provides a way to pass BOVPN traffic through environments that block IPsec."],
@@ -1327,7 +1327,7 @@ export const examQuestions: Question[] = [
       "Policies are arranged alphabetically by name.",
       "The Firebox sorts policies from most specific to least specific.",
       "Policies are executed in parallel.",
-      "The default Outgoing policy is moved to the top."
+      "The default Outgoing policy is automatically moved to the top of the list."
     ],
     correctAnswer: "The Firebox sorts policies from most specific to least specific.",
   correctAnswers: ["The Firebox sorts policies from most specific to least specific."],
@@ -1354,7 +1354,7 @@ export const examQuestions: Question[] = [
     id: 105,
     question: "In what scenario would you use a Drop-In network configuration? (Select one.)",
     options: [
-      "When you have multiple public IP addresses and want to route them to different internal subnets.",
+      "When you have multiple public IP addresses and you want to route each of them to a different internal subnet.",
       "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
       "When configuring a high-availability active/active cluster.",
       "When you need to use NAT for all outbound traffic."
