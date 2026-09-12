@@ -1,5 +1,6 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import { LearningTrackProvider } from './engine/LearningTrack';
 import App from './App.tsx';
 import AccountGate from './account/AccountGate';
 import './index.css';
@@ -13,6 +14,6 @@ try {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AccountGate><App /></AccountGate>
+    <AccountGate><LearningTrackProvider><App /></LearningTrackProvider></AccountGate>
   </StrictMode>,
 );

@@ -5,6 +5,7 @@ import { QAItem } from "../types/chat";
 import { parseBold } from "../utils/textFormatting";
 
 interface QADeskModeProps {
+  key?: string;
   qaDatabase: QAItem[];
   categories: string[];
 }
@@ -34,10 +35,10 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
       <div className="space-y-1.5">
         <div className="flex items-center space-x-2">
           <HelpCircle className="w-4 h-4 text-watchguard-orange" />
-          <h3 className="font-display font-semibold text-white">Local Q&A Reference Desk</h3>
+          <h3 className="font-display font-semibold text-white">Q&A Reference Desk</h3>
         </div>
         <p className="text-xs text-gray-400 leading-relaxed font-sans">
-          Search configuration notes for locally managed Fireboxes. Practice Quiz and Flashcards include the expanded scenario bank. Check the linked documentation for your Fireware version.
+          Search study notes for the selected learning track. Check the linked documentation for configuration assumptions and version details.
         </p>
       </div>
 

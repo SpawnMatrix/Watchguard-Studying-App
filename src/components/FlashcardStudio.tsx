@@ -1,3 +1,4 @@
+import { useLearningTrack } from '../engine/LearningTrack';
 import { authoredQuestions } from '../data/authoredQuestions';
 import { writeStudyValue } from "../account/storage";
 import React, { useState, useMemo } from "react";
@@ -208,6 +209,8 @@ HIGH_YIELD_FLASHCARDS.push(...authoredQuestions.map(q=>({
 })));
 
 export default function FlashcardStudio() {
+  const {track}=useLearningTrack();
+  const trackCards=useMemo(()=>HIGH_YIELD_FLASHCARDS.filter(c=>track==='network-plus'?c.category==='Network+':track==='cloud'?c.category==='Cloud':c.category!=='Network+'&&c.category!=='Cloud'),[track]);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -223,12 +226,13 @@ export default function FlashcardStudio() {
     }
   });
 
-  const categories = ["All", "Setup", "Policies", "Routing", "VPN", "Diagnostics", "Network+", "Cloud"];
+  const categories = ["All", ...new Set<string>(trackCards.map(c=>c.category))];
+  React.useEffect(()=>{setSelectedCategory("All");setCurrentIndex(0);setIsFlipped(false);},[track]);
 
   // Filter cards based on category and search query
   const filteredCards = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
-    return HIGH_YIELD_FLASHCARDS.filter(card => {
+    return trackCards.filter(card => {
       const matchesCategory = selectedCategory === "All" || card.category === selectedCategory;
       if (!matchesCategory) return false;
 
@@ -238,13 +242,13 @@ export default function FlashcardStudio() {
              card.answer.toLowerCase().includes(lowerQuery) ||
              card.keyConcept.toLowerCase().includes(lowerQuery);
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, trackCards]);
 
   // Adjust index if out of bounds of current filtered list
   React.useEffect(() => {
     setCurrentIndex(0);
     setIsFlipped(false);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, trackCards]);
 
   const activeCard = filteredCards[currentIndex] || null;
 
@@ -282,10 +286,10 @@ export default function FlashcardStudio() {
   };
 
   const masteredCount = useMemo(() => {
-    return HIGH_YIELD_FLASHCARDS.filter(c => masteredIds.includes(c.id)).length;
-  }, [masteredIds]);
+    return trackCards.filter(c => masteredIds.includes(c.id)).length;
+  }, [masteredIds,trackCards]);
 
-  const progressPercent = Math.round((masteredCount / HIGH_YIELD_FLASHCARDS.length) * 100);
+  const progressPercent = Math.round((masteredCount / trackCards.length) * 100);
 
   return (
     <div className="space-y-6">
@@ -293,7 +297,7 @@ export default function FlashcardStudio() {
       <FlashcardStudioStats
         progressPercent={progressPercent}
         masteredCount={masteredCount}
-        totalCount={HIGH_YIELD_FLASHCARDS.length}
+        totalCount={trackCards.length}
         handleResetProgress={handleResetProgress}
       />
 

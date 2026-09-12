@@ -30,3 +30,11 @@ The shell selection is a per-username browser preference, independent of synchro
 ## Validation
 
 Run locked dependency install, TypeScript, all Vitest tests, production build, and a real dev-server browser pass including mobile, light/dark themes, track changes, and topology interactions. Never weaken generator, policy ordering, or guided challenge assertions.
+
+Implemented review: npm ci, lint, 89 tests, and production build pass locally. Browser checks used an isolated SQLite fixture on a separate dev-server port: restored mixed-track exam, keyboard hotspot selection, wrong/correct grading, four legacy diagrams, both generated diagrams, track persistence on reload, track-specific flashcards/Q&A, lab/sandbox navigation, mobile page overflow, light/dark themes, report rendering, and admin session open/lock. All original assertions remain unchanged. Packet/node animations have an explicit reduced-motion override; this was checked in CSS, not through OS preference emulation.
+
+Visual review: the home view uses an orange-accented resume card, lifetime statistics, topic bars, and a seven-day activity strip. Topology questions expand to the full content column; diagrams retain readable SVG units and scroll within their own region on phones, with normal answer buttons below. Quiz settings collapse into one disclosure row. Progress and account/tutor settings are separate views which remain mounted while switching, preserving form state.
+
+The progress screen previously contained an older admin form rather than the existing secured AdminConsole; it now renders that component without modifying its authorization logic. ReportVisualization is wired to the existing report result. If the optional server analysis rejects a learner without an admin session, the existing local report builder still provides their own practice report.
+
+Dockerfile, workflow files, production data, and the separate lab/content branch are unchanged. GitHub's existing checks cover Node 22/24 and container replacement with persisted account data. The preexisting working-tree edit in deploy/docker/update-watchguard.sh is excluded from this branch's commits.
