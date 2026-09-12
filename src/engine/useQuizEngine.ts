@@ -28,17 +28,17 @@ function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:
   const q=mode==='mock-exam'?queue[0]:pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
   return {mode,filters,queue,index:0,current:q??null,selected:[],evaluation:null,history,seen:q?[q.id]:[],examStart:history.length,complete:false};
 }
-function load(deck:Record<number,number>):Session {
+function load(deck:Record<number,number>,track:Track):Session {
   const saved=readJSON<Session|null>(SESSION_KEY,null);
   if(saved&&['practice','mock-exam','weakness-review'].includes(saved.mode)&&saved.filters&&Array.isArray(saved.history)&&Array.isArray(saved.queue)&&Array.isArray(saved.selected)&&Array.isArray(saved.seen)&&Number.isInteger(saved.index)&&Number.isInteger(saved.examStart)&&
       (!saved.current||(questionById.has(saved.current.id)&&Array.isArray(saved.current.options)&&Array.isArray(saved.current.correctAnswers)))) return saved;
   const progress=readJSON<any>('watchguard-study-progress-v1',null);
-  return first('practice',DEFAULT_FILTERS,deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[],parseSrsState(readJSON<any>(SRS_KEY,null)));
+  return first('practice',{...DEFAULT_FILTERS,track},deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[],parseSrsState(readJSON<any>(SRS_KEY,null)));
 }
-export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void) {
+export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void,track:Track='local') {
   const [deck,setDeck]=useState<Record<number,number>>(()=>readJSON('weakness_deck',{}));
   const [srs,setSrs]=useState<SrsState>(()=>parseSrsState(readJSON<any>(SRS_KEY,null)));
-  const [session,setSession]=useState(()=>load(deck));
+  const [session,setSession]=useState(()=>load(deck,track));
   const [loading,setLoading]=useState(false),[notice,setNotice]=useState('');
   const busy=useRef(false),alive=useRef(true),request=useRef<AbortController|null>(null);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current?.abort();};},[]);

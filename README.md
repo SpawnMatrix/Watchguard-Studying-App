@@ -15,7 +15,9 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 - **"Explain like I'm an L1"**: on a missed answer, a beginner-level breakdown citing the Fireware Web UI menu path and the underlying Network+ concept. Works with AI disabled.
 - **300 flashcards**, resumable quizzes and mock exams, and a weakness deck that requires three correct answers to clear a concept.
 - **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
-- Responsive navigation and quiz layout; all six existing study sections remain available.
+- Study Home with observed topic accuracy, recent practice comparisons, activity, and a saved-quiz resume action; all six existing study sections remain available.
+- Persistent learning-track selection, filtered Q&A and flashcards, and explicit track changes for saved quizzes.
+- Inline SVG network diagrams with keyboard-accessible node/edge hotspots, packet-flow animation, and light/dark themes. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).
 
 Read [engine and compatibility](docs/study-engine.md), [source/reuse audit](docs/content-sources.md), and [persistent deployment and backups](docs/deployment-data.md). Use Node >=22.13. Keep the Compose data volume across upgrades. This independent practice tool does not guarantee an exam result; check the current objectives and Fireware version.
 

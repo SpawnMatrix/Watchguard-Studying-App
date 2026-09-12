@@ -1,3 +1,5 @@
+import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
+import { authoredQuestions } from '../data/authoredQuestions';
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Sparkles, Search, Compass, BookOpen, User, Bot, AlertTriangle, ExternalLink, HelpCircle, Layers, CheckCircle, ChevronDown, ChevronUp, Link } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -228,6 +230,8 @@ const LOCAL_QA_DATABASE: QAItem[] = [
 ];
 
 export default function GeneralChat() {
+  const {track}=useLearningTrack();
+  const trackQA=useMemo(()=>track==='local'?LOCAL_QA_DATABASE:authoredQuestions.filter(q=>q.track===track).map(q=>({id:q.id,question:q.question,answer:q.correctAnswers.join('; ')+'\n\n'+q.explanation,category:q.topic,keywords:[q.topic,q.objective||''],refLink:q.sources?.find(s=>s.url)?.url})),[track]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "init",
@@ -245,7 +249,7 @@ export default function GeneralChat() {
   const [isAIFeaturesEnabledState, setIsAIFeaturesEnabledState] = useState(false);
   const [globalAIEnabled, setGlobalAIEnabled] = useState(false);
 
-  const categories = ["All", "Setup", "Policies", "Routing", "VPN", "Diagnostics"];
+  const categories = ["All", ...new Set<string>(trackQA.map(q=>q.category))];
 
   const suggestedPrompts = [
     "What are the factory default interface settings?",
@@ -307,7 +311,7 @@ export default function GeneralChat() {
         method: "POST",
         headers,
         body: JSON.stringify({
-          prompt: text,
+          prompt: `Learning track: ${learningTrackLabels[track]}.\n${text}`,
           history: messages.slice(-10) // Send recent context
         })
       });
@@ -408,7 +412,8 @@ export default function GeneralChat() {
         />
       ) : (
         <QADeskMode
-          qaDatabase={LOCAL_QA_DATABASE}
+          key={track}
+          qaDatabase={trackQA}
           categories={categories}
         />
       )}

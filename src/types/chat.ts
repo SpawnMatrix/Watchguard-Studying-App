@@ -12,7 +12,7 @@ export interface QAItem {
   id: number;
   question: string;
   answer: string;
-  category: "Setup" | "Policies" | "Routing" | "VPN" | "Diagnostics" | "All";
+  category: string;
   keywords: string[];
   refLink?: string;
 }

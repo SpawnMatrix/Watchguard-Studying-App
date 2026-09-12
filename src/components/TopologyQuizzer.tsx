@@ -1,3 +1,5 @@
+import NetworkTopology from './NetworkTopology';
+import { questionTopology } from '../engine/topologyAdapters';
 import { Question } from "../data/questions";
 import { HelpCircle } from "lucide-react";
 
@@ -10,6 +12,7 @@ interface TopologyQuizzerProps {
 }
 
 export default function TopologyQuizzer({ question, selectedOptions, isSubmitted, isLoading, onOptionToggle }: TopologyQuizzerProps) {
+  const diagram = questionTopology(question);
   return (
     <div className="flex flex-col space-y-4">
       {/* Question body */}
@@ -28,62 +31,14 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
         )}
       </div>
 
-      {question.networkDiagram&&<ol className="network-diagram" aria-label="Network topology">{question.networkDiagram.map((node,i)=><li key={i}><strong>{node.label}</strong><span>{node.detail}</span></li>)}</ol>}
-      {/* Topology Image with Hotspots */}
-      {question.topologyImage && (
-        <div className="relative w-full overflow-hidden rounded-xl border border-watchguard-border bg-watchguard-dark p-2 flex flex-col items-center">
-          <div className="relative w-full max-w-2xl bg-watchguard-lightgray rounded flex items-center justify-center p-4 min-h-[300px]">
-            <span className="text-gray-500 font-mono text-sm border border-dashed border-gray-600 p-8">
-              [Topology Diagram: {question.topologyImage}]
-            </span>
-            {question.hotspots && question.hotspots.length > 0 && (
-               <div className="absolute inset-0 pointer-events-none">
-                 {question.hotspots.map((spot, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={spot.label}
-                      aria-pressed={selectedOptions.includes(spot.label)}
-                      disabled={isSubmitted || isLoading}
-                      onClick={() => onOptionToggle(spot.label)}
-                      className={`absolute pointer-events-auto border-2 rounded transition-colors ${
-                         selectedOptions.includes(spot.label)
-                           ? "border-watchguard-orange bg-watchguard-orange/20"
-                           : "border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20"
-                      } ${
-                         isSubmitted && (question.correctAnswers || [question.correctAnswer]).includes(spot.label)
-                           ? "border-green-500 bg-green-500/20"
-                           : ""
-                      } ${
-                         isSubmitted && selectedOptions.includes(spot.label) && !(question.correctAnswers || [question.correctAnswer]).includes(spot.label)
-                           ? "border-red-500 bg-red-500/20"
-                           : ""
-                      }`}
-                      style={{
-                        left: `${spot.x}%`,
-                        top: `${spot.y}%`,
-                        width: `${spot.width}%`,
-                        height: `${spot.height}%`
-                      }}
-                      title={spot.label}
-                    />
-                 ))}
-               </div>
-            )}
-          </div>
-          {question.hotspots && (
-             <p className="text-xs text-gray-500 mt-2 font-mono">
-                Interactive Diagram: Click on the highlighted areas above to select your answer.
-             </p>
-          )}
-        </div>
-      )}
+      {diagram && <NetworkTopology diagram={diagram} selected={selectedOptions} correct={question.correctAnswers} submitted={isSubmitted} disabled={isLoading} onSelect={onOptionToggle}/>}
 
       {/* Fallback Options Grid (if no hotspots are provided) */}
-      {(!question.hotspots || question.hotspots.length === 0) && (
+      {(
         <div className="space-y-3 pl-0 sm:pl-4">
           {question.options.map((opt, idx) => {
             const isSelected = selectedOptions.includes(opt);
-            const optLetter = String.fromCharCode(65 + idx);
+            const optLetter = idx + 1;
 
             let optionStyle = "bg-watchguard-dark/40 border-watchguard-border hover:border-watchguard-orange/40 hover:bg-watchguard-lightgray/50 text-gray-300";
             if (isSelected) {
