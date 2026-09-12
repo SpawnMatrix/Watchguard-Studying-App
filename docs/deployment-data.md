@@ -42,7 +42,7 @@ HTTPS is expected for remote access. Session cookies are Secure when Express rec
 
 ## Check which version is running
 
-The footer shows the package release version, build commit (when supplied), and creator credit. `/api/version` returns the release version, commit, and build date without authentication. Compose uses the existing updater’s WATCHGUARD_IMAGE_TAG as the build commit, so the installed updater script does not need replacement. The footer abbreviates it; the API retains the supplied identifier. Build date is included when provided (for example by GitHub Actions), otherwise it is explicitly unknown.
+The footer shows the package release version, build commit (when supplied), creator credit, and Last built in the viewer's timezone. `/api/version` returns the release version, commit, and ISO build timestamp without authentication. Compose uses the existing updater’s WATCHGUARD_IMAGE_TAG as the build commit, so the installed updater script does not need replacement. The footer abbreviates it; the API retains the supplied identifier. Vite bakes the build timestamp into both the frontend and dist/build-info.json; the production server reads that file. GitHub Actions can supply an explicit timestamp, and local Docker builds automatically stamp the compilation time. Refreshing the page or restarting the same image does not change it. Dev mode shows Development preview.
 
 The supplied `watchguard-update.timer` runs two minutes after boot and then every five minutes, with up to 30 seconds of randomized delay. An open PR does not deploy; the updater follows `main` by default. This requires the timer to be installed and enabled on the Docker host.
 
