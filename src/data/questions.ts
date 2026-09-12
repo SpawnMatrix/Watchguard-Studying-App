@@ -1097,7 +1097,7 @@ export const examQuestions: Question[] = [
   {
     id: 84,
     question: "Traffic Monitor only shows messages as they arrive. What has to be in place before a manager can run a report covering last week? (Select one.)",
-    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A larger Traffic Monitor scroll-back buffer on the management workstation", "An SNMP trap receiver on the Trusted network", "A second administrator account with Device Monitor access"],
+    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A larger Traffic Monitor scroll-back buffer on the management workstation", "An SNMP trap receiver collecting counters from the Trusted network", "A second administrator account holding Device Monitor access rights"],
     correctAnswer: "A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies",
   correctAnswers: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies"],
     isMultiSelect: false,
@@ -1790,7 +1790,7 @@ examQuestions.push({
 examQuestions.push({
   id: 305,
   question: "You must enforce YouTube Restricted mode for users who reach youtube.com over TLS. Besides selecting the restricted-mode setting itself, what must the HTTPS-proxy policy have enabled?",
-  options: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header", "WebBlocker, with the Streaming Media category set to Deny", "Gateway AntiVirus, with the default scan size limits", "Application Control, with the YouTube application set to Drop"],
+  options: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header", "WebBlocker, with the Streaming Media category set to Deny", "Gateway AntiVirus, with the default scan size and action limits", "Application Control, with the YouTube application set to Drop"],
   correctAnswer: "Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header",
   correctAnswers: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header"],
   isMultiSelect: false,
