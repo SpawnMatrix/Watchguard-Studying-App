@@ -6,7 +6,24 @@ on:
 permissions:
   contents: read
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate release files
+        run: node scripts/check-release.mjs --current
+      - name: Require a new version for this pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-release.mjs "$RELEASE_BASE_SHA"
   test:
+    needs: release
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,6 +52,7 @@ jobs:
       - name: Wait for health and test study flows
         env:
           SMOKE_EXPECT_COMMIT: ci-smoke
+          SMOKE_EXPECT_BUILD_TIME: 'true'
           SMOKE_USERNAME: smoke_ci
         run: |
           for i in $(seq 1 30); do
@@ -47,6 +65,7 @@ jobs:
           SMOKE_EXPECT_COMMIT: ci-smoke
           SMOKE_USERNAME: smoke_ci
           SMOKE_VERIFY: 'true'
+          SMOKE_EXPECT_BUILD_TIME: 'true'
         run: |
           docker rm -f study-smoke
           docker run -d --name study-smoke -p 3000:3000 -e ENABLE_AI_FEATURES=false -v study-smoke-data:/data study-test

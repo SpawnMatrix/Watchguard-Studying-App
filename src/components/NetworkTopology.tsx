@@ -1,6 +1,7 @@
-import { useId } from 'react';
-import { Cloud, Monitor, Network, Router, Server, ShieldCheck, Waypoints } from 'lucide-react';
+import { useId, useState } from 'react';
+import { Cloud, Monitor, Network, Router, Server, ShieldCheck, Waypoints, Maximize2, Scan, Pause, Play } from 'lucide-react';
 import type { TopologyDiagramData, TopologyHotspot } from '../engine/topology';
+import { topologyEdgeGeometry } from '../engine/topologyGeometry';
 
 interface Props {
   diagram: TopologyDiagramData;
@@ -9,6 +10,7 @@ interface Props {
   submitted?: boolean;
   disabled?: boolean;
   onSelect?: (answer: string) => void;
+  defaultFit?: boolean;
 }
 const icons = { firebox: ShieldCheck, router: Router, switch: Network, server: Server, client: Monitor, subnet: Waypoints, cloud: Cloud };
 function lines(text: string, limit = 25) {
@@ -22,8 +24,10 @@ function lines(text: string, limit = 25) {
 }
 
 /** Diagram is presentation only: answer evaluation is owned by the quiz engine. */
-export default function NetworkTopology({ diagram, selected = [], correct = [], submitted = false, disabled = false, onSelect }: Props) {
+export default function NetworkTopology({ diagram, selected = [], correct = [], submitted = false, disabled = false, onSelect, defaultFit=false }: Props) {
   const id = useId();
+  const [fit,setFit]=useState(defaultFit),[paused,setPaused]=useState(false);
+  const hasMotion=diagram.edges.some(e=>e.flow)||diagram.nodes.some(n=>n.active);
   const state = (spot?: TopologyHotspot) => !spot ? '' : submitted && correct.includes(spot.answer) ? 'is-correct' : submitted && selected.includes(spot.answer) ? 'is-incorrect' : selected.includes(spot.answer) ? 'is-selected' : '';
   const controls = (spot?: TopologyHotspot) => spot && onSelect ? {
     role: 'button', tabIndex: disabled || submitted ? -1 : 0,
@@ -32,30 +36,32 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
     onClick: () => { if (!disabled && !submitted) onSelect(spot.answer); },
     onKeyDown: (event: {key:string;preventDefault:()=>void}) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (!disabled && !submitted) onSelect(spot.answer); } },
   } : {};
-  return <figure className="topology-figure">
+  return <figure className={`topology-figure ${paused?'motion-paused':''}`}>
     <figcaption><strong>{diagram.title}</strong><span>Network topology · schematic</span></figcaption>
+    <div className="topology-toolbar" role="group" aria-label="Diagram view controls">
+      <button type="button" aria-pressed={fit} onClick={()=>setFit(!fit)}>{fit?<Scan size={15}/>:<Maximize2 size={15}/>} {fit?'Readable size':'Fit diagram'}</button>
+      {hasMotion&&<button type="button" aria-pressed={paused} onClick={()=>setPaused(!paused)}>{paused?<Play size={15}/>:<Pause size={15}/>} {paused?'Resume packet animation':'Pause packet animation'}</button>}
+      <span>{fit?'Overview · choose Readable size for details':'Scroll to explore wider diagrams'}</span>
+    </div>
     <div className="topology-scroll" tabIndex={0} role="region" aria-label="Network diagram; scroll horizontally on small screens">
-      <svg className="topology-svg" viewBox={`0 0 ${diagram.width} ${diagram.height}`} style={{ minWidth: diagram.width }} role="group" aria-labelledby={`${id}-title ${id}-desc`}>
+      <svg className="topology-svg" viewBox={`0 0 ${diagram.width} ${diagram.height}`} style={{ minWidth: fit?0:diagram.width }} role="group" aria-labelledby={`${id}-title ${id}-desc`}>
         <title id={`${id}-title`}>{diagram.title}</title><desc id={`${id}-desc`}>{diagram.description || 'Links show connections, not policy permissions. Use the labeled controls to select an answer.'}</desc>
         {diagram.edges.map(edge => {
           const from = diagram.nodes.find(n => n.id === edge.from), to = diagram.nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const spot = diagram.hotspots?.find(s => s.target === 'edge' && s.targetId === edge.id);
-          const dx=to.x-from.x, dy=to.y-from.y;
-          const trim=Math.min(.42,1/Math.max(Math.abs(dx)/110,Math.abs(dy)/64));
-          const x1=from.x+dx*trim,y1=from.y+dy*trim,x2=to.x-dx*trim,y2=to.y-dy*trim;
-          const d=`M ${x1} ${y1} L ${x2} ${y2}`;
-          return <g key={edge.id} className={`topology-edge zone-${edge.zone || 'neutral'} ${state(spot)} ${spot ? 'is-hotspot' : ''}`} {...controls(spot)}>
+          const {d,labelX,labelY,anchor}=topologyEdgeGeometry(from,to,edge.label);
+          return <g key={edge.id} className={`topology-edge zone-${edge.zone || 'neutral'} ${state(spot)} ${spot&&onSelect ? 'is-hotspot' : ''}`} {...controls(spot)}>
             <title>{edge.label || `${from.label} to ${to.label}`}</title>
             <path className="link-hit" d={d}/><path className={`link-line link-${edge.kind || 'ethernet'}`} d={d}/>
             {edge.flow && <path className="packet-flow" d={d}/>}
-            {edge.label && <text className="link-label" x={(from.x+to.x)/2} y={(from.y+to.y)/2-13} textAnchor="middle">{edge.label}</text>}
+            {edge.label && <text className="link-label" x={labelX} y={labelY} textAnchor={anchor}>{edge.label}</text>}
           </g>;
         })}
         {diagram.nodes.map(node => {
           const Icon=icons[node.kind], spot=diagram.hotspots?.find(s=>s.target==='node'&&s.targetId===node.id);
           const detail=lines(node.detail || '');
-          return <g key={node.id} transform={`translate(${node.x} ${node.y})`} className={`topology-node zone-${node.zone || 'neutral'} ${state(spot)} ${node.active ? 'is-active' : ''} ${spot ? 'is-hotspot' : ''}`} {...controls(spot)}>
+          return <g key={node.id} transform={`translate(${node.x} ${node.y})`} className={`topology-node zone-${node.zone || 'neutral'} ${state(spot)} ${node.active ? 'is-active' : ''} ${spot&&onSelect ? 'is-hotspot' : ''}`} {...controls(spot)}>
             <title>{[node.label,node.detail,node.zone].filter(Boolean).join(' · ')}</title>
             <rect className="node-card" x={-105} y={-60} width={210} height={120} rx={12}/>
             <Icon x={-90} y={-43} width={24} height={24} aria-hidden="true"/>
@@ -67,6 +73,11 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
       </svg>
     </div>
     <div className="topology-legend">{(['trusted','external','optional','dmz','vpn'] as const).map(zone=><span className={`zone-${zone}`} key={zone}><i/>{zone === 'dmz' ? 'DMZ' : zone === 'vpn' ? 'VPN' : zone}</span>)}</div>
-    <p className="topology-caption">Links illustrate connectivity, not permission to pass traffic.{!!diagram.hotspots?.length && ' Select a labeled device, link, or answer below.'}</p>
+    <p className="topology-caption">Links illustrate connectivity, not permission to pass traffic.{!!diagram.hotspots?.length && onSelect && ' Select a labeled device, link, or answer below.'}</p>
+    <details className="topology-details"><summary>Read network details</summary>
+      {diagram.description&&<p>{diagram.description}</p>}
+      <dl>{diagram.nodes.map(node=><div key={node.id}><dt>{node.label}{node.zone?` · ${node.zone}`:''}</dt><dd>{node.detail||node.kind}</dd></div>)}</dl>
+      <ul aria-label="Network connections">{diagram.edges.map(edge=>{const from=diagram.nodes.find(n=>n.id===edge.from),to=diagram.nodes.find(n=>n.id===edge.to);return from&&to?<li key={edge.id}>{from.label} — {to.label}{edge.label?` · ${edge.label}`:''}</li>:null;})}</ul>
+    </details>
   </figure>;
 }

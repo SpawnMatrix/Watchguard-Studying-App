@@ -1,10 +1,12 @@
+import TopologyStudio from './components/TopologyStudio';
+import type { QuizLaunch } from './engine/useQuizEngine';
 import StudyHome from './components/StudyHome';
 import { LearningTrackSwitcher, useLearningTrack } from './engine/LearningTrack';
 import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
+import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
@@ -13,7 +15,7 @@ import NetworkSimulator from "./components/NetworkSimulator";
 import FlashcardStudio from "./components/FlashcardStudio";
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
+type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -74,6 +76,7 @@ function loadProfileName() {
 
 export default function App() {
   const account = useAccount();
+  const [quizLaunch,setQuizLaunch]=useState<QuizLaunch|null>(null);
   const {track} = useLearningTrack();
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
@@ -184,6 +187,7 @@ export default function App() {
     { id: "home", label: "Study Home", icon: House },
     { id: "chat", label: "Study Q&A Desk", icon: Bot },
     { id: "quiz", label: "Practice Quiz", icon: Trophy },
+    { id: "topology", label: "Topology Lab", icon: Waypoints },
     { id: "labs", label: "Lab Exercises", icon: Layers },
     { id: "flashcards", label: "Flashcards", icon: BookMarked },
     { id: "sandbox", label: "Network Sandbox", icon: Terminal },
@@ -298,7 +302,8 @@ export default function App() {
               {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
               {(activeTab === 'labs' || activeTab === 'sandbox') && track !== 'local' && <p className="track-notice" role="status">Shared local Firebox practice · apply networking concepts here. These exercises use locally-managed Fireboxes; cloud management workflows are covered in the Cloud Q&A, quizzes and flashcards.</p>}
               {activeTab === "chat" && <GeneralChat />}
-              {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
+              {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} launch={quizLaunch} onLaunchConsumed={()=>setQuizLaunch(null)} />}
+              {activeTab === "topology" && <TopologyStudio onPractice={launch=>{setQuizLaunch(launch);setActiveTab('quiz');}}/>}
               {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
               {activeTab === "flashcards" && <FlashcardStudio />}
               {activeTab === "sandbox" && <NetworkSimulator />}

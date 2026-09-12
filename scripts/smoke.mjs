@@ -12,6 +12,12 @@ await call('/api/session');await call('/api/features');
 const release=(await call('/api/version')).data;
 assert.equal(release.version,JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version);
 if(process.env.SMOKE_EXPECT_COMMIT)assert.equal(release.commit,process.env.SMOKE_EXPECT_COMMIT);
+if(process.env.SMOKE_EXPECT_BUILD_TIME==='true'){
+ const compiled=await (await fetch(base+'/build-info.json')).json();
+ assert.ok(Number.isFinite(Date.parse(release.buildDate)),'Production build timestamp must be valid');
+ assert.equal(release.buildDate,compiled.buildDate,'API and frontend must identify the same build');
+ assert.equal(release.version,compiled.version);
+}
 const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,468);assert.equal(catalog.templateCount,48);
 const page=await fetch(base);assert.match(await page.text(),/<div id="root">/);
 if(process.env.SMOKE_VERIFY==='true'){
