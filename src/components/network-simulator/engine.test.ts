@@ -35,7 +35,8 @@ describe('policy simulation boundaries',()=>{
   expect(validateFlow({...flow,to:'trusted'})).toBeTruthy();expect(validateFlow(flow)).toBeNull();
  });
  it('has a bounded solution for every guided challenge',()=>{
-  const fixes={dns:{dns:true},udp:{},tls:{trustCa:true},gav:{inspectTls:true,trustCa:true},inbound:{inboundWeb:true},block:{}};
-  for(const challenge of challenges){const c={...config,...challenge.config,...fixes[challenge.id as keyof typeof fixes]},f={...flow,...challenge.flow};expect(challenge.solved(c,f),challenge.id).toBe(true);expect(evaluateFlow(c,f).status).toBe(['gav','udp','block'].includes(challenge.id)?'Denied':'Allowed');}
+  const fixes={dns:{dns:true},udp:{},tls:{trustCa:true},gav:{inspectTls:true,trustCa:true},inbound:{inboundWeb:true},block:{},'ping-separate':{ping:true},interzone:{interZone:true},'dmz-outbound':{httpProxy:true},'blocked-port':{blockedPorts:[]},'gav-http':{httpProxy:true}};
+  const denied=['gav','udp','block','gav-http'];
+  for(const challenge of challenges){const c={...config,...challenge.config,...fixes[challenge.id as keyof typeof fixes]},f={...flow,...challenge.flow};expect(challenge.solved(c,f),challenge.id).toBe(true);expect(evaluateFlow(c,f).status,challenge.id).toBe(denied.includes(challenge.id)?'Denied':'Allowed');}
  });
 });
