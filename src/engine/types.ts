@@ -3,6 +3,7 @@ export type Difficulty = 'foundation' | 'applied' | 'advanced';
 export interface SourceReference { title: string; section?: string; url?: string }
 export interface Variant { templateId: number; seed: number; version: number }
 export interface QuestionMetadata {
+  topology?: import('./topology').TopologyDiagramData;
   track?: Track;
   difficulty?: Difficulty;
   objective?: string;
