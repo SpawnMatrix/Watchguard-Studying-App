@@ -4,11 +4,12 @@ import { integer, pick, seededRandom, shuffle } from './random';
 import { numberToIPv4 as ip, subnet, smallestLanPrefix } from './network';
 import { validateQuestion } from './grading';
 import { CLOUD_SOURCE, NETWORK_SOURCE, localSource, type Track, type Variant } from './types';
+import type { TopologyDiagramData, TopologyEdge, TopologyNode } from './topology';
 import { logScenarioBuilders } from './logScenarios';
 import { orderingScenarios } from './policyOrdering';
 
 type Scenario = Pick<Question, 'question' | 'options' | 'correctAnswers' | 'explanation'> &
-  Partial<Pick<Question, 'type' | 'logMessage' | 'networkDiagram' | 'orderingDetails'>>;
+  Partial<Pick<Question, 'type' | 'logMessage' | 'networkDiagram' | 'orderingDetails' | 'topology'>>;
 export interface QuestionTemplate {
   id: number; title: string; topic: Question['topic']; track: Track; section: string;
   build: (rng: Random) => Scenario;
@@ -31,6 +32,17 @@ const local = (id: number, title: string, topic: Question['topic'], section: str
   ({ id, title, topic, section, track: 'local', build });
 const net = (id: number, title: string, topic: Question['topic'], section: string, build: QuestionTemplate['build']): QuestionTemplate =>
   ({ id, title, topic, section, track: 'network-plus', build });
+
+const node = (
+  id: string, kind: TopologyNode['kind'], label: string, x: number, y: number,
+  extra: Partial<TopologyNode> = {},
+): TopologyNode => ({ id, kind, label, x, y, ...extra });
+const link = (id: string, from: string, to: string, extra: Partial<TopologyEdge> = {}): TopologyEdge =>
+  ({ id, from, to, ...extra });
+const diagram = (
+  title: string, width: number, height: number,
+  nodes: TopologyNode[], edges: TopologyEdge[], hotspots?: TopologyDiagramData['hotspots'],
+): TopologyDiagramData => ({ version: 1, title, width, height, nodes, edges, hotspots });
 
 export const questionTemplates: QuestionTemplate[] = [
   net(10001, 'Find the network address', 'IP Addressing', '1.7 IPv4 addressing', r => {
@@ -196,6 +208,132 @@ export const questionTemplates: QuestionTemplate[] = [
     const time=(v:number)=>`${String(Math.floor(v/60)).padStart(2,'0')}:${String(v%60).padStart(2,'0')}`;
     return one(`The configured temporary blocked-site duration is ${duration} minutes. A host is added at ${time(hour*60+minute)}. With no new trigger or administrative change, when should the temporary entry expire?`,time(total),
       [time(total+duration),time(total-1),time(total+1)],`Use the configured duration, not an assumed default: ${time(hour*60+minute)} + ${duration} minutes = ${time(total)}. A new event or manual change can alter the actual expiry.`);
+  }),
+  // -------------------------------------------------------------------------------------------
+  // Diagram-driven templates, authored against topology contract v1 (./topology.ts). Each one
+  // varies its addressing, VLAN identifiers or metrics per seed, so the diagram a learner reads
+  // is the one the arithmetic in the stem refers to.
+  // -------------------------------------------------------------------------------------------
+  net(10051, 'Locate a host in a subnetted /24', 'IP Addressing', '1.7 IPv4 addressing', r => {
+    const octet = integer(r, 16, 199), prefix = pick(r, [26, 27, 28]);
+    const blockSize = 2 ** (32 - prefix), blocks = 256 / blockSize;
+    const index = integer(r, 1, blocks - 2), base = `10.${octet}.7.${index * blockSize}`;
+    const network = subnet(base, prefix), host = ip(network.network + integer(r, 1, blockSize - 2));
+    const answer = `${ip(network.network)}/${prefix}`;
+    return { ...one(`The distribution router splits 10.${octet}.7.0/24 into /${prefix} segments. Which segment contains the workstation ${host}?`, answer,
+      [`${ip(network.network - blockSize)}/${prefix}`, `${ip(network.network + blockSize)}/${prefix}`, `10.${octet}.7.0/24`],
+      `A /${prefix} steps in blocks of ${blockSize} addresses, so the boundaries are ${ip(network.network - blockSize)}, ${ip(network.network)} and ${ip(network.network + blockSize)}. ${host} falls inside ${answer}, whose usable range runs from ${ip(network.network + 1)} to ${ip(network.broadcast - 1)}. The /24 is the unsubnetted supernet, which would only be the answer if the router were not subnetting at all.`),
+      type: 'topology', topology: diagram('Subnetted distribution LAN', 900, 460, [
+        node('a', 'subnet', 'Segment A', 130, 90, { detail: `${ip(network.network - blockSize)}/${prefix}`, zone: 'trusted' }),
+        node('b', 'subnet', 'Segment B', 130, 230, { detail: answer, zone: 'trusted' }),
+        node('c', 'subnet', 'Segment C', 130, 370, { detail: `${ip(network.network + blockSize)}/${prefix}`, zone: 'trusted' }),
+        node('rtr', 'router', 'Distribution', 450, 230, { detail: `10.${octet}.7.0/24 split into /${prefix}` }),
+        node('host', 'client', 'Workstation', 770, 230, { detail: host, zone: 'trusted' }),
+      ], [
+        link('l1', 'a', 'rtr', { zone: 'trusted' }), link('l2', 'b', 'rtr', { zone: 'trusted' }),
+        link('l3', 'c', 'rtr', { zone: 'trusted' }), link('l4', 'rtr', 'host', { zone: 'trusted', flow: true }),
+      ]) };
+  }),
+  net(10052, 'Identify the tagged uplink', 'Switching & Wireless', '2.3 VLANs and switching', r => {
+    const low = integer(r, 10, 90), high = low + integer(r, 5, 60);
+    const answer = 'The switch-to-router uplink';
+    return { ...one(`Hosts in VLAN ${low} and VLAN ${high} share one access switch, and the router provides inter-VLAN routing. Which link has to carry 802.1Q tags?`, answer,
+      [`The access link to the VLAN ${low} host`, `The access link to the VLAN ${high} host`, 'Every link in the diagram'],
+      `Only the uplink carries traffic for more than one VLAN, so only it needs tags to keep VLAN ${low} and VLAN ${high} apart. The host links are access ports carrying a single untagged VLAN each, because an ordinary workstation does not read tags: tagging them would break those hosts, and leaving the uplink untagged would merge both VLANs into whichever one the port is assigned.`),
+      type: 'topology', topology: diagram('Two VLANs behind one uplink', 1070, 460, [
+        node('h1', 'client', `Host VLAN ${low}`, 130, 90, { detail: `10.${low}.0.20`, zone: 'trusted' }),
+        node('h2', 'client', `Host VLAN ${high}`, 130, 370, { detail: `10.${high}.0.20`, zone: 'trusted' }),
+        node('sw', 'switch', 'Access switch', 400, 230, { zone: 'trusted' }),
+        node('rtr', 'router', 'Router', 670, 230, { detail: 'inter-VLAN routing' }),
+        node('net', 'cloud', 'Internet', 940, 230, { zone: 'external' }),
+      ], [
+        link('a1', 'h1', 'sw', { label: `access VLAN ${low}`, zone: 'trusted' }),
+        link('a2', 'h2', 'sw', { label: `access VLAN ${high}`, zone: 'trusted' }),
+        link('up', 'sw', 'rtr', { label: '802.1Q uplink', zone: 'trusted', flow: true }),
+        link('wan', 'rtr', 'net', { zone: 'external' }),
+      ], [
+        { target: 'edge', targetId: 'up', answer },
+        { target: 'edge', targetId: 'a1', answer: `The access link to the VLAN ${low} host` },
+        { target: 'edge', targetId: 'a2', answer: `The access link to the VLAN ${high} host` },
+      ]) };
+  }),
+  net(10053, 'Compare OSPF path costs', 'Routing', '2.2 Routing technologies', r => {
+    const first = integer(r, 5, 40), second = integer(r, 5, 40);
+    const viaR2 = first + second;
+    // Keep the single-link path strictly different so exactly one option is lowest.
+    const viaR3 = viaR2 + pick(r, [-1, 1]) * integer(r, 2, 18);
+    const r2Wins = viaR2 < viaR3;
+    const answer = r2Wins ? `Through R2, with a total cost of ${viaR2}` : `Through R3, with a total cost of ${viaR3}`;
+    const other = r2Wins ? `Through R3, with a total cost of ${viaR3}` : `Through R2, with a total cost of ${viaR2}`;
+    return { ...one(`OSPF on R1 has two paths to the target LAN: through R2 over links costing ${first} and ${second}, or through R3 over a single link costing ${viaR3}. Which path does R1 install?`, answer,
+      [other, 'Through R3, because a single link is always preferred', 'Both paths, alternating packets between them'],
+      `OSPF sums the cost of every link on a path and installs the lowest total: ${first} + ${second} = ${viaR2} against ${viaR3}, so the ${r2Wins ? 'two-hop path through R2' : 'single link through R3'} wins. Hop count is a RIP metric and never enters an OSPF decision, which is exactly why OSPF handles mixed link speeds better. Equal-cost paths are installed side by side, but only when the totals actually tie.`),
+      type: 'topology', topology: diagram('Two paths, one metric', 1070, 460, [
+        node('r1', 'router', 'R1', 130, 230, { detail: 'source' }),
+        node('r2', 'router', 'R2', 400, 90, { detail: `cost ${first} + ${second}` }),
+        node('r3', 'router', 'R3', 400, 370, { detail: `cost ${viaR3}` }),
+        node('r4', 'router', 'R4', 670, 230, { detail: 'gateway' }),
+        node('dest', 'subnet', 'Target LAN', 940, 230, { detail: '10.80.9.0/24', zone: 'trusted' }),
+      ], [
+        link('e1', 'r1', 'r2', { label: `cost ${first}` }), link('e2', 'r2', 'r4', { label: `cost ${second}` }),
+        link('e3', 'r1', 'r3', { label: `cost ${viaR3}` }), link('e4', 'r3', 'r4', { label: 'cost 0' }),
+        link('e5', 'r4', 'dest', { zone: 'trusted' }),
+      ]) };
+  }),
+  local(10054, 'Find the missing return route', 'Routing', 'Static Routing; Routing Decisions Logic, pp. 90-91, 114-118', r => {
+    const n = networks(r), optional = n.router.replace(/\.\d+$/, '.1');
+    const clientNet = `${n.client.replace(/\.\d+$/, '.0')}/24`;
+    const answer = `A route to ${clientNet} via ${optional}, added on the downstream router`;
+    return { ...one(`The Firebox has a static route for ${n.remote} via ${n.router}, and a packet capture confirms requests from ${n.client} arrive at the server. Replies never come back. Which route is missing, and where?`, answer,
+      [`A route to ${n.remote} via ${n.router}, added again on the Firebox`, `A default route configured on ${n.client}`, `A host route to ${n.server} added on the core switch`],
+      `Forward delivery only proves half the path. The downstream router receives a packet sourced from ${clientNet}, a network it has no route to, so it sends the reply to its own default gateway instead of back through ${optional}. Adding the return route on that router completes the path. Repeating the forward route on the Firebox changes nothing, because that half already works.`),
+      type: 'topology', topology: diagram('Asymmetric return path', 1070, 460, [
+        node('client', 'client', 'Trusted client', 130, 230, { detail: n.client, zone: 'trusted' }),
+        node('fw', 'firebox', 'Firebox', 400, 230, { detail: `Optional ${optional}` }),
+        node('rtr', 'router', 'Downstream router', 670, 230, { detail: n.router, zone: 'optional' }),
+        node('srv', 'server', 'Server', 940, 230, { detail: n.server, zone: 'optional' }),
+        node('lan', 'subnet', 'Server LAN', 940, 370, { detail: n.remote, zone: 'optional' }),
+      ], [
+        link('e1', 'client', 'fw', { label: 'Eth1', zone: 'trusted', flow: true }),
+        link('e2', 'fw', 'rtr', { label: 'Optional', zone: 'optional', flow: true }),
+        link('e3', 'rtr', 'srv', { zone: 'optional', flow: true }),
+        link('e4', 'rtr', 'lan', { zone: 'optional' }),
+      ]) };
+  }),
+  local(10055, 'Write the inbound policy destination', 'NAT', 'Static NAT, pp. 126-127', r => {
+    const n = networks(r), port = pick(r, [443, 8443, 993, 3389]);
+    return { ...one(`An SNAT action maps ${n.publicIP}:${port} to the internal server ${n.server}:${port}. Which destination should the inbound policy that permits this traffic specify?`, n.server,
+      [n.publicIP, 'The Any-External alias', n.gateway],
+      `For an inbound connection the Firebox applies NAT before it looks for a matching policy, so by the time the lookup runs the packet is addressed to ${n.server}. A policy written to ${n.publicIP} never matches and the connection is denied as an unhandled packet. That ordering is the most common reason a correct-looking SNAT rule appears to do nothing at all.`),
+      type: 'topology', topology: diagram('Inbound translation order', 900, 460, [
+        node('client', 'client', 'Internet client', 130, 230, { detail: `to ${n.publicIP}:${port}`, zone: 'external' }),
+        node('fw', 'firebox', 'Firebox', 450, 230, { detail: 'SNAT, then policy lookup' }),
+        node('srv', 'server', 'Published server', 770, 230, { detail: `${n.server}:${port}`, zone: 'dmz' }),
+      ], [
+        link('e1', 'client', 'fw', { label: `dst ${n.publicIP}`, zone: 'external', flow: true }),
+        link('e2', 'fw', 'srv', { label: `dst ${n.server}`, zone: 'dmz', flow: true }),
+      ]) };
+  }),
+  local(10056, 'Choose an interface zone', 'Policies', 'Interfaces and Zones, pp. 71-74', r => {
+    const n = integer(r, 10, 200), segment = `10.${n}.5.0/24`;
+    const publicFacing = pick(r, [true, false]);
+    const purpose = publicFacing ? 'a web server that Internet users must reach' : 'staff workstations that need no inbound access';
+    const answer = publicFacing ? 'Optional' : 'Trusted';
+    return { ...one(`A new segment ${segment} will host ${purpose}. Which zone should its Firebox interface use?`, answer,
+      [publicFacing ? 'Trusted' : 'Optional', 'External', 'A tagged VLAN on the external interface'],
+      publicFacing
+        ? `An Optional interface keeps a publicly reachable host off the Trusted network, so a compromise of that server does not put it on the same segment as staff machines. It still needs an explicit policy plus static NAT to be reachable; the zone provides the separation, not the access. Trusted is the tempting answer because it also works technically, and that is the point: it works while removing the separation you wanted.`
+        : `Trusted is the zone for internal hosts that make outbound connections and accept none from the Internet, and the default Outgoing policy already covers them. Optional would also function, but it is meant for hosts that need separation from the Trusted network, and using it here gains nothing while complicating internal access.`),
+      type: 'topology', topology: diagram('Placing a new segment', 900, 460, [
+        node('seg', 'subnet', 'New segment', 130, 230, { detail: segment, zone: publicFacing ? 'optional' : 'trusted' }),
+        node('fw', 'firebox', 'Firebox', 450, 230, { detail: 'Eth1 / Eth2 / Eth0' }),
+        node('lan', 'subnet', 'Existing LAN', 130, 90, { detail: `10.${n}.1.0/24`, zone: 'trusted' }),
+        node('net', 'cloud', 'Internet', 770, 230, { zone: 'external' }),
+      ], [
+        link('e1', 'seg', 'fw', { label: 'new interface', zone: publicFacing ? 'optional' : 'trusted', flow: true }),
+        link('e2', 'lan', 'fw', { label: 'Eth1 trusted', zone: 'trusted' }),
+        link('e3', 'fw', 'net', { label: 'Eth0 external', zone: 'external' }),
+      ]) };
   }),
 ];
 

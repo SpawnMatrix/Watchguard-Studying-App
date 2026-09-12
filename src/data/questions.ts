@@ -1,6 +1,8 @@
 import type { QuestionMetadata } from '../engine/types';
 import { authoredQuestions } from './authoredQuestions';
 import { legacyRevisions } from './legacyExplanations';
+import { topologyQuestions } from './topologyQuestions';
+import { legacyTopologyScenes } from './legacyTopologyScenes';
 
 export interface Question extends QuestionMetadata {
   id: number;
@@ -1625,7 +1627,6 @@ examQuestions.push({
   correctAnswersCount: 1,
   topic: "Routing",
   type: "topology",
-  topologyImage: "/assets/topology-1.svg",
   explanation: "When traffic needs to reach a network that is not directly connected to one of the Firebox's interfaces (like 192.168.50.0/24 behind a downstream router), a static route must be added to the Firebox Route Table so it knows where to send the packets."
 });
 
@@ -1653,7 +1654,6 @@ examQuestions.push({
   correctAnswersCount: 1,
   topic: "BOVPN",
   type: "topology",
-  topologyImage: "/assets/topology-bovpn.svg",
   explanation: "The Firebox is the device responsible for establishing and encrypting BOVPN connections to remote sites. It sits between the edge router and the internal network."
 });
 
@@ -1683,7 +1683,6 @@ examQuestions.push({
   correctAnswersCount: 1,
   topic: "NAT",
   type: "topology",
-  topologyImage: "/assets/topology-nat.svg",
   explanation: "NAT Loopback allows clients on a Trusted or Optional network to use the external public IP address to connect to a local server on the same Firebox."
 });
 
@@ -1723,13 +1722,7 @@ examQuestions.push({
   correctAnswersCount: 1,
   topic: "Routing",
   type: "topology",
-  topologyImage: "/assets/topology-edge.svg",
-  explanation: "The edge router sits at the perimeter of the network connecting directly to the ISP.",
-  hotspots: [
-    { x: 10, y: 20, width: 20, height: 20, label: "Hotspot A" },
-    { x: 40, y: 20, width: 20, height: 20, label: "Hotspot B" },
-    { x: 70, y: 20, width: 20, height: 20, label: "Hotspot C" }
-  ]
+  explanation: "The edge router sits at the perimeter of the network connecting directly to the ISP."
 });
 
 examQuestions.push({
@@ -1881,6 +1874,26 @@ examQuestions.push({
 // topic or track that did not match what they test. Applying the corrections here keeps the
 // historical question objects and their identifiers untouched while giving every one of them a
 // rationale. See legacyExplanations.ts for the revisions themselves.
+// The four Phase 2 topology questions pointed at SVG files that were never added to public/assets,
+// so they rendered as literal placeholder text. Give them real contract-v1 diagrams instead.
+for (const question of examQuestions) {
+  const scene = legacyTopologyScenes[question.id];
+  if (!scene) continue;
+  question.topology = scene.topology;
+  if (scene.question) question.question = scene.question;
+  if (scene.options && scene.answer) {
+    question.options = scene.options;
+    question.correctAnswer = scene.answer;
+    question.correctAnswers = [scene.answer];
+    question.correctAnswersCount = 1;
+    question.isMultiSelect = false;
+  }
+  if (scene.explanation) question.explanation = scene.explanation;
+  if (scene.topic) question.topic = scene.topic;
+  delete question.topologyImage;
+  delete question.hotspots;
+}
+
 for (const question of examQuestions) {
   const revision = legacyRevisions[question.id];
   if (!revision) continue;
@@ -1891,3 +1904,5 @@ for (const question of examQuestions) {
 
 // Additive catalog: historical question identifiers remain unchanged.
 examQuestions.push(...authoredQuestions);
+// Diagram-driven section, authored against topology contract v1 (src/engine/topology.ts).
+examQuestions.push(...topologyQuestions);
