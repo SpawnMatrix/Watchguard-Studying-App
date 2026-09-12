@@ -12,7 +12,7 @@ await call('/api/session');await call('/api/features');
 const release=(await call('/api/version')).data;
 assert.equal(release.version,JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version);
 if(process.env.SMOKE_EXPECT_COMMIT)assert.equal(release.commit,process.env.SMOKE_EXPECT_COMMIT);
-const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,468);assert.equal(catalog.templateCount,48);
+const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,468);assert.equal(catalog.templateCount,62);
 const page=await fetch(base);assert.match(await page.text(),/<div id="root">/);
 if(process.env.SMOKE_VERIFY==='true'){
  const {data}=await call('/api/account/login',{username,pin});assert.equal(data.snapshot.weakness_deck,'{"10001":1}');
