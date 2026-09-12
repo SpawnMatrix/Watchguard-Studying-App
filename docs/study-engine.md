@@ -2,7 +2,7 @@
 
 ## Scope
 
-425 authored questions (145 existing IDs retained + 280 original additions), 30 deterministic scenario templates, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
+441 authored questions (145 existing IDs retained + 280 original additions + 16 diagram scenarios), 36 deterministic scenario templates, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
 
 ## Generator contract
 

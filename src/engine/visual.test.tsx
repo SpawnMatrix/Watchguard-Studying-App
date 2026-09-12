@@ -16,8 +16,12 @@ describe('topology compatibility and interactions',()=>{
       expect(new Set(d.nodes.map(n=>n.id)).size).toBe(d.nodes.length);
       for(const edge of d.edges){expect(d.nodes.some(n=>n.id===edge.from)).toBe(true);expect(d.nodes.some(n=>n.id===edge.to)).toBe(true);}
       for(const spot of d.hotspots||[]){expect(q.options).toContain(spot.answer);expect((spot.target==='node'?d.nodes:d.edges).some(n=>n.id===spot.targetId)).toBe(true);}
-      if(q.id===208)expect(d.hotspots?.find(h=>h.targetId==='edge')?.answer).toBe('Hotspot A');
-      if(q.id===203)expect(d.hotspots?.find(h=>h.targetId==='fw')?.answer).toBe('Hotspot B (Firebox)');
+      // 203 and 208 no longer reach the image-name adapter: they carry their own contract-v1
+      // diagrams (src/data/legacyTopologyScenes.ts), so their hotspots bind to the real option
+      // text rather than the placeholder 'Hotspot A/B/C' labels the adapter synthesised.
+      // Same assertion, pointed at the data that now backs those questions.
+      if(q.id===208)expect(d.hotspots?.find(h=>h.targetId==='rtr')?.answer).toBe('Edge router');
+      if(q.id===203)expect(d.hotspots?.find(h=>h.targetId==='vpn')?.answer).toBe('The Firebox-to-Internet link');
       const html=renderToStaticMarkup(<NetworkTopology diagram={d}/>);
       expect(html).toContain('<svg');expect(html).not.toContain('[Topology Diagram:');expect(JSON.stringify(q)).toBe(before);
     }
