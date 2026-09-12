@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
 import { Award, Layers, BookOpen } from 'lucide-react';
 
 interface FlashcardStudioStatsProps {
@@ -14,6 +15,7 @@ export default function FlashcardStudioStats({
   totalCount,
   handleResetProgress
 }: FlashcardStudioStatsProps) {
+  const {track}=useLearningTrack();
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -47,11 +49,7 @@ export default function FlashcardStudioStats({
         <div>
           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">Learning tracks</span>
           <div className="flex flex-wrap gap-1.5 mt-1.5">
-            <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Setup</span>
-            <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Policies</span>
-            <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Routing</span>
-            <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">VPN</span>
-            <span className="text-[9px] bg-watchguard-dark/80 px-1.5 py-0.5 rounded text-gray-300 font-mono">Diagnostics</span>
+            <span className="text-xs text-gray-300">{learningTrackLabels[track]}</span>
           </div>
         </div>
       </div>

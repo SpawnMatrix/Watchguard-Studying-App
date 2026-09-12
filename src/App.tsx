@@ -1,8 +1,10 @@
+import StudyHome from './components/StudyHome';
+import { LearningTrackSwitcher, useLearningTrack } from './engine/LearningTrack';
 import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
+import { House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
 import GeneralChat from "./components/GeneralChat";
 import PracticeQuiz from "./components/PracticeQuiz";
 import LabWalkthrough from "./components/LabWalkthrough";
@@ -11,7 +13,7 @@ import NetworkSimulator from "./components/NetworkSimulator";
 import FlashcardStudio from "./components/FlashcardStudio";
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
+type Tab = "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -72,7 +74,8 @@ function loadProfileName() {
 
 export default function App() {
   const account = useAccount();
-  const [activeTab, setActiveTab] = useState<Tab>("chat");
+  const {track} = useLearningTrack();
+  const [activeTab, setActiveTab] = useState<Tab>("home");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     try { return localStorage.getItem("watchguard-portal-theme") === "light" ? "light" : "dark"; } catch { return "dark"; }
   });
@@ -178,6 +181,7 @@ export default function App() {
   };
 
   const tabsConfig = [
+    { id: "home", label: "Study Home", icon: House },
     { id: "chat", label: "Study Q&A Desk", icon: Bot },
     { id: "quiz", label: "Practice Quiz", icon: Trophy },
     { id: "labs", label: "Lab Exercises", icon: Layers },
@@ -211,9 +215,11 @@ export default function App() {
             </div>
           </div>
 
+          <LearningTrackSwitcher />
+
           {/* Connected Session Telemetry Details & Mode Toggle */}
-          <div className="flex items-center gap-3.5 flex-wrap md:flex-nowrap">
-            <div className="flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
+          <div className="session-tools flex items-center gap-3.5 flex-wrap md:flex-nowrap">
+            <div className="session-telemetry flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
               <div className="flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
                 <span className="font-mono" title={timeZone}>{localTime}</span>
@@ -289,6 +295,8 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
+              {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
+              {(activeTab === 'labs' || activeTab === 'sandbox') && track !== 'local' && <p className="track-notice" role="status">Shared local Firebox practice · apply networking concepts here. These exercises use locally-managed Fireboxes; cloud management workflows are covered in the Cloud Q&A, quizzes and flashcards.</p>}
               {activeTab === "chat" && <GeneralChat />}
               {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} />}
               {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
