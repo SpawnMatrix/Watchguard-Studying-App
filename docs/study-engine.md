@@ -30,6 +30,8 @@ Mock exams contain up to 50 questions. Static questions are unique within an exa
 
 Before 1.5.0 the same measurement gave Operations 29% and Security 6%. `networkPlusBlueprint.test.ts` fails if a Network+ question is left unclassified, if a classified id no longer exists, if any domain drifts more than three points from its weighting, or if a domain has fewer than 20 questions. Two placements surprise people: DHCP, DNS and NTP are 3.4 (Operations), and ports and protocols are 1.4 (Concepts).
 
+From 1.6.0 a Network+ mock exam also draws to the blueprint rather than uniformly: 12 Concepts, 10 Implementation, 9 Operations, 7 Security and 12 Troubleshooting questions, interleaved (`src/engine/mockExam.ts`). A uniform draw from the same bank gave Security between 1 and 16 questions, and four or fewer in one mock in ten. The blueprint applies only to a whole Network+ pool that can fill every quota; a single topic, a format or content filter that empties a domain, and the Local Firebox, Cloud and All tracks keep the uniform draw. A finished Network+ mock shows its score for each domain beside that domain's exam weight.
+
 ## Compatibility
 
 The six sections remain: Q&A, quiz, labs, flashcards, sandbox, progress/admin. Existing question and flashcard identifiers, local progress keys, lab completion callbacks, theme preferences, and optional personal/server AI keys remain supported. Quiz feedback is always available locally for new authored/generated material. Older items retain the existing optional tutor/fallback path.
