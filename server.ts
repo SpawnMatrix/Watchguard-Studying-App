@@ -8,6 +8,7 @@ import { AccountStore } from './server/accounts';
 import { accountRoutes } from './server/accountRoutes';
 import { adminRoutes, requireAdmin, assertAdminPasswordSafe, AI_SETTING_KEY } from './server/adminRoutes';
 import { proxyTrustSetting, securityHeaders } from './server/security';
+import { tutorInputProblem } from './server/tutorInput';
 import { studyQuestions, questionById } from './src/engine/catalog';
 import { generateQuestion, questionTemplates } from './src/engine/templates';
 import { gradeQuestion } from './src/engine/grading';
@@ -50,6 +51,14 @@ assertAdminPasswordSafe();
  * supplying private-range hops in `X-Forwarded-For`, which defeated every
  * rate limiter in the app.
  */
+/**
+ * Express 4 parses query strings with `qs` by default, which carries two open advisories (an
+ * array-limit bypass and a denial of service through attacker-controlled input). No route in
+ * this app reads `req.query`, so the extended parser buys nothing: "simple" uses the Node
+ * built-in and takes `qs` off the request path entirely. Revisit only if a route needs nested
+ * query syntax, which would be a good moment to move to Express 5 instead.
+ */
+app.set("query parser", "simple");
 app.set("trust proxy", proxyTrustSetting());
 app.disable("x-powered-by");
 app.use(securityHeaders(isProduction));
@@ -90,6 +99,31 @@ function cleanIdentityHeader(value: string | undefined) {
  */
 const behindProxy = proxyTrustSetting() !== 0;
 
+/**
+ * Proxy configuration is the one setting here that fails silently and dangerously.
+ *
+ * With TRUSTED_PROXY_HOPS=0 behind a reverse proxy, every request appears to come from the proxy
+ * and all rate limiting collapses onto a single bucket. With hops configured but the app reachable
+ * directly, a client can present its own X-Forwarded-For and choose its own req.ip, which defeats
+ * the limiter the other way. Neither shows up in logs today.
+ *
+ * Warn once per process on the first request that disagrees with the configuration, naming the
+ * variable to change. Once, because this is an operator hint and not a per-request event.
+ */
+let proxyWarningIssued = false;
+app.use((req, _res, next) => {
+  if (!proxyWarningIssued && req.path.startsWith("/api/")) {
+    const forwarded = Boolean(req.headers["x-forwarded-for"]);
+    if (forwarded !== behindProxy) {
+      proxyWarningIssued = true;
+      console.warn(forwarded
+        ? "[security] X-Forwarded-For received but TRUSTED_PROXY_HOPS=0, so every client shares one rate-limit bucket. Set TRUSTED_PROXY_HOPS to the number of proxies in front of this process."
+        : "[security] TRUSTED_PROXY_HOPS is set but requests arrive without X-Forwarded-For, so this port is reachable without passing the proxy and a client can choose its own address. Bind the published port to loopback.");
+    }
+  }
+  next();
+});
+
 app.get("/api/session", (req, res) => {
   let forwardedIdentity = "";
   if (behindProxy) {
@@ -125,7 +159,9 @@ app.post("/api/admin/toggle-ai", adminOnly, (req, res) => {
 
 // API Endpoints
 app.post("/api/chat", aiLimit, async (req, res) => {
-  const { prompt, history } = req.body;
+  const { prompt, history } = req.body ?? {};
+  const problem = tutorInputProblem(prompt, history);
+  if (problem) return res.status(400).json({ message: problem });
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
     const data = await generateChatResponse(prompt, history, customApiKey);

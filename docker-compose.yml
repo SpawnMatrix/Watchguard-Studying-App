@@ -32,6 +32,16 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    # This file is the direct, no-proxy path, so the port is deliberately published on all
+    # interfaces and TRUSTED_PROXY_HOPS stays 0 (no X-Forwarded-For is believed). The ceiling
+    # still applies: a runaway process should not be able to take the host with it.
+    deploy:
+      resources:
+        limits:
+          memory: ${WATCHGUARD_MEMORY_LIMIT:-512M}
+          cpus: "${WATCHGUARD_CPU_LIMIT:-1.0}"
+        reservations:
+          memory: 128M
     logging:
       driver: "json-file"
       options:
