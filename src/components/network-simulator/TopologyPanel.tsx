@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Shield } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 
 interface TopologyPanelProps {
   animatingPacket: {
@@ -12,12 +12,13 @@ interface TopologyPanelProps {
 }
 
 export function TopologyPanel({ animatingPacket }: TopologyPanelProps) {
+  const reduceMotion=useReducedMotion();
   return (
     <div className="flex-1 p-5 flex flex-col justify-center items-center bg-watchguard-dark/40 min-h-[220px] relative overflow-hidden">
 
       {/* Animated Flying Packet Dot Indicator */}
       <AnimatePresence>
-        {animatingPacket && (
+        {animatingPacket && !reduceMotion && (
           <motion.div
             initial={{
               left: animatingPacket.from === "trusted" ? "75%" : animatingPacket.from === "dmz" ? "50%" : "25%",

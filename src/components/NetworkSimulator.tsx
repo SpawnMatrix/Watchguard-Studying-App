@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Play, Pause, RotateCcw, Download, FlaskConical, CheckCircle2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Play, Pause, RotateCcw, Download, FlaskConical, CheckCircle2, LayoutDashboard, Shield, Activity, Send, ArrowRight } from 'lucide-react';
 import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, type Packet, type Zone, type Protocol } from './network-simulator';
-import { challenges, defaultConfig, defaultFlow, evaluateFlow, validIPv4, validateFlow, type Flow, type SandboxConfig } from './network-simulator/engine';
+import { challenges, defaultConfig, defaultFlow, evaluateFlow, validateFlow, type Flow, type SandboxConfig } from './network-simulator/engine';
+
+import { flowPresets, packetOutcome, packetToFlow, policyRows } from './network-simulator/workspace';
+
+type SandboxView = 'overview' | 'policies' | 'test' | 'monitor';
 
 export default function NetworkSimulator() {
   const [config,setConfig]=useState<SandboxConfig>(()=>structuredClone(defaultConfig));
@@ -9,11 +13,10 @@ export default function NetworkSimulator() {
   const [packets,setPackets]=useState<Packet[]>([]),[inspectedPacket,setInspectedPacket]=useState<Packet|null>(null);
   const [autoGen,setAutoGen]=useState(false),[challengeId,setChallengeId]=useState(''),[completed,setCompleted]=useState<string[]>([]);
   const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
-  const [newSiteBlock,setNewSiteBlock]=useState(''),[newPortBlock,setNewPortBlock]=useState('');
+  const [view,setView]=useState<SandboxView>('overview');
   const [animatingPacket,setAnimatingPacket]=useState<{from:string;to:string;status:'Allowed'|'Denied';protocol:string}|null>(null);
   const counter=useRef(Date.now()),animationTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const challenge=challenges.find(c=>c.id===challengeId);
-  const patch=<K extends keyof SandboxConfig>(key:K,value:SandboxConfig[K])=>setConfig(c=>({...c,[key]:value}));
   const update=<K extends keyof Flow>(key:K,value:Flow[K])=>{setFlow(f=>({...f,[key]:value}));setFeedback('');};
   const changeZone=(key:'from'|'to',zone:Zone)=>setFlow(f=>({...f,[key]:zone,[key==='from'?'srcIP':'dstIP']:zone==='trusted'?'10.0.1.25':zone==='dmz'?'192.168.10.15':'203.0.113.25'}));
   const changeProtocol=(protocol:Protocol)=>setFlow(f=>({...f,protocol,dstPort:protocol==='HTTPS'?443:protocol==='UDP'?53:protocol==='ICMP'?0:80,payload:protocol==='HTTPS'?'Clean HTTPS test':protocol==='UDP'?'DNS query':protocol==='ICMP'?'ICMP echo request':'HTTP request'}));
@@ -47,29 +50,44 @@ export default function NetworkSimulator() {
     return()=>clearInterval(timer);
   },[autoGen,config]);
   function loadChallenge(id:string){
-    const selected=challenges.find(c=>c.id===id);setChallengeId(id);setAutoGen(false);setInspectedPacket(null);setFeedback('');setError('');
+    const selected=challenges.find(c=>c.id===id);setChallengeId(id);setView('test');setAutoGen(false);setInspectedPacket(null);setFeedback('');setError('');
     if(selected){setConfig({...structuredClone(defaultConfig),...selected.config});setFlow({...defaultFlow,...selected.flow});}
   }
   function reset(){setConfig(structuredClone(defaultConfig));setFlow({...defaultFlow});setChallengeId('');setAutoGen(false);setInspectedPacket(null);setFeedback('');setError('');}
-  function addSite(e:FormEvent){e.preventDefault();const site=newSiteBlock.trim();if(!validIPv4(site)){setError('Use a valid IPv4 host address for a blocked site.');return;}patch('blockedSites',[...new Set([...config.blockedSites,site])]);setNewSiteBlock('');setError('');}
-  function addPort(e:FormEvent){e.preventDefault();const port=Number(newPortBlock);if(!/^\d+$/.test(newPortBlock)||!Number.isInteger(port)||port<1||port>65535){setError('Use a blocked port from 1 to 65535.');return;}patch('blockedPorts',[...new Set([...config.blockedPorts,port])]);setNewPortBlock('');setError('');}
   function exportTrace(){const url=URL.createObjectURL(new Blob([JSON.stringify({kind:'WatchGuard teaching simulation',config,packets},null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='sandbox-trace.json';link.click();URL.revokeObjectURL(url);}
+  const summary={allowed:0,denied:0,client:0};
+  packets.forEach(packet=>summary[packetOutcome(packet)]++);
+  const navigation=[{id:'overview',label:'Front Panel',icon:LayoutDashboard},{id:'policies',label:'Firewall Policies',icon:Shield},{id:'test',label:'Policy Test',icon:Send},{id:'monitor',label:'Traffic Monitor',icon:Activity}] as const;
+  function replay(packet:Packet){const input=packetToFlow(packet);setFlow(input);record(input,true);setView('test');}
   return <div className="sandbox-workspace">
-    <header className="section-heading"><div><p className="eyebrow">PACKET PATH LAB</p><h1>Follow the flow. Find the cause.</h1><p>Change a policy, send a test flow, and see exactly which decision changes.</p></div><span className="catalog-count"><FlaskConical size={18}/>6 guided challenges</span></header>
+    <header className="section-heading"><div><p className="eyebrow">LOCAL FIREBOX · TEACHING SIMULATION</p><h1>Network Sandbox</h1><p>Configure the policy. Test the traffic. Explain the result.</p></div><span className="catalog-count"><FlaskConical size={18}/>{challenges.length} guided challenges</span></header>
     <section className="sandbox-mission" aria-label="Guided challenges">
       <div className="sandbox-mission-top"><label>Choose a challenge<select aria-label="Sandbox challenge" value={challengeId} onChange={e=>loadChallenge(e.target.value)}><option value="">Free exploration</option>{challenges.map(c=><option key={c.id} value={c.id}>{completed.includes(c.id)?'✓ ':''}{c.title}</option>)}</select></label><span>{completed.length} / {challenges.length} completed this visit</span></div>
-      {challenge?<div className="sandbox-objective"><strong>{challenge.goal}</strong><details><summary>Need a hint?</summary><p>{challenge.hint}</p></details></div>:<p className="sandbox-description">Start with a challenge or build your own flow below. These are explicit teaching policies; this is not a live Firebox or a complete emulator. NAT, VPN, routing failures, and return sessions are outside this model.</p>}
+      {challenge?<div className="sandbox-objective"><strong>{challenge.goal}</strong><details><summary>Need a hint?</summary><p>{challenge.hint}</p></details></div>:<p className="sandbox-description">Start with a challenge or explore a test preset. This browser-only model covers policies, global blocks and content inspection. NAT, VPN, routing failures and return sessions are outside its scope.</p>}
       {feedback&&<p role="status" className="sandbox-feedback"><CheckCircle2 size={18}/>{feedback}</p>}
     </section>
-    <div className="sandbox-toolbar"><span>Simulation controls</span><div><button className="secondary-button" aria-pressed={autoGen} onClick={()=>setAutoGen(v=>!v)}>{autoGen?<Pause size={16}/>:<Play size={16}/>} {autoGen?'Pause traffic':'Auto traffic'}</button><button className="secondary-button" onClick={reset}><RotateCcw size={16}/>Reset policies</button><button className="secondary-button" disabled={!packets.length} onClick={exportTrace}><Download size={16}/>Export trace</button></div></div>
-    {error&&<p className="sandbox-error" role="alert">{error}</p>}
-    <div className="sandbox-panels">
-      <div><PolicyController outgoingEnabled={config.outgoing} setOutgoingOutgoing={v=>patch('outgoing',v)} dnsPolicyEnabled={config.dns} setDnsPolicyEnabled={v=>patch('dns',v)} httpProxyEnabled={config.httpProxy} setHttpProxyEnabled={v=>patch('httpProxy',v)} httpsContentInspection={config.inspectTls} setHttpsContentInspection={v=>patch('inspectTls',v)} certTrusted={config.trustCa} setCertTrusted={v=>patch('trustCa',v)} blockedSites={config.blockedSites} setBlockedSites={v=>setConfig(c=>({...c,blockedSites:typeof v==='function'?v(c.blockedSites):v}))} blockedPorts={config.blockedPorts} setBlockedPorts={v=>setConfig(c=>({...c,blockedPorts:typeof v==='function'?v(c.blockedPorts):v}))} newSiteBlock={newSiteBlock} setNewSiteBlock={setNewSiteBlock} newPortBlock={newPortBlock} setNewPortBlock={setNewPortBlock} handleAddSiteBlock={addSite} handleAddPortBlock={addPort}/>
-      <div className="sandbox-extra-policies">{([{key:'ping',label:'Ping policy',detail:'ICMP from Trusted/Optional to External.'},{key:'inboundWeb',label:'Published web policy',detail:'External → DMZ TCP/443 only. NAT is assumed outside this model.'},{key:'interZone',label:'Inter-zone lab policy',detail:'Permits Trusted ↔ Optional in this isolated exercise.'}] as const).map(item=><label key={item.key}><div><strong>{item.label}</strong><span>{item.detail}</span></div><input type="checkbox" checked={config[item.key]} onChange={e=>patch(item.key,e.target.checked)}/></label>)}</div></div>
-      <FlowInjector srcZone={flow.from} setSrcZone={v=>changeZone('from',v)} dstZone={flow.to} setDstZone={v=>changeZone('to',v)} customProtocol={flow.protocol} setCustomProtocol={changeProtocol} customPort={flow.dstPort} setCustomPort={v=>update('dstPort',v)} customSrcIP={flow.srcIP} setCustomSrcIP={v=>update('srcIP',v)} customDstIP={flow.dstIP} setCustomDstIP={v=>update('dstIP',v)} customPayload={flow.payload} setCustomPayload={v=>update('payload',v)} handleInjectPacket={e=>{e?.preventDefault();record(flow,true);}}/>
+    <div className="sandbox-toolbar"><span>{autoGen?'Generating sample traffic every 4.5 seconds':'Traffic generator paused'}</span><div><button className="secondary-button" aria-pressed={autoGen} onClick={()=>setAutoGen(v=>!v)}>{autoGen?<Pause size={16}/>:<Play size={16}/>} {autoGen?'Pause traffic':'Auto traffic'}</button><button className="secondary-button" onClick={reset}><RotateCcw size={16}/>Reset policies</button><button className="secondary-button" disabled={!packets.length} onClick={exportTrace}><Download size={16}/>Export trace</button></div></div>
+    <div className="firebox-console">
+      <nav className="sandbox-nav" aria-label="Sandbox sections"><div className="sandbox-device"><Shield size={24}/><strong>Training Firebox</strong><span>Locally managed lab</span></div>{navigation.map(({id,label,icon:Icon})=><button key={id} aria-current={view===id?'page':undefined} onClick={()=>setView(id)}><Icon size={18}/>{label}{id==='monitor'&&<small>{packets.length}</small>}</button>)}<p>Configuration stays in this visit. Changes affect subsequent tests.</p></nav>
+      <div className="sandbox-content">
+        <div className="sandbox-breadcrumb">Training Firebox <span>/</span> {navigation.find(item=>item.id===view)?.label}</div>
+        {error&&<p className="sandbox-error" role="alert">{error}</p>}
+        {view==='overview'&&<section aria-label="Sandbox front panel">
+          <div className="sandbox-pane-heading"><div><p className="eyebrow">DASHBOARD</p><h2>Front Panel</h2></div><span>{policyRows.filter(row=>config[row.key]).length} active teaching policies</span></div>
+          <div className="sandbox-stat-grid">{([{label:'Allowed',value:summary.allowed,tone:'allowed'},{label:'Firewall denied',value:summary.denied,tone:'denied'},{label:'Client TLS failure',value:summary.client,tone:'client'}]).map(item=><div key={item.label}><span className={`flow-badge ${item.tone}`}>{item.label}</span><strong>{item.value}</strong><small>In the last {packets.length} recorded flows</small></div>)}</div>
+          <TopologyPanel animatingPacket={animatingPacket}/>
+          <div className="sandbox-getting-started"><h3>Your troubleshooting loop</h3><button onClick={()=>setView('policies')}><span>01</span><div><strong>Configure policies</strong><p>Inspect the source, destination, service and inspection settings.</p></div><ArrowRight size={18}/></button><button onClick={()=>setView('test')}><span>02</span><div><strong>Send a test flow</strong><p>Use a preset or construct a flow with your own addresses and ports.</p></div><ArrowRight size={18}/></button><button onClick={()=>setView('monitor')}><span>03</span><div><strong>Read the decision trace</strong><p>Find the deciding rule, adjust it, then re-test the same flow.</p></div><ArrowRight size={18}/></button></div>
+        </section>}
+        <div hidden={view!=='policies'}><PolicyController config={config} onChange={value=>{setConfig(value);setFeedback('');}}/><button className="primary-button sandbox-next" onClick={()=>setView('test')}>Test these policies<ArrowRight size={16}/></button></div>
+        {view==='test'&&<section aria-label="Policy test workspace">
+          <div className="sandbox-pane-heading"><div><p className="eyebrow">FIREWALL / TEST</p><h2>Policy Test</h2></div><button className="secondary-button" onClick={()=>setView('policies')}><Shield size={16}/>Edit policies</button></div>
+          <p className="sandbox-description">The result reflects current lab policies. Running a test records its original decision; changing a policy never rewrites history.</p>
+          <div className="sandbox-presets" aria-label="Test flow presets">{flowPresets.map(preset=><button className="secondary-button" key={preset.id} onClick={()=>{setFlow({...preset.flow});setFeedback('');setError('');}}>{preset.label}</button>)}</div>
+          <div className="sandbox-test-grid"><FlowInjector srcZone={flow.from} setSrcZone={v=>changeZone('from',v)} dstZone={flow.to} setDstZone={v=>changeZone('to',v)} customProtocol={flow.protocol} setCustomProtocol={changeProtocol} customPort={flow.dstPort} setCustomPort={v=>update('dstPort',v)} customSrcIP={flow.srcIP} setCustomSrcIP={v=>update('srcIP',v)} customDstIP={flow.dstIP} setCustomDstIP={v=>update('dstIP',v)} customPayload={flow.payload} setCustomPayload={v=>update('payload',v)} handleInjectPacket={e=>{e?.preventDefault();record(flow,true);}}/><div><TopologyPanel animatingPacket={animatingPacket}/><p className="sandbox-description">ETH0 · External / ETH1 · Trusted / ETH2 · Optional. Diagram labels are example interface addresses; the test form controls the actual evaluated flow.</p></div></div>
+        </section>}
+        <div hidden={view!=='monitor'&&view!=='test'}><SyslogTerminal inspectedPacket={inspectedPacket} setInspectedPacket={setInspectedPacket} packets={packets} onClear={()=>{setPackets([]);setInspectedPacket(null);}} onReplay={replay}/></div>
+      </div>
     </div>
-    <TopologyPanel animatingPacket={animatingPacket}/>
-    <SyslogTerminal inspectedPacket={inspectedPacket} setInspectedPacket={setInspectedPacket} packets={packets} onClear={()=>{setPackets([]);setInspectedPacket(null);}}/>
-    <p className="sandbox-reference">Check real-device behavior: <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/policies/policy_outgoing_about_c.html" target="_blank" rel="noreferrer">Outgoing policy</a> · <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/intrusionprevention/blocked_ports_about_c.html" target="_blank" rel="noreferrer">Blocked ports</a>. Sample blocks and policies are lab settings, not a complete factory configuration.</p>
+    <p className="sandbox-reference">Inspired by local Fireware workflows, not an official Firebox emulator. Reference: <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/policies/policy_outgoing_about_c.html" target="_blank" rel="noreferrer">Outgoing policy</a> · <a href="https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/intrusionprevention/blocked_ports_about_c.html" target="_blank" rel="noreferrer">Blocked ports</a> · <a href="https://www.watchguard.com/help/docs/help-center/en-US/content/en-us/Fireware/system_status/traffic_monitor_web.html" target="_blank" rel="noreferrer">Traffic Monitor</a>. Sample blocks and policies are lab settings, not a complete factory configuration.</p>
   </div>;
 }

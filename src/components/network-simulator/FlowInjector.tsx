@@ -43,7 +43,7 @@ export function FlowInjector({
           <div className="space-y-0.5 border-b border-watchguard-border/60 pb-1">
             <h4 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-wide">
               <Zap className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span>Interactive Flow Injector</span>
+              <span>Test flow</span>
             </h4>
             <p className="text-[10px] text-gray-500">Send a simulated flow through the policies shown. No network traffic leaves your browser.</p>
           </div>
@@ -103,7 +103,7 @@ export function FlowInjector({
               <input
                 type="number" min={1} max={65535} disabled={customProtocol==='ICMP'}
                 aria-label="Destination port"
-                value={customPort}
+                value={Number.isFinite(customPort)?customPort:''}
                 onChange={e => setCustomPort(parseInt(e.target.value, 10))}
                 className="bg-watchguard-dark text-xs text-white border border-watchguard-border rounded px-2 py-1 w-full font-mono focus:outline-none"
               />
@@ -137,6 +137,7 @@ export function FlowInjector({
             </div>
             <input
               type="text"
+              aria-label="Payload / Request description"
               value={customPayload}
               onChange={e => setCustomPayload(e.target.value)}
               placeholder="Payload details..."
