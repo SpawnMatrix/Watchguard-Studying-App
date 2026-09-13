@@ -12,7 +12,13 @@ services:
     container_name: watchguard-study-portal
     restart: unless-stopped
     ports:
-      - "${WATCHGUARD_HOST_PORT:-3001}:3000"
+      # Bound to loopback: the only route in is the reverse proxy. Published on 0.0.0.0 this
+      # port was reachable directly from the LAN, which both bypasses whatever authentication
+      # the proxy enforces and lets a direct client present its own X-Forwarded-For. With
+      # TRUSTED_PROXY_HOPS=1 the app would believe that header, so the rate limiters became
+      # spoofable. Set WATCHGUARD_HOST_BIND=0.0.0.0 only for a deployment with no proxy at all,
+      # and set TRUSTED_PROXY_HOPS=0 if you do.
+      - "${WATCHGUARD_HOST_BIND:-127.0.0.1}:${WATCHGUARD_HOST_PORT:-3001}:3000"
     environment:
       DATA_DIR: /data
       PORT: "3000"
@@ -34,6 +40,16 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    # A single Node process serving a SQLite-backed study portal. The ceiling is here so a
+    # runaway request or a dependency defect cannot take the Proxmox host down with it; the
+    # reservation keeps it schedulable alongside whatever else runs on the box.
+    deploy:
+      resources:
+        limits:
+          memory: ${WATCHGUARD_MEMORY_LIMIT:-512M}
+          cpus: "${WATCHGUARD_CPU_LIMIT:-1.0}"
+        reservations:
+          memory: 128M
     logging:
       driver: json-file
       options:
