@@ -28,8 +28,8 @@ describe('content and backward compatibility', () => {
 });
 
 describe('deterministic scenario generation', () => {
-  it('validates 48,000 variants with reproducible answers and nonempty explanations', () => {
-    expect(questionTemplates).toHaveLength(48);
+  it('validates 62,000 variants with reproducible answers and nonempty explanations', () => {
+    expect(questionTemplates).toHaveLength(62);
     for (const template of questionTemplates) {
       const questions=new Set<string>();
       for (let seed=0;seed<1000;seed++) {

@@ -255,4 +255,201 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.optional} ${n.sport} 3389 tcp 20 
       section: 'Branch Office VPN Tunnel Routes',
     };
   },
+  // 9. Gateway AntiVirus matched a signature in a download.
+  //
+  // Note on the log lines from here down: msg_id values are deliberately omitted rather than
+  // invented. The disposition, proxy name and reason text are the parts a learner has to read, and
+  // guessing at numeric identifiers would teach values that may not match a real appliance.
+  r => {
+    const n = net(r), file = pick(r, ['invoice.zip', 'update.exe', 'statement.doc', 'shipping.pdf']);
+    const virus = pick(r, ['EICAR-Test-File', 'Trojan.Generic', 'W32.Downloader', 'JS.Obfus']);
+    return {
+      title: 'Gateway AntiVirus drops an infected download',
+      subject: `${n.trusted} downloading ${file} from ${n.internet}`,
+      topic: 'Security Services',
+      cause: 'Gateway AntiVirus matched a virus signature and the proxy dropped the download.',
+      distractors: [
+        'The file exceeded the configured scan size limit and was therefore passed through unscanned.',
+        'WebBlocker denied the destination because of the content category it falls in.',
+        'No policy matched the download at all, so the implicit final deny applied.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox http-proxy[1234]: ProxyDrop: HTTP Virus found (HTTP-proxy-00) ${n.trusted} ${n.internet} ${n.sport} 80 tcp virus="${virus}" file_name="${file}" proxy_act="HTTP-Client.Standard" in_ifname="Trusted" out_ifname="External"`,
+      explanation:
+        `The disposition is ProxyDrop rather than Deny, which already tells you a proxy policy matched and inspected the content before rejecting it. ` +
+        `The virus field names the signature that fired, so Gateway AntiVirus made the decision inside the HTTP-proxy action. ` +
+        `Note the contrast with the scan-size limit: a file that is too large is not scanned at all, and what happens to it then is whatever you configured for unscannable content, which may well be Allow.`,
+      webUi: 'Subscription Services → Gateway AntiVirus, and the HTTP-proxy action that uses it',
+      section: 'Gateway AntiVirus and Proxy Actions',
+    };
+  },
+
+  // 10. WebBlocker category denial.
+  r => {
+    const n = net(r), cat = pick(r, ['Gambling', 'Streaming Media', 'Peer-to-Peer File Sharing', 'Social Networking']);
+    return {
+      title: 'WebBlocker denies a category',
+      subject: `${n.trusted} browsing to ${n.internet}`,
+      topic: 'Security Services',
+      cause: 'WebBlocker denied the request because the destination is in a denied category.',
+      distractors: [
+        'Gateway AntiVirus found malware in the response body and dropped the session.',
+        'Application Control recognised the application and blocked it by its signature.',
+        'The destination was already on the Blocked Sites list from an earlier auto-block.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox http-proxy[1234]: ProxyDrop: HTTP Web Blocker (HTTP-proxy-00) ${n.trusted} ${n.internet} ${n.sport} 80 tcp cats="${cat}" proxy_act="HTTP-Client.Standard" in_ifname="Trusted" out_ifname="External"`,
+      explanation:
+        `The "Web Blocker" reason and the cats field name the category that triggered the denial, so this is a URL-categorisation decision rather than a content-scanning one. ` +
+        `If the site is genuinely needed, a WebBlocker exception for that URL is the narrow fix; it is evaluated ahead of the category filters, so it restores one site without reopening the whole "${cat}" category. ` +
+        `Blocked Sites would appear as a Deny from the firewall rather than a ProxyDrop from the proxy.`,
+      webUi: 'Subscription Services → WebBlocker → Categories, and WebBlocker Exceptions',
+      section: 'WebBlocker Categories and Exceptions',
+    };
+  },
+
+  // 11. IPS signature match.
+  r => {
+    const n = net(r), sev = pick(r, ['High', 'Critical', 'Medium']);
+    return {
+      title: 'Intrusion Prevention drops an exploit attempt',
+      subject: `${n.internet} to the published server ${n.fbx} on TCP 443`,
+      topic: 'Security Services',
+      cause: 'Intrusion Prevention matched a signature for a known exploit and dropped the connection.',
+      distractors: [
+        'Gateway AntiVirus matched a virus signature inside the request payload.',
+        'The traffic reached the end of the policy list without matching anything at all.',
+        'Default packet handling treated the request rate as a flood attack instead.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox ips: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp (IPS) signature_name="HTTP Directory Traversal" severity="${sev}" action="drop" in_ifname="External" out_ifname="Optional"`,
+      explanation:
+        `IPS inspects traffic a policy has already permitted, which is why the drop is attributed to the service rather than to a policy name. ` +
+        `The signature field identifies the specific vulnerability pattern that fired, so the first step in a suspected false positive is to look that signature up rather than to disable the service. ` +
+        `Gateway AntiVirus is the other signature-based scanner, but it matches malware inside files a proxy has extracted, not exploit patterns in the request itself.`,
+      webUi: 'Subscription Services → Intrusion Prevention Service',
+      section: 'Intrusion Prevention Service',
+    };
+  },
+
+  // 12. Application Control.
+  r => {
+    const n = net(r), app = pick(r, ['BitTorrent', 'TeamViewer', 'Tor', 'Ultrasurf']);
+    const port = pick(r, [443, 80, 8080, 9001]);
+    return {
+      title: 'Application Control blocks an application on a common port',
+      subject: `${n.trusted} to ${n.internet} on TCP ${port}`,
+      topic: 'Security Services',
+      cause: 'Application Control recognised the application by its signature and blocked it.',
+      distractors: [
+        'WebBlocker denied the destination URL because of the category it belongs to.',
+        `No policy permitted TCP ${port} at all, so the connection hit the implicit final deny.`,
+        'The proxy dropped the session after inspecting the type of the response body.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox firewall: Deny ${n.trusted} ${n.internet} ${n.sport} ${port} tcp (Application Control) app_name="${app}" app_beh="access" action="drop" in_ifname="Trusted" out_ifname="External"`,
+      explanation:
+        `Application Control identifies ${app} from how the traffic behaves, not from the port it uses, which is the whole reason it exists: the connection here is riding TCP ${port} precisely because that port is normally open. ` +
+        `That is also why moving the application to another port does not evade it, and why a port-based packet filter could never have made this decision. ` +
+        `WebBlocker, by contrast, would have had to recognise a URL, which an application tunnelling over TLS does not helpfully provide.`,
+      webUi: 'Subscription Services → Application Control',
+      section: 'Application Control',
+    };
+  },
+
+  // 13. Botnet Detection.
+  r => {
+    const n = net(r);
+    return {
+      title: 'Botnet Detection blocks a command-and-control address',
+      subject: `${n.trusted} reaching out to ${n.internet}`,
+      topic: 'Security Services',
+      cause: 'The destination matched the known botnet command-and-control list.',
+      distractors: [
+        'Geolocation blocked the destination because of the country that it maps to.',
+        'WebBlocker denied the destination because of the URL category it falls in.',
+        'An administrator had manually added the address to the Blocked Sites list.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox firewall: Deny ${n.trusted} ${n.internet} ${n.sport} 8443 tcp (Botnet Detection) reason="known botnet site" geo_dst="RUS" in_ifname="Trusted" out_ifname="External"`,
+      explanation:
+        `This is an outbound connection from an internal host to a listed command-and-control address, so the interesting question is not why it was blocked but why ${n.trusted} tried at all. ` +
+        `Treat the block as a symptom and investigate the host. Botnet Detection matches the address against a maintained reputation list wherever it is in the world, which is what separates it from Geolocation: ` +
+        `the geo_dst field here is informational, and blocking that country would not have caught a C2 server hosted anywhere else.`,
+      webUi: 'Subscription Services → Botnet Detection, and Firewall → Blocked Sites',
+      section: 'Botnet Detection and Reputation Enabled Defense',
+    };
+  },
+
+  // 14. Geolocation.
+  r => {
+    const n = net(r), country = pick(r, ['CHN', 'RUS', 'PRK', 'IRN']);
+    return {
+      title: 'Geolocation blocks an inbound country',
+      subject: `${n.internet} to the published service on ${n.fbx}`,
+      topic: 'Security Services',
+      cause: 'Geolocation denied the connection because the source maps to a blocked country.',
+      distractors: [
+        'Botnet Detection matched the source against its command-and-control list.',
+        'Anti-spoofing rejected the source because it arrived on the wrong interface entirely.',
+        'No inbound policy matched the connection, so the implicit final deny applied.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox firewall: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp (Geolocation) geo_src="${country}" action="drop" in_ifname="External" out_ifname="Firebox"`,
+      explanation:
+        `The geo_src field is the whole decision: the source address resolves to ${country}, and that country is configured to be denied. ` +
+        `Worth being clear about the limit of this control. It blocks by where an address is registered, so an attacker who rents infrastructure in a country you allow is unaffected, ` +
+        `and a legitimate user travelling or behind a VPN in ${country} is blocked. It reduces background noise; it is not a defence against a targeted attacker.`,
+      webUi: 'Subscription Services → Geolocation',
+      section: 'Geolocation',
+    };
+  },
+
+  // 15. Flood threshold.
+  r => {
+    const n = net(r), kind = pick(r, ['IPSec', 'ICMP', 'SYN', 'UDP']);
+    return {
+      title: 'A flood threshold drops the excess',
+      subject: `${n.internet} sending ${kind} traffic to ${n.fbx}`,
+      topic: 'Security Services',
+      cause: 'The source crossed a configured flood threshold and the excess was dropped.',
+      distractors: [
+        'An explicit Deny policy matched the connection and blocked it outright.',
+        'Intrusion Prevention matched a denial-of-service exploit signature instead.',
+        'The connection was dropped because no route existed towards the destination.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} 0 ${kind === 'ICMP' ? 'icmp' : 'tcp'} (${kind} flood attack) threshold="exceeded" in_ifname="External" out_ifname="Firebox"`,
+      explanation:
+        `Flood protection is part of default packet handling, so it runs before policy evaluation and no policy name appears in the entry. ` +
+        `The important judgement is whether the threshold matches real demand: a busy but legitimate service can trip a default value, and the fix then is to measure the workload and tune the threshold rather than to switch the protection off. ` +
+        `An explicit Deny policy would have named itself in the log, and IPS would have named a signature.`,
+      webUi: 'Firewall → Default Packet Handling → Flood Attacks',
+      section: 'Default Threat Protection',
+    };
+  },
+
+  // 16. HTTPS content inspection rejects the server certificate.
+  r => {
+    const n = net(r), reason = pick(r, ['certificate expired', 'unknown certificate authority', 'name mismatch']);
+    return {
+      title: 'Content inspection rejects a server certificate',
+      subject: `${n.trusted} to ${n.internet} on TCP 443`,
+      topic: 'Proxies',
+      cause: 'Certificate validation rejected the server certificate during content inspection.',
+      distractors: [
+        'The client does not trust the Firebox Proxy Authority certificate it was shown.',
+        'Gateway AntiVirus found malware hidden inside the encrypted payload.',
+        'WebBlocker denied the destination because of the category assigned to it.',
+      ],
+      log: `SIMULATED TRAFFIC MONITOR
+${ts(r)} firebox https-proxy[1234]: ProxyDrop: HTTPS Certificate validation failed (HTTPS-proxy-00) ${n.trusted} ${n.internet} ${n.sport} 443 tcp reason="${reason}" proxy_act="HTTPS-Client.Standard" in_ifname="Trusted" out_ifname="External"`,
+      explanation:
+        `Content inspection makes the Firebox a TLS client to the destination, so it validates that server's certificate and rejects the session here when validation fails. ` +
+        `The strongest distractor is the client trust problem, and the difference is which leg of the connection fails: an untrusted Proxy Authority certificate produces a browser warning on the client side with the session still established to the Firebox, ` +
+        `whereas this entry shows the Firebox refusing the far side before any content moved. Decide deliberately what an invalid certificate should do rather than inheriting it.`,
+      webUi: 'Firewall → Proxy Actions → HTTPS-Client → Content Inspection',
+      section: 'HTTPS Proxy and Content Inspection',
+    };
+  },
 ];

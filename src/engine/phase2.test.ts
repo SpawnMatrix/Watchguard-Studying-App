@@ -13,8 +13,8 @@ const logTemplates = () => questionTemplates.filter(t => t.id >= 10101 && t.id <
 const orderingTemplates = () => questionTemplates.filter(t => t.id >= 10201);
 
 describe('log-analysis scenarios', () => {
-  it('registers eight scenarios reachable through the normal generated pool', () => {
-    expect(logTemplates()).toHaveLength(8);
+  it('registers sixteen scenarios reachable through the normal generated pool', () => {
+    expect(logTemplates()).toHaveLength(16);
     expect((filterQuestions({ content: 'generated' })).some(q => q.type === 'log')).toBe(true);
   });
 
