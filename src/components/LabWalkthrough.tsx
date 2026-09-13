@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
-import { watchguardLabs, Lab, LabStep } from "../data/labs";
+import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort, LabStep } from "../data/labs";
 import { motion, AnimatePresence } from "motion/react";
 import { handleError } from "../utils/errorHandler";
 
@@ -11,6 +11,9 @@ interface LabWalkthroughProps {
 export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) {
   const [labs, setLabs] = useState<Lab[]>(watchguardLabs);
   const [selectedLabId, setSelectedLabId] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<LabSort>("number");
+  const [categoryFilter, setCategoryFilter] = useState<"All" | LabCategory>("All");
+  const [singleFireboxOnly, setSingleFireboxOnly] = useState(false);
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]); // indexes of steps completed
   
@@ -24,6 +27,13 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     isDemo?: boolean;
   } | null>(null);
   const [isDiagnosing, setIsLoadingDiagnosis] = useState(false);
+
+  // Twenty labs across seven categories, eight of which need kit beyond one Firebox, so the
+  // catalogue is browsed rather than just scrolled. Lab number is the default order because the
+  // Lab Book is numbered that way and the exam follows it.
+  const visibleLabs = useMemo(
+    () => orderLabs(labs, { sortBy, category: categoryFilter, singleFireboxOnly }),
+    [labs, sortBy, categoryFilter, singleFireboxOnly]);
 
   const activeLab = labs.find(l => l.id === selectedLabId);
 
@@ -108,13 +118,36 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-6 h-full">
       {/* Labs Catalog / Left Navigation */}
       <div className="lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full ">
-        <h3 className="font-display font-semibold text-white border-b border-watchguard-border pb-3 mb-4 flex items-center space-x-2">
-          <Layers className="w-4 h-4 text-watchguard-orange" />
-          <span>NSE Lab Catalog</span>
+        <h3 className="font-display font-semibold text-white border-b border-watchguard-border pb-3 mb-3 flex items-center justify-between">
+          <span className="flex items-center space-x-2">
+            <Layers className="w-4 h-4 text-watchguard-orange" />
+            <span>NSE Lab Catalog</span>
+          </span>
+          <span className="font-sans text-[10px] font-normal text-gray-500 tabular-nums">
+            {visibleLabs.length === labs.length ? `${labs.length} labs` : `${visibleLabs.length} of ${labs.length}`}
+          </span>
         </h3>
+
+        <div className="quiz-filters grid grid-cols-2 gap-2 mb-2">
+          <select aria-label="Sort labs" value={sortBy} onChange={e => setSortBy(e.target.value as LabSort)}>
+            <option value="number">By number</option>
+            <option value="category">By category</option>
+            <option value="name">By name</option>
+          </select>
+          <select aria-label="Filter labs by category" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as "All" | LabCategory)}>
+            <option value="All">All categories</option>
+            {labCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <label className="flex items-center space-x-2 mb-3 text-[10px] text-gray-400 cursor-pointer select-none">
+          <input type="checkbox" className="accent-watchguard-orange" checked={singleFireboxOnly}
+            onChange={e => setSingleFireboxOnly(e.target.checked)} />
+          <span>Only labs that need one Firebox</span>
+        </label>
         
         <div className="flex-1 overflow-y-auto space-y-2.5">
-          {labs.map((lab) => {
+          {visibleLabs.map((lab) => {
             const isSelected = lab.id === selectedLabId;
             return (
               <button
@@ -133,11 +166,19 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
                 </div>
                 <div className="flex-1 space-y-1">
                   <h4 className={`font-semibold ${isSelected ? "text-watchguard-orange" : "text-gray-200"}`}>{lab.name}</h4>
+                  <p className="text-[10px] uppercase tracking-wide text-gray-600">
+                    {lab.category}{lab.requiresExtraKit ? " · needs extra kit" : ""}
+                  </p>
                   <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{lab.objectives}</p>
                 </div>
               </button>
             );
           })}
+          {visibleLabs.length === 0 && (
+            <p className="text-xs text-gray-500 px-2 py-8 text-center leading-relaxed">
+              No labs match these filters. Clear the category, or allow labs that need more than one Firebox.
+            </p>
+          )}
         </div>
       </div>
 
