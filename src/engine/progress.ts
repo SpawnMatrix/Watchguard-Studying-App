@@ -11,7 +11,7 @@ export function buildStudyReport(input:any={}) {
   const strengths=[...topics].filter(([,s])=>s.total>=3&&s.correct/s.total>=.85).map(([topic,s])=>`${topic}: ${s.correct}/${s.total} correct`);
   // Lab ids now follow the official Lab Book numbering, so these recommendations point at the
   // exercise that actually covers the weak topic.
-  const labTopics:Record<string,number[]>= {'Initial Setup':[1,3,17],'Policies':[9,10],'NAT':[6],'Routing':[6,7,8],'BOVPN':[16],'Mobile VPN':[15],'Proxies':[11],'Security Services':[12],'Switching & Wireless':[6],'Troubleshooting':[1,6,17],'Logging & Monitoring':[4,18,20],'WatchGuard Cloud':[5,19],'IP Addressing':[6],'Network Services':[1],'Network Operations':[3,20]};
+  const labTopics:Record<string,number[]>= {'Initial Setup':[1,3,17],'Policies':[9,10],'NAT':[6],'Routing':[6,7,8],'BOVPN':[16],'Mobile VPN':[15],'Proxies':[11],'Security Services':[12],'Switching & Wireless':[6],'Troubleshooting':[1,6,17],'Logging & Monitoring':[4,18,20],'WatchGuard Cloud':[5,19],'IP Addressing':[6],'Network Services':[1],'Network Operations':[3,20],'Network Security':[10,14],'Network Architecture':[5,6]};
   const ids=new Set(weaknesses.flatMap((topic:string)=>labTopics[topic]??[]));
   return {
     readinessScore:attempts?`${Math.round(correct/attempts*100)}%`:'0%',

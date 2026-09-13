@@ -7,7 +7,8 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 
 ## Study upgrade
 
-- **496 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **561 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **Network+ bank shaped like the N10-009 exam**: 174 items classified by domain, each domain within a point of its published weighting, and a test that fails if a new question upsets the balance. See [the blueprint notes](docs/study-engine.md#network-exam-blueprint).
 - **42 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.
 - **Traffic Monitor log analysis**: read a simulated Fireware log line and identify why the packet was dropped — unhandled packet, explicit deny, ProxyDrop, spoofing, Blocked Sites, missing route, inactive schedule, or a BOVPN tunnel-route miss.
 - **Interactive policy ordering**: drag five firewall policies into the correct top-to-bottom processing order. Graded on sequence, and fully usable by keyboard.

@@ -2,7 +2,7 @@
 
 ## Scope
 
-496 authored questions (145 existing IDs retained + 335 original additions + 16 diagram scenarios), 36 hand-written scenario templates, 16 Traffic Monitor log-analysis cases and 10 policy-ordering exercises, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
+561 authored questions (145 existing IDs retained + 400 original additions + 16 diagram scenarios), 36 hand-written scenario templates, 16 Traffic Monitor log-analysis cases and 10 policy-ordering exercises, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
 
 ## Generator contract
 
@@ -15,6 +15,20 @@ Both the frontend and `/api/quiz/evaluate` use the same exact-set grader. The se
 Question IDs are stable concept identifiers. A weakness entry for a generated question identifies its template; review uses fresh variables and clears the entry after three correct responses. History stores the question, choices, answer set, descriptor, selected answers, explanation, and timestamp as they appeared. A saved session stores the exact mock queue and current question; a reload or tab change does not reshuffle it.
 
 Mock exams contain up to 50 questions. Static questions are unique within an exam; small generated pools can create multiple variants. A small authored-only topic may contain fewer than 50 questions. Exams finish with an explicit result instead of silently resetting statistics. This is a practice distribution, not a claim to reproduce an official exam blueprint or scaled score.
+
+## Network+ exam blueprint
+
+`src/data/networkPlusBlueprint.ts` places every Network+ question in one of the five N10-009 domains by what it actually tests. Objective strings could not do this: they are written per section and often span domains, so counting their first digit misreports the balance. Generated templates count once, the same way the mock-exam pool treats them.
+
+| Domain | Exam weight | Bank (1.5.0) |
+| --- | --- | --- |
+| 1.0 Networking Concepts | 23% | 24% (41) |
+| 2.0 Network Implementation | 20% | 20% (35) |
+| 3.0 Network Operations | 19% | 18% (32) |
+| 4.0 Network Security | 14% | 14% (25) |
+| 5.0 Network Troubleshooting | 24% | 24% (41) |
+
+Before 1.5.0 the same measurement gave Operations 29% and Security 6%. `networkPlusBlueprint.test.ts` fails if a Network+ question is left unclassified, if a classified id no longer exists, if any domain drifts more than three points from its weighting, or if a domain has fewer than 20 questions. Two placements surprise people: DHCP, DNS and NTP are 3.4 (Operations), and ports and protocols are 1.4 (Concepts).
 
 ## Compatibility
 

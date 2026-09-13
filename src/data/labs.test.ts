@@ -51,7 +51,8 @@ describe('lab catalogue', () => {
     const names = new Set(watchguardLabs.map(l => l.name));
     const topics = ['Initial Setup', 'Policies', 'NAT', 'Routing', 'BOVPN', 'Mobile VPN', 'Proxies',
       'Security Services', 'Switching & Wireless', 'Troubleshooting', 'Logging & Monitoring',
-      'WatchGuard Cloud', 'IP Addressing', 'Network Services', 'Network Operations'];
+      'WatchGuard Cloud', 'IP Addressing', 'Network Services', 'Network Operations', 'Network Security',
+      'Network Architecture'];
     for (const topic of topics) {
       const report = buildStudyReport({ history: [{ topic, isCorrect: false }] });
       expect(report.recommendedLabs.length, `${topic} has no lab recommendation`).toBeGreaterThan(0);

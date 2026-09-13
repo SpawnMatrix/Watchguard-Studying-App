@@ -162,6 +162,24 @@ const GUIDES: Record<string, TopicGuide> = {
     checkFirst:
       'Take a backup image before any change. It is the difference between a five-minute rollback and a rebuild.',
   },
+  'Network Security': {
+    plainLanguage:
+      'Network security is about who may connect, what they can reach once connected, and noticing when someone tries something they should not. Most attacks on a LAN abuse trust the network hands out by default: a live port nobody uses, a switch that believes any ARP reply, a Wi-Fi name anyone can copy.',
+    networkPlus:
+      'This is Network+ domain 4: concepts such as least privilege, MFA and segmentation; attacks such as ARP poisoning, VLAN hopping and evil twins; and defences such as 802.1X, port security and device hardening.',
+    webUiPath: 'Firewall → Firewall Policies for what may cross between zones, and Authentication → Servers for RADIUS or Active Directory sign-in.',
+    checkFirst:
+      'Name the trust boundary involved, whether a switch port, a wireless network or a firewall zone, and confirm which control is meant to enforce it before assuming an attacker got past it.',
+  },
+  'Network Architecture': {
+    plainLanguage:
+      'Architecture is the shape of the network before any single setting: where services run, on site or with a cloud provider; which cables and optics join things together; and how switches are arranged so traffic takes short, predictable paths.',
+    networkPlus:
+      'This is Network+ domain 1: cloud service and deployment models, transmission media and transceivers, topologies such as spine and leaf, and modern approaches like SDN, SD-WAN and zero trust.',
+    webUiPath: 'Network → Interfaces shows how a Firebox is physically and logically connected; WatchGuard Cloud → Configure → Devices covers cloud-managed deployments.',
+    checkFirst:
+      'Draw the path first: which device, which medium, and which segment or cloud network the traffic crosses. Most design questions answer themselves once the path is on paper.',
+  },
   'WatchGuard Cloud': {
     plainLanguage:
       'A Firebox can be managed locally through its own web interface, or from WatchGuard Cloud. The two modes do not expose an identical feature set, so a setting you remember from one may sit somewhere else — or not exist — in the other.',
