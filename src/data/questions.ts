@@ -12,7 +12,7 @@ export interface Question extends QuestionMetadata {
   correctAnswers: string[];
   isMultiSelect: boolean;
   correctAnswersCount: number; // For multi-select
-  topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring" | "IP Addressing" | "Network Services" | "Switching & Wireless" | "Troubleshooting" | "Network Operations" | "WatchGuard Cloud";
+  topic: "NAT" | "Mobile VPN" | "BOVPN" | "Routing" | "Policies" | "Proxies" | "Security Services" | "Initial Setup" | "Logging & Monitoring" | "IP Addressing" | "Network Services" | "Switching & Wireless" | "Troubleshooting" | "Network Operations" | "Network Security" | "Network Architecture" | "WatchGuard Cloud";
   explanation?: string;
   type?: "standard" | "topology" | "log" | "ordering";
   topologyImage?: string;
