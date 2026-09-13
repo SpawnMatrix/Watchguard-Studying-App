@@ -1,4 +1,6 @@
 import { version } from './package.json';
+import { readFileSync } from 'node:fs';
+import { buildTimestamp } from './src/releaseInfo';
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
@@ -26,6 +28,16 @@ dotenv.config();
 
 const app = express();
 const isProduction = process.env.NODE_ENV === "production";
+const releaseInfo={version,commit:process.env.APP_COMMIT_SHA||'local',buildDate:buildTimestamp(process.env.APP_BUILD_DATE)||'unknown'};
+if(isProduction){
+  try{
+    const compiled=JSON.parse(readFileSync(path.resolve('dist/build-info.json'),'utf8'));
+    if(compiled.version===version&&buildTimestamp(compiled.buildDate)){
+      releaseInfo.buildDate=buildTimestamp(compiled.buildDate)!;
+      if(typeof compiled.commit==='string')releaseInfo.commit=compiled.commit;
+    }
+  }catch{/* Older images can still use their explicit build environment metadata. */}
+}
 const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
 const PORT = Number.isFinite(parsedPort) ? parsedPort : 3000;
 
@@ -215,7 +227,7 @@ app.post("/api/admin/analyze", adminOnly, async (req, res) => {
   }
 });
 
-app.get('/api/version', (_req, res) => res.set('Cache-Control', 'no-store').json({ version, commit: process.env.APP_COMMIT_SHA || 'local', buildDate: process.env.APP_BUILD_DATE || 'unknown' }));
+app.get('/api/version', (_req, res) => res.set('Cache-Control', 'no-store').json(releaseInfo));
 
 // Fetch Question Stats
 app.get("/api/stats", (_req, res) => {

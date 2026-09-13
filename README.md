@@ -17,7 +17,9 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 - **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
 - Study Home with observed topic accuracy, recent practice comparisons, activity, and a saved-quiz resume action; all six existing study sections remain available.
 - Persistent learning-track selection, filtered Q&A and flashcards, and explicit track changes for saved quizzes.
-- Inline SVG network diagrams with keyboard-accessible node/edge hotspots, packet-flow animation, and light/dark themes. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).
+- Dedicated **Topology Lab** with scenario previews, selected-diagram practice, and topology mock exams. Inline SVG diagrams have keyboard-accessible hotspots, fit/readable-size views, optional animation, and complete network details. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).
+- Practice can filter by question format: diagrams, traffic logs, policy ordering, or multiple choice.
+- Every PR must bump the package version, match the lockfile versions, and add release notes. Run `npm run check:release` after fetching origin/main. The footer shows the version, author, and immutable build time. [Version 1.2.0 release notes](docs/releases/v1.2.0.md).
 
 Read [engine and compatibility](docs/study-engine.md), [source/reuse audit](docs/content-sources.md), and [persistent deployment and backups](docs/deployment-data.md). Use Node >=22.13. Keep the Compose data volume across upgrades. This independent practice tool does not guarantee an exam result; check the current objectives and Fireware version.
 

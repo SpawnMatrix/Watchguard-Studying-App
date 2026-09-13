@@ -4,14 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../data/questions';
 import type { QuizHistoryItem } from '../components/QuizAnalyticsPanel';
 import type { EvaluationData } from '../components/QuizEvaluation';
-import { filterQuestions, createExam, materialize, questionById, type ContentMode } from './catalog';
+import { filterQuestions, createExam, materialize, questionById, type QuestionFilters } from './catalog';
 import { gradeQuestion } from './grading';
 import { newSeed, pick, seededRandom } from './random';
 import type { Track } from './types';
 import { readJSON, writeStudyValue } from '../account/storage';
 
 export type QuizMode='practice'|'mock-exam'|'weakness-review';
-interface Filters {topic:string;track:Track|'all';content:ContentMode}
+export interface QuizLaunch { mode:QuizMode; filters:QuestionFilters; questionId?:number; seed?:number }
+type Filters = QuestionFilters;
 interface Session {
   mode:QuizMode;filters:Filters;current:Question|null;queue:Question[];index:number;
   selected:string[];evaluation:EvaluationData|null;history:QuizHistoryItem[];seen:number[];
@@ -35,10 +36,17 @@ function load(deck:Record<number,number>,track:Track):Session {
   const progress=readJSON<any>('watchguard-study-progress-v1',null);
   return first('practice',{...DEFAULT_FILTERS,track},deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[],parseSrsState(readJSON<any>(SRS_KEY,null)));
 }
-export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void,track:Track='local') {
+export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void,track:Track='local',launch?:QuizLaunch|null) {
   const [deck,setDeck]=useState<Record<number,number>>(()=>readJSON('weakness_deck',{}));
   const [srs,setSrs]=useState<SrsState>(()=>parseSrsState(readJSON<any>(SRS_KEY,null)));
-  const [session,setSession]=useState(()=>load(deck,track));
+  const [session,setSession]=useState(()=>{
+    const saved=load(deck,track);
+    if(!launch)return saved;
+    const next=first(launch.mode,launch.filters,deck,saved.history,srs);
+    const requested=launch.mode==='practice'?filterQuestions(launch.filters).find(q=>q.id===launch.questionId):undefined;
+    if(requested){next.current=materialize(requested,launch.seed??newSeed());next.seen=[requested.id];}
+    return next;
+  });
   const [loading,setLoading]=useState(false),[notice,setNotice]=useState('');
   const busy=useRef(false),alive=useRef(true),request=useRef<AbortController|null>(null);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current?.abort();};},[]);
