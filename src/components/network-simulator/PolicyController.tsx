@@ -1,195 +1,37 @@
-import * as React from "react";
-import { Settings, Trash2, Plus } from "lucide-react";
+import { useState, type FormEvent } from 'react';
+import { Shield, Trash2, Plus } from 'lucide-react';
+import { validIPv4, type SandboxConfig } from './engine';
+import { policyRows } from './workspace';
 
-interface PolicyControllerProps {
-  outgoingEnabled: boolean;
-  setOutgoingOutgoing: (val: boolean) => void;
-  dnsPolicyEnabled: boolean;
-  setDnsPolicyEnabled: (val: boolean) => void;
-  httpProxyEnabled: boolean;
-  setHttpProxyEnabled: (val: boolean) => void;
-  httpsContentInspection: boolean;
-  setHttpsContentInspection: (val: boolean) => void;
-  certTrusted: boolean;
-  setCertTrusted: (val: boolean) => void;
-  blockedSites: string[];
-  setBlockedSites: React.Dispatch<React.SetStateAction<string[]>>;
-  blockedPorts: number[];
-  setBlockedPorts: React.Dispatch<React.SetStateAction<number[]>>;
-  newSiteBlock: string;
-  setNewSiteBlock: (val: string) => void;
-  newPortBlock: string;
-  setNewPortBlock: (val: string) => void;
-  handleAddSiteBlock: (e: React.FormEvent) => void;
-  handleAddPortBlock: (e: React.FormEvent) => void;
-}
-
-export function PolicyController({
-  outgoingEnabled,
-  setOutgoingOutgoing,
-  dnsPolicyEnabled,
-  setDnsPolicyEnabled,
-  httpProxyEnabled,
-  setHttpProxyEnabled,
-  httpsContentInspection,
-  setHttpsContentInspection,
-  certTrusted,
-  setCertTrusted,
-  blockedSites,
-  setBlockedSites,
-  blockedPorts,
-  setBlockedPorts,
-  newSiteBlock,
-  setNewSiteBlock,
-  newPortBlock,
-  setNewPortBlock,
-  handleAddSiteBlock,
-  handleAddPortBlock
-}: PolicyControllerProps) {
-  return (
-    <div className="p-4.5 border-r border-watchguard-border space-y-4 bg-watchguard-dark/40   scrollbar-thin">
-      <div className="space-y-1 pb-1 border-b border-watchguard-border/60">
-        <h4 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-wide">
-          <Settings className="w-3.5 h-3.5 text-watchguard-orange" />
-          <span>Firebox Security Policy Controller</span>
-        </h4>
-        <p className="text-[10px] text-gray-500">Change these teaching policies to compare their effect on the next test flow.</p>
-      </div>
-
-      <div className="space-y-2.5">
-        {/* Outgoing Policy */}
-        <div className="flex items-center justify-between p-2 bg-watchguard-lightgray/30 border border-watchguard-border/40 rounded-lg">
-          <div>
-            <span className="text-xs font-semibold text-gray-200 block">Default Outgoing Policy (TCP-UDP)</span>
-            <span className="text-[9px] text-gray-500">Trusted/Optional → External, TCP and UDP.</span>
-          </div>
-          <input
-            type="checkbox"
-            aria-label="Outgoing TCP-UDP policy"
-            checked={outgoingEnabled}
-            onChange={(e) => setOutgoingOutgoing(e.target.checked)}
-            className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
-          />
-        </div>
-
-        {/* DNS Policy */}
-        <div className="flex items-center justify-between p-2 bg-watchguard-lightgray/30 border border-watchguard-border/40 rounded-lg">
-          <div>
-            <span className="text-xs font-semibold text-gray-200 block">DNS Policy (UDP/53)</span>
-            <span className="text-[9px] text-gray-500 font-sans">Explicit allow rule for outbound port 53 lookup.</span>
-          </div>
-          <input
-            type="checkbox"
-            aria-label="DNS UDP/53 policy"
-            checked={dnsPolicyEnabled}
-            onChange={(e) => setDnsPolicyEnabled(e.target.checked)}
-            className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
-          />
-        </div>
-
-        {/* HTTP proxy Action */}
-        <div className="flex items-center justify-between p-2 bg-watchguard-lightgray/30 border border-watchguard-border/40 rounded-lg">
-          <div>
-            <span className="text-xs font-semibold text-gray-200 block">HTTP Proxy Action & GAV Scanner</span>
-            <span className="text-[9px] text-gray-500">Deep packet inspection. Scans files for virus signatures.</span>
-          </div>
-          <input
-            type="checkbox"
-            aria-label="HTTP proxy and GAV"
-            checked={httpProxyEnabled}
-            onChange={(e) => setHttpProxyEnabled(e.target.checked)}
-            className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
-          />
-        </div>
-
-        {/* HTTPS Proxy Action with Content Inspection */}
-        <div className="flex items-center justify-between p-2 bg-watchguard-lightgray/30 border border-watchguard-border/40 rounded-lg">
-          <div>
-            <span className="text-xs font-semibold text-gray-200 block">HTTPS Content Decryption Inspection</span>
-            <span className="text-[9px] text-gray-500">Decrypts TLS sessions to verify inner payloads.</span>
-          </div>
-          <input
-            type="checkbox"
-            aria-label="HTTPS content inspection"
-            checked={httpsContentInspection}
-            onChange={(e) => setHttpsContentInspection(e.target.checked)}
-            className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
-          />
-        </div>
-
-        {/* Trust Proxy Authority Certificate */}
-        <div className={`flex items-center justify-between p-2 border rounded-lg transition-all ${
-          httpsContentInspection ? "bg-watchguard-orange/5 border-watchguard-orange/40" : "bg-watchguard-lightgray/10 border-watchguard-border/20 opacity-40 pointer-events-none"
-        }`}>
-          <div>
-            <span className="text-xs font-semibold text-watchguard-orange block">Client Trusts Proxy Certificate?</span>
-            <span className="text-[9px] text-gray-400">Client trusts the CA used for inspection.</span>
-          </div>
-          <input
-            type="checkbox"
-            disabled={!httpsContentInspection}
-            aria-label="Client trusts inspection CA"
-            checked={certTrusted}
-            onChange={(e) => setCertTrusted(e.target.checked)}
-            className="w-4 h-4 text-watchguard-orange rounded accent-watchguard-orange cursor-pointer"
-          />
-        </div>
-      </div>
-
-      {/* Threats (Blocked sites & Blocked ports) */}
-      <div className="pt-2 border-t border-watchguard-border/60 grid grid-cols-2 gap-4">
-        <div>
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked IP Sites List</span>
-          <div className="space-y-1 max-h-[70px]  bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
-            {blockedSites.map(site => (
-              <div key={site} className="flex items-center justify-between text-[9px] text-red-400 font-mono">
-                <span>{site}</span>
-                <button aria-label={`Remove blocked site ${site}`} onClick={() => setBlockedSites(prev => prev.filter(s => s !== site))} className="hover:text-white">
-                  <Trash2 className="w-2.5 h-2.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <form onSubmit={handleAddSiteBlock} className="flex mt-1.5 items-center space-x-1">
-            <input
-              type="text"
-              value={newSiteBlock}
-              onChange={e => setNewSiteBlock(e.target.value)}
-              placeholder="Block IP..."
-              className="bg-watchguard-dark text-[9px] text-white border border-watchguard-border rounded px-1.5 py-0.5 w-full font-mono focus:outline-none"
-            />
-            <button type="submit" aria-label="Add blocked site" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
-              <Plus className="w-2.5 h-2.5" />
-            </button>
-          </form>
-        </div>
-
-        <div>
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Blocked Port Numbers</span>
-          <div className="space-y-1 max-h-[70px]  bg-watchguard-dark/60 p-1.5 rounded border border-watchguard-border/40 scrollbar-thin">
-            {blockedPorts.map(port => (
-              <div key={port} className="flex items-center justify-between text-[9px] text-red-400 font-mono">
-                <span>Port {port}</span>
-                <button aria-label={`Remove blocked port ${port}`} onClick={() => setBlockedPorts(prev => prev.filter(p => p !== port))} className="hover:text-white">
-                  <Trash2 className="w-2.5 h-2.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <form onSubmit={handleAddPortBlock} className="flex mt-1.5 items-center space-x-1">
-            <input
-              type="text"
-              value={newPortBlock}
-              onChange={e => setNewPortBlock(e.target.value)}
-              placeholder="Block Port..."
-              className="bg-watchguard-dark text-[9px] text-white border border-watchguard-border rounded px-1.5 py-0.5 w-full font-mono focus:outline-none"
-            />
-            <button type="submit" aria-label="Add blocked port" className="bg-watchguard-orange hover:bg-watchguard-orange/90 text-white rounded p-0.5">
-              <Plus className="w-2.5 h-2.5" />
-            </button>
-          </form>
-        </div>
-      </div>
+interface Props {config:SandboxConfig; onChange:(config:SandboxConfig)=>void}
+export function PolicyController({config,onChange}:Props) {
+  const [site,setSite]=useState(''),[port,setPort]=useState(''),[error,setError]=useState('');
+  function addBlock(event:FormEvent,kind:'site'|'port') {
+    event.preventDefault();
+    if(kind==='site') {
+      const address=site.trim();
+      if(!validIPv4(address)){setError('Use a valid IPv4 host address for a blocked site.');return;}
+      onChange({...config,blockedSites:[...new Set([...config.blockedSites,address])]});setSite('');
+    } else {
+      const value=Number(port);
+      if(!/^\d+$/.test(port)||value<1||value>65535){setError('Use a blocked port from 1 to 65535.');return;}
+      onChange({...config,blockedPorts:[...new Set([...config.blockedPorts,value])]});setPort('');
+    }
+    setError('');
+  }
+  return <section className="firewall-policies" aria-label="Firewall policies">
+    <div className="sandbox-pane-heading"><div><p className="eyebrow">FIREWALL</p><h2><Shield size={20}/>Firewall policies</h2></div><span>{policyRows.filter(row=>config[row.key]).length} enabled</span></div>
+    <p className="sandbox-description">Changes apply to the next test flow. These fixed teaching rules match specific services before the broad Outgoing rule; this is not Fireware's complete policy-order algorithm.</p>
+    <div className="sandbox-policy-scroll" tabIndex={0} role="region" aria-label="Scrollable policy table">
+      <table className="sandbox-policy-table"><thead><tr><th scope="col">Enabled</th><th scope="col">Policy</th><th scope="col">From → To</th><th scope="col">Service</th><th scope="col">Action / inspection</th></tr></thead>
+        <tbody>{policyRows.map(row=><tr key={row.key} data-enabled={config[row.key]}><td><input type="checkbox" aria-label={`${row.name} policy`} checked={config[row.key]} onChange={event=>onChange({...config,[row.key]:event.target.checked})}/></td><th scope="row">{row.name}</th><td>{row.scope}</td><td>{row.service}</td><td>{row.inspection}</td></tr>)}</tbody>
+      </table>
     </div>
-  );
+    <label className="sandbox-client-trust"><input type="checkbox" disabled={!config.inspectTls} checked={config.trustCa} onChange={event=>onChange({...config,trustCa:event.target.checked})}/><div><strong>Client trusts inspection CA</strong><p>Needed for this client's HTTPS inspection test. Certificate trust is a client setting, separate from the firewall allow decision.</p></div></label>
+    <div className="sandbox-protections">
+      <section><h3>Blocked Sites</h3><p>These lab hosts are blocked before policy selection.</p><ul>{config.blockedSites.map(address=><li key={address}><code>{address}</code><button aria-label={`Remove blocked site ${address}`} onClick={()=>onChange({...config,blockedSites:config.blockedSites.filter(value=>value!==address)})}><Trash2 size={16}/></button></li>)}</ul><form onSubmit={event=>addBlock(event,'site')}><input aria-label="Blocked IPv4 address" placeholder="203.0.113.66" value={site} onChange={event=>setSite(event.target.value)}/><button className="secondary-button" aria-label="Add blocked site"><Plus size={16}/>Add</button></form></section>
+      <section><h3>Blocked Ports</h3><p>Applies to modeled TCP/UDP flows crossing External.</p><ul>{config.blockedPorts.map(value=><li key={value}><code>Port {value}</code><button aria-label={`Remove blocked port ${value}`} onClick={()=>onChange({...config,blockedPorts:config.blockedPorts.filter(port=>port!==value)})}><Trash2 size={16}/></button></li>)}</ul><form onSubmit={event=>addBlock(event,'port')}><input aria-label="Blocked port number" inputMode="numeric" placeholder="1–65535" value={port} onChange={event=>setPort(event.target.value)}/><button className="secondary-button" aria-label="Add blocked port"><Plus size={16}/>Add</button></form></section>
+    </div>
+    {error&&<p role="alert" className="sandbox-error">{error}</p>}
+  </section>;
 }
