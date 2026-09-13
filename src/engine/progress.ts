@@ -9,7 +9,9 @@ export function buildStudyReport(input:any={}) {
   for(const h of history??[]){const stat=topics.get(h.topic)??{correct:0,total:0};stat.total++;if(h.isCorrect)stat.correct++;topics.set(h.topic,stat);}
   const weaknesses=history?[...topics].filter(([,s])=>s.correct<s.total).map(([topic])=>topic):(Array.isArray(input?.topicWeaknesses)?input.topicWeaknesses.filter((v:any)=>typeof v==='string'):[]);
   const strengths=[...topics].filter(([,s])=>s.total>=3&&s.correct/s.total>=.85).map(([topic,s])=>`${topic}: ${s.correct}/${s.total} correct`);
-  const labTopics:Record<string,number[]>= {'Initial Setup':[1],'Policies':[11,14],'NAT':[6],'Routing':[6,8],'BOVPN':[15],'Mobile VPN':[13],'Proxies':[11],'Security Services':[11,13],'Switching & Wireless':[12],'Troubleshooting':[1,6],'Logging & Monitoring':[8]};
+  // Lab ids now follow the official Lab Book numbering, so these recommendations point at the
+  // exercise that actually covers the weak topic.
+  const labTopics:Record<string,number[]>= {'Initial Setup':[1,3,17],'Policies':[9,10],'NAT':[6],'Routing':[6,7,8],'BOVPN':[16],'Mobile VPN':[15],'Proxies':[11],'Security Services':[12],'Switching & Wireless':[6],'Troubleshooting':[1,6,17],'Logging & Monitoring':[4,18,20],'WatchGuard Cloud':[5,19],'IP Addressing':[6],'Network Services':[1],'Network Operations':[3,20]};
   const ids=new Set(weaknesses.flatMap((topic:string)=>labTopics[topic]??[]));
   return {
     readinessScore:attempts?`${Math.round(correct/attempts*100)}%`:'0%',
