@@ -44,16 +44,6 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
-    # A single Node process serving a SQLite-backed study portal. The ceiling is here so a
-    # runaway request or a dependency defect cannot take the Proxmox host down with it; the
-    # reservation keeps it schedulable alongside whatever else runs on the box.
-    deploy:
-      resources:
-        limits:
-          memory: ${WATCHGUARD_MEMORY_LIMIT:-1G}
-          cpus: "${WATCHGUARD_CPU_LIMIT:-1.0}"
-        reservations:
-          memory: 128M
     logging:
       driver: json-file
       options:
