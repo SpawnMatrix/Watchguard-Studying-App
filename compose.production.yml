@@ -12,13 +12,17 @@ services:
     container_name: watchguard-study-portal
     restart: unless-stopped
     ports:
-      # Bound to loopback: the only route in is the reverse proxy. Published on 0.0.0.0 this
-      # port was reachable directly from the LAN, which both bypasses whatever authentication
-      # the proxy enforces and lets a direct client present its own X-Forwarded-For. With
-      # TRUSTED_PROXY_HOPS=1 the app would believe that header, so the rate limiters became
-      # spoofable. Set WATCHGUARD_HOST_BIND=0.0.0.0 only for a deployment with no proxy at all,
-      # and set TRUSTED_PROXY_HOPS=0 if you do.
-      - "${WATCHGUARD_HOST_BIND:-127.0.0.1}:${WATCHGUARD_HOST_PORT:-3001}:3000"
+      # Published on all interfaces by default. Binding this to 127.0.0.1 in 1.3.1 took the
+      # portal off the air: Pangolin reaches the app from its own network namespace, not from
+      # the host loopback, so the proxy could no longer connect and every request became a
+      # Bad Gateway. Reachability beats the hardening it was meant to add.
+      #
+      # The exposure that change addressed is real and still open: with TRUSTED_PROXY_HOPS set,
+      # a client that reaches this port directly can present its own X-Forwarded-For and choose
+      # the address the rate limiters key on. Close it at the host firewall, or by putting the
+      # proxy on the same Docker network and binding WATCHGUARD_HOST_BIND=127.0.0.1 then.
+      - "${WATCHGUARD_HOST_BIND:-0.0.0.0}:${WATCHGUARD_HOST_PORT:-3001}:3000"
+
     environment:
       DATA_DIR: /data
       PORT: "3000"
@@ -46,7 +50,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${WATCHGUARD_MEMORY_LIMIT:-512M}
+          memory: ${WATCHGUARD_MEMORY_LIMIT:-1G}
           cpus: "${WATCHGUARD_CPU_LIMIT:-1.0}"
         reservations:
           memory: 128M
