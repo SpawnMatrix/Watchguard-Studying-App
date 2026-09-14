@@ -24,7 +24,7 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [67, 126], // default Web UI URL and port
   [25, 1840], // IKE on UDP 500 and 4500
   [82, 113], // SSL VPN pool must not overlap other networks
-  [64, 1533], // SSL VPN connects but reaches nothing
+  [64, 1506, 1533], // mobile VPN connects but reaches nothing: policy or pool overlap
   [116, 1528], // Gateway AntiVirus leaves encrypted or oversized archives unscanned
   [120, 1529], // ThreatSync automatic endpoint actions
   [36, 1532], // BOVPN failover
@@ -33,7 +33,7 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [15, 62], // Optional networks are in the default Outgoing policy
   [78, 1601], // 1-to-1 NAT outbound source address
   [81, 104], // Application Control blocks applications regardless of URL
-  [50, 1608], // clients must trust the Proxy Authority certificate
+  [50, 1507, 1608], // clients must trust the Proxy Authority certificate
   [37, 48], // Firebox System Manager live status and diagnostics
   [33, 1000], // Policy Manager edits configuration offline
   [58, 93], // Traffic Monitor shows log messages in real time
@@ -43,22 +43,17 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [1505, 1530], // Phase 1 up, Phase 2 fails
   [1508, 1536, 1609], // an Allow entry does not prove the application worked
   [1510, 1541], // VLAN tagging mismatch with the link up
+  [1021, 1515], // Default Threat Protection overrides an allow policy
+  [1131, 1517], // keeping management access narrow without locking yourself out
+  [1144, 1518], // an IPS signature exception for a suspected false positive
+  [1005, 1501, 1540], // the Fireware CLI over SSH on TCP 4118
   // Network+
-  [110, 1305], // /27 mask
-  [121, 1328], // what DNSSEC provides
   [114, 1612], // OSPF chooses by cost
-  [122, 1346], // link aggregation and LACP
-  [1304, 1615], // smallest subnet for about 60 hosts
   [1383, 1442], // recovery point objective
-  [1381, 1443], // rollback in a change record
-  [1331, 1440], // SNMPv3 for authenticated, encrypted monitoring
   // WatchGuard Cloud
-  [1400, 1407, 1410, 1428], // Cloud visibility leaves a locally managed device's configuration local
-  [1409, 1431], // reviewing a template change
+  [1400, 1428], // Cloud visibility leaves a locally managed device's configuration local
   [1420, 1544], // Service Provider and subscriber accounts
-  [1405, 1427], // a cloud-managed device that was offline during a change
-  [1412, 1433], // backup before changing management mode
-  [1411, 1434], // feature availability differs by management mode
+  [1404, 1543], // a cloud-managed change must be deployed to take effect
 ];
 
 const groupOf = new Map<number, number>();
