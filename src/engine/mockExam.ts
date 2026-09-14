@@ -2,7 +2,7 @@ import type { Question } from '../data/questions';
 import { N10_009_WEIGHTS, NETWORK_PLUS_DOMAIN } from '../data/networkPlusBlueprint';
 import { NSE_WEIGHTS, nseCategory } from '../data/nseBlueprint';
 import { twinGroup } from '../data/questionTwins';
-import { createExam, questionById } from './catalog';
+import { createExam, questionById, studyQuestions } from './catalog';
 import { seededRandom, shuffle } from './random';
 
 /**
@@ -155,6 +155,71 @@ export function examResults(history: readonly { questionId: number; isCorrect: b
     return { domain, ...b.weights[domain], correct: answers.filter(h => h.isCorrect).length, total: answers.length };
   }).filter(r => r.total > 0);
   return { blueprint: b.id, unit: b.unit, passMark: b.passMark, rows };
+}
+
+/** Fewest distinct questions answered in a category before its score is shown. */
+export const READINESS_MIN_ANSWERS = 5;
+
+export interface ReadinessRow {
+  domain: number;
+  name: string;
+  weight: number;
+  /** Distinct questions from this category the learner has answered. */
+  answered: number;
+  /** Of those, how many were right the last time they were answered. */
+  correct: number;
+  /** Questions in the bank that count towards this category. */
+  available: number;
+  /** Percentage right, or null until READINESS_MIN_ANSWERS questions have been answered. */
+  score: number | null;
+}
+
+export interface ExamReadiness {
+  blueprint: BlueprintId;
+  unit: 'domain' | 'category';
+  passMark?: number;
+  rows: ReadinessRow[];
+  /** Blueprint-weighted score, once every category has enough answers; null before that. */
+  estimate: number | null;
+  /** The category that would gain most from study: the most exam weight left unanswered correctly. */
+  focus: ReadinessRow | null;
+}
+
+/**
+ * Readiness for one exam across all practice so far, not one attempt.
+ *
+ * Each question counts once, by its most recent answer, so a question missed early and answered
+ * correctly since counts as known, and repeating an easy question does not inflate the score. A
+ * category shows no score until it has READINESS_MIN_ANSWERS answers, and the weighted estimate waits
+ * for every category, because a figure built from two lucky answers would mislead more than it helps.
+ */
+export function examReadiness(
+  history: readonly { questionId: number; isCorrect: boolean }[],
+  blueprint: BlueprintId,
+  bank: readonly Question[] = studyQuestions,
+): ExamReadiness {
+  const b = BLUEPRINTS.find(x => x.id === blueprint)!;
+  const latest = new Map<number, boolean>();
+  for (const h of history) latest.set(h.questionId, h.isCorrect);
+  const rows = categoriesOf(b).map(domain => {
+    let answered = 0, correct = 0;
+    for (const [id, isCorrect] of latest) {
+      const q = questionById.get(id);
+      if (!q || b.classify(q) !== domain) continue;
+      answered++;
+      if (isCorrect) correct++;
+    }
+    const available = bank.filter(q => b.classify(q) === domain).length;
+    const score = answered >= READINESS_MIN_ANSWERS ? Math.round((correct / answered) * 100) : null;
+    return { domain, ...b.weights[domain], answered, correct, available, score };
+  });
+  const scored = rows.filter(r => r.score !== null);
+  const estimate = scored.length === rows.length
+    ? Math.round(rows.reduce((sum, r) => sum + r.weight * r.score!, 0) / rows.reduce((sum, r) => sum + r.weight, 0))
+    : null;
+  const gap = (r: ReadinessRow) => r.weight * (100 - (r.score ?? 0));
+  const focus = rows.filter(r => r.score === null || r.score < 100).reduce<ReadinessRow | null>((best, r) => (!best || gap(r) > gap(best) ? r : best), null);
+  return { blueprint: b.id, unit: b.unit, passMark: b.passMark, rows, estimate, focus };
 }
 
 /** Network+ domain rows only; kept for callers that predate the NSE blueprint. */
