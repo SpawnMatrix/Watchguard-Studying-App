@@ -35,7 +35,7 @@ export default function FlashcardStudioSidebar({
                   : "text-gray-400 hover:text-white hover:bg-watchguard-lightgray"
               }`}
             >
-              {cat === "All" ? "All Syllabuses" : `${cat} Domain`}
+              {cat === "All" ? "All topics" : cat}
             </button>
           ))}
         </div>
@@ -57,7 +57,7 @@ export default function FlashcardStudioSidebar({
 
       {filteredCardsLength > 0 && (
         <div className="bg-watchguard-dark/40 border border-watchguard-border/60 p-3 rounded-lg space-y-1">
-          <span className="text-[10px] font-mono text-gray-500 block">Syllabus Index</span>
+          <span className="text-[10px] font-mono text-gray-500 block">Position</span>
           <p className="text-[11px] text-gray-300 font-sans">
             Showing {currentIndex + 1} of {filteredCardsLength} matching flashcards.
           </p>

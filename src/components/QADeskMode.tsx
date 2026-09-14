@@ -65,7 +65,7 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
         <div className="relative w-full lg:w-80">
           <input
             type="text"
-            placeholder="Search local syllabus questions..."
+            placeholder="Search study notes…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg pl-8 pr-3 py-2.5 outline-none focus:border-watchguard-orange/50 transition-all font-mono placeholder:text-gray-500"
@@ -79,7 +79,7 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
         {filteredQA.length === 0 ? (
           <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-8 text-center space-y-2">
             <AlertTriangle className="w-8 h-8 text-watchguard-orange mx-auto" />
-            <p className="text-sm text-gray-400 font-mono">No matching syllabus Q&A items found.</p>
+            <p className="text-sm text-gray-400 font-mono">No study notes match that search.</p>
             <button
               onClick={() => { setSelectedCategory("All"); setSearchQuery(""); }}
               className="text-xs text-watchguard-orange underline font-mono cursor-pointer bg-transparent border-0"
@@ -105,7 +105,7 @@ export default function QADeskMode({ qaDatabase, categories }: QADeskModeProps) 
                       <span className="text-[9px] font-mono bg-watchguard-orange/15 border border-watchguard-orange/30 text-watchguard-orange px-2 py-0.5 rounded uppercase font-bold tracking-wide">
                         {item.category}
                       </span>
-                      <span className="text-[10px] font-mono text-gray-500">Syllabus Item #{item.id}</span>
+                      <span className="text-[10px] font-mono text-gray-500">Note {item.id}</span>
                     </div>
                     <h4 className="text-sm font-semibold text-white tracking-tight leading-snug">
                       {item.question}
