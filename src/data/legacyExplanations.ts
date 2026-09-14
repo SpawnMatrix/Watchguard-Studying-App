@@ -245,7 +245,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'IKEv2 clients are built into current Windows, macOS and iOS, so users configure a native VPN profile with no software to install - the reason it is the usual choice for managed devices. Mobile VPN with SSL needs the WatchGuard client (or an OpenVPN client), and the legacy IPSec client is a separate install too.',
   },
   74: {
-    explanation: 'SA lifetime is a Phase 2 parameter, and the message names phase two, so adjust the Phase 2 tunnel expiration in time or kilobytes to match the peer. Everything the distractors offer - pre-shared key, Phase 1 DH group, PFS in gateway settings - lives in Phase 1 and cannot resolve a Phase 2 lifetime mismatch.',
+    explanation: 'SA lifetime is a Phase 2 parameter, and the message names phase two, so adjust the Phase 2 key expiration in the tunnel settings to match the peer. The pre-shared key and the Phase 1 Diffie-Hellman group belong to the gateway and Phase 1, and PFS is not a gateway setting at all: it is part of the Phase 2 tunnel settings, and enabling it would not fix a lifetime mismatch.',
   },
   75: {
     explanation: 'The Dimension Server database stores the log data that historical reports are built from, which is why a report can be empty even when the Firebox is reaching Dimension: logging has to be enabled on the policies, the messages have to arrive, and the report has to cover the right device and time range.',
@@ -272,7 +272,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'The pool must not overlap any internal, routed or remote VPN subnet, because the client resolves overlapping destinations to its own local network and the traffic never enters the tunnel. This is the most common reason a "connected" SSL VPN client reaches nothing, and it is why the 192.168.113.0/24 default is worth changing if your sites use common home-router ranges.',
   },
   83: {
-    explanation: 'In a policy-based BOVPN, firewall policies with the tunnel as their action or destination decide what traffic uses the VPN - so you control the tunnel with the same policy model as everything else. A virtual interface BOVPN is the alternative: it presents the tunnel as a routable interface, so static or dynamic routing decides instead.',
+    explanation: 'A manual BOVPN routes a packet through the tunnel only when its source and destination match a configured tunnel route - the local and remote addresses you define for the tunnel. Policies are still needed, and Policy Manager adds BOVPN-Allow policies by default, but they decide whether matching traffic is allowed, not which traffic enters the tunnel. A BOVPN virtual interface is the alternative, where the routing table decides.',
   },
   84: {
     explanation: 'Historical reporting requires log messages to have been sent to and retained by a log server - WatchGuard Dimension, a WatchGuard Log Server, or WatchGuard Cloud - and it requires logging to be enabled on the policies that carried the traffic. Traffic Monitor is a live view, so anything that scrolled past before the question was asked is gone. Permitting traffic and logging it are separate settings, which is why a policy can work perfectly and still appear nowhere in a report.',
@@ -290,7 +290,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'SD-WAN measures latency, jitter and packet loss on each link and steers the traffic of a policy to the link that meets its configured thresholds. Interface Overflow only reacts to a bandwidth limit, and policy-based routing pins traffic to an interface without any regard to whether that interface is currently performing well.',
   },
   89: {
-    explanation: 'WebBlocker exceptions match on an exact URL, a wildcard pattern, or a regular expression, so you can scope an exception as tightly or as broadly as the situation needs. The distractors describe things exceptions are not: they act on the URL in the request, not on DNS record mappings or IP subnet membership.',
+    explanation: 'WebBlocker exceptions can match an exact URL, a wildcard pattern or a regular expression, and they can also be based on IP addresses. WatchGuard notes that regular expressions are more accurate and use less CPU than pattern matches when you have many exceptions. DNS record mappings and Application Control signatures are not ways to define a WebBlocker exception.',
   },
   90: {
     explanation: 'On the HTTP-proxy, Gateway AntiVirus can Allow the file, Block it (deny and add the source to the blocked sites list), or Drop it silently. What it never does is repair a file - there is no disinfect or re-encode action, because the proxy decides whether to deliver content rather than rewriting it. Other proxies add actions of their own: the SMTP-proxy also offers Lock and Quarantine.',

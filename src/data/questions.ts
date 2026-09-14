@@ -1081,15 +1081,15 @@ export const examQuestions: Question[] = [
   },
   {
     id: 83,
-    question: "In a Policy-Based BOVPN, what controls which traffic is allowed to traverse the VPN tunnel? (Select one.)",
+    question: "In a manual BOVPN, what decides which traffic the Firebox sends through the tunnel? (Select one.)",
     options: [
-      "The static routing table configured on the Virtual Interface BOVPN tunnel",
-      "The VPN Gateway ID names configured on each peer",
-      "Firewall policies with the BOVPN tunnel configured as action/destination",
-      "The dynamic routing protocol in use on the tunnel"
+      "The static routes configured on a BOVPN virtual interface",
+      "The gateway ID names configured on each of the peers",
+      "Tunnel routes that match the traffic's source and destination",
+      "Firewall policies that name the tunnel as their destination"
     ],
-    correctAnswer: "Firewall policies with the BOVPN tunnel configured as action/destination",
-  correctAnswers: ["Firewall policies with the BOVPN tunnel configured as action/destination"],
+    correctAnswer: "Tunnel routes that match the traffic's source and destination",
+  correctAnswers: ["Tunnel routes that match the traffic's source and destination"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1152,7 +1152,7 @@ export const examQuestions: Question[] = [
       "Pattern match (using wildcards like *)",
       "Regular Expression match",
       "FQDN record mapping",
-      "IP subnet zone"
+      "Application Control signature match"
     ],
     correctAnswer: "Exact URL match | Pattern match (using wildcards like *) | Regular Expression match",
   correctAnswers: ["Exact URL match", "Pattern match (using wildcards like *)", "Regular Expression match"],
