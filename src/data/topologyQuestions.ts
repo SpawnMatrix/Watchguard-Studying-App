@@ -153,17 +153,17 @@ const localScenarios: Question[] = [
     id: 1602, topic: 'NAT', track: 'local', objective: 'Static NAT, pp. 126-127',
     title: 'Inbound SNAT path',
     size: SIZE3,
-    question: 'An SNAT action maps 203.0.113.80:443 to the internal server 10.0.2.80:443. When you write the policy that permits this inbound traffic, which destination should it use?',
-    answer: 'The private address 10.0.2.80, because NAT is applied before the policy lookup for inbound traffic',
+    question: 'An SNAT action maps 203.0.113.80:443 to the internal server 10.0.2.80:443. What goes in the To section of the policy that permits this inbound traffic?',
+    answer: 'The SNAT action that maps the two addresses',
     wrong: [
-      'The public address 203.0.113.80, because that is the address the external client actually targets',
-      'The external interface alias Any-External, so any published address matches',
-      'Either address, because the Firebox resolves the SNAT mapping in both directions',
+      'The private address 10.0.2.80, entered on its own',
+      'The public address 203.0.113.80, entered on its own',
+      'The Any-External alias, so any published address matches',
     ],
-    explanation: 'For an inbound connection the Firebox rewrites the destination first and then looks for a policy, so by the time the policy lookup runs the packet is already addressed to 10.0.2.80. A policy written to the public address never matches and the traffic is denied as unhandled. That ordering is the single most common reason a correct-looking SNAT rule appears to do nothing.',
+    explanation: 'In Fireware the translation lives inside the policy: you add the SNAT action to the To section, and the action carries both the public address the client targets and the internal address it becomes. A policy that names only 10.0.2.80 contains no translation, so a client connecting to 203.0.113.80 never reaches the server, and one that names only 203.0.113.80 permits traffic to the Firebox itself without forwarding it anywhere. The same action can be reused in several policies.',
     nodes: [
       node('client', 'client', 'Internet client', COL3[0], ROW3[1], { detail: 'to 203.0.113.80:443', zone: 'external' }),
-      node('fw', 'firebox', 'Firebox', COL3[1], ROW3[1], { detail: 'SNAT then policy' }),
+      node('fw', 'firebox', 'Firebox', COL3[1], ROW3[1], { detail: 'Policy with SNAT action' }),
       node('web', 'server', 'Web server', COL3[2], ROW3[1], { detail: '10.0.2.80:443', zone: 'optional' }),
     ],
     edges: [
@@ -202,7 +202,7 @@ const localScenarios: Question[] = [
     question: 'An ISP-owned edge router sits in front of the Firebox. Click or select the device that must be configured as the local BOVPN gateway endpoint.',
     answer: 'Firebox',
     wrong: ['Edge router', 'Core switch', 'File server'],
-    explanation: 'The Firebox terminates the IPSec tunnel, so it is the local gateway endpoint even though the edge router owns the physical link to the ISP. The router only needs to forward UDP 500, UDP 4500 and ESP to the Firebox - a detail worth remembering, because a router that quietly blocks ESP produces a Phase 1 that never completes.',
+    explanation: 'The Firebox terminates the IPSec tunnel, so it is the local gateway endpoint even though the edge router owns the physical link to the ISP. The router only needs to forward UDP 500, UDP 4500 and ESP to the Firebox - a detail worth remembering, because a router that blocks UDP 500 stops Phase 1 from ever completing, while one that blocks ESP lets the tunnel negotiate and then carries no traffic unless NAT traversal wraps ESP in UDP 4500.',
     nodes: [
       node('lan', 'subnet', 'Trusted LAN', COL4[0], ROW3[1], { detail: '10.30.0.0/24', zone: 'trusted' }),
       node('sw', 'switch', 'Core switch', COL4[1], ROW3[1], { zone: 'trusted' }),

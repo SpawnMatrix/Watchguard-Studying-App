@@ -1,6 +1,7 @@
 import type { Question } from '../data/questions';
 import { N10_009_WEIGHTS, NETWORK_PLUS_DOMAIN } from '../data/networkPlusBlueprint';
 import { NSE_WEIGHTS, nseCategory } from '../data/nseBlueprint';
+import { twinGroup } from '../data/questionTwins';
 import { createExam, questionById } from './catalog';
 import { seededRandom, shuffle } from './random';
 
@@ -77,6 +78,26 @@ function blueprintFor(pool: readonly Question[]): Blueprint | undefined {
 const canFill = (questions: readonly Question[], quota: number) => quota === 0 || questions.some(q => q.variant) || questions.length >= quota;
 
 /**
+ * The pool with at most one question from each same-fact group (see questionTwins.ts), chosen at
+ * random for the seed. Used only when enough questions remain to fill the exam, so a small filtered
+ * pool is never shortened.
+ */
+export function withoutTwins(pool: readonly Question[], seed: number, size: number): readonly Question[] {
+  const kept = new Set<number>();
+  const deduped = shuffle(pool, seededRandom(seed ^ 0x2545f491)).filter(q => {
+    const group = q.variant ? undefined : twinGroup(q.id);
+    if (group === undefined) return true;
+    if (kept.has(group)) return false;
+    kept.add(group);
+    return true;
+  });
+  if (deduped.length === pool.length) return pool;
+  const order = new Map(pool.map((q, i) => [q, i]));
+  const inPoolOrder = deduped.sort((a, b) => order.get(a)! - order.get(b)!);
+  return inPoolOrder.length >= size || inPoolOrder.some(q => q.variant) ? inPoolOrder : pool;
+}
+
+/**
  * The blueprint exam for a whole exam pool, or null when the pool cannot honour a blueprint.
  * Deterministic for a given pool and seed, like createExam.
  */
@@ -84,9 +105,14 @@ export function createBlueprintExam(pool: readonly Question[], seed: number, siz
   const b = blueprintFor(pool);
   if (!b) return null;
   const quotas = blueprintQuotas(size, b.id);
-  const groups = new Map<number, Question[]>(categoriesOf(b).map(c => [c, []]));
-  for (const q of pool) groups.get(b.classify(q)!)!.push(q);
-  if (!categoriesOf(b).every(c => canFill(groups.get(c)!, quotas[c]))) return null;
+  const group = (questions: readonly Question[]) => {
+    const groups = new Map<number, Question[]>(categoriesOf(b).map(c => [c, []]));
+    for (const q of questions) groups.get(b.classify(q)!)!.push(q);
+    return categoriesOf(b).every(c => canFill(groups.get(c)!, quotas[c])) ? groups : null;
+  };
+  // Prefer one question per same-fact group; fall back to the whole pool if that leaves a category short.
+  const groups = group(withoutTwins(pool, seed, size)) ?? group(pool);
+  if (!groups) return null;
 
   const rng = seededRandom(seed);
   const drawn = categoriesOf(b).flatMap(c => createExam(groups.get(c)!, Math.floor(rng() * 4294967296), quotas[c]));
@@ -96,7 +122,7 @@ export function createBlueprintExam(pool: readonly Question[], seed: number, siz
 
 /** What the quiz engine calls: the blueprint when it applies, the uniform draw otherwise. */
 export function createMockExam(pool: readonly Question[], seed: number, size = 50): Question[] {
-  return createBlueprintExam(pool, seed, size) ?? createExam(pool, seed, size);
+  return createBlueprintExam(pool, seed, size) ?? createExam(withoutTwins(pool, seed, size), seed, size);
 }
 
 export interface DomainResult {

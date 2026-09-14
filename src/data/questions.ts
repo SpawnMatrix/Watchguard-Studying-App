@@ -383,15 +383,15 @@ export const examQuestions: Question[] = [
   },
   {
     id: 28,
-    question: "When configuring Multi-WAN on a Firebox, which routing method routes traffic based on interface bandwidth utilization thresholds? (Select one.)",
+    question: "Which multi-WAN method lets you set a bandwidth limit on each external interface, and sends new connections to the next interface in order once that limit is reached? (Select one.)",
     options: [
-      "Spillover",
-      "Round-Robin",
-      "Interface Failover",
-      "Routing Table Cost"
+      "Interface Overflow",
+      "Weighted Round-robin",
+      "Failover",
+      "Routing Table (ECMP)"
     ],
-    correctAnswer: "Spillover",
-  correctAnswers: ["Spillover"],
+    correctAnswer: "Interface Overflow",
+  correctAnswers: ["Interface Overflow"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -503,13 +503,13 @@ export const examQuestions: Question[] = [
     id: 36,
     question: "When configuring a Branch Office VPN (BOVPN) failover, what mechanism does the Firebox use to dynamically switch gateways on ISP link failure? (Select one.)",
     options: [
-      "Link Monitor status on Multi-WAN interfaces",
-      "Dynamic Routing protocol convergence timer",
-      "ICMP pings injected into the BOVPN tunnel",
-      "Manual administrative intervention via Web UI"
+      "Link Monitor marking the primary external interface as failed",
+      "Dynamic routing convergence across the branch office tunnel",
+      "ICMP pings sent through the tunnel to the remote LAN",
+      "An administrator switching gateways manually in Web UI"
     ],
-    correctAnswer: "Link Monitor status on Multi-WAN interfaces",
-  correctAnswers: ["Link Monitor status on Multi-WAN interfaces"],
+    correctAnswer: "Link Monitor marking the primary external interface as failed",
+  correctAnswers: ["Link Monitor marking the primary external interface as failed"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -711,10 +711,10 @@ export const examQuestions: Question[] = [
   },
   {
     id: 52,
-    question: "Which Multi-WAN routing method distributes outbound traffic proportionally among active interfaces based on user-defined weights? (Select one.)",
-    options: ["Round-Robin", "Spillover", "Interface Failover", "Routing Table Cost"],
-    correctAnswer: "Round-Robin",
-  correctAnswers: ["Round-Robin"],
+    question: "Which multi-WAN method distributes outgoing connections among the external interfaces according to weights you assign to each one? (Select one.)",
+    options: ["Round-robin", "Interface Overflow", "Failover", "Routing Table"],
+    correctAnswer: "Round-robin",
+  correctAnswers: ["Round-robin"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -756,17 +756,17 @@ export const examQuestions: Question[] = [
   },
   {
     id: 56,
-    question: "You are configuring Mobile VPN with IKEv2. Which client authentication databases are supported? (Select THREE.)",
-    options: ["Firebox-DB", "RADIUS", "Active Directory / LDAP", "SAML SSO", "SecurID"],
-    correctAnswer: "Firebox-DB | RADIUS | Active Directory / LDAP",
-  correctAnswers: ["Firebox-DB", "RADIUS", "Active Directory / LDAP"],
+    question: "You are configuring Mobile VPN with IKEv2. Which authentication servers can the Firebox use for those users? (Select THREE.)",
+    options: ["Firebox-DB", "RADIUS", "AuthPoint", "LDAP", "SecurID"],
+    correctAnswer: "Firebox-DB | RADIUS | AuthPoint",
+  correctAnswers: ["Firebox-DB", "RADIUS", "AuthPoint"],
     isMultiSelect: true,
     correctAnswersCount: 3,
     topic: "Mobile VPN"
   },
   {
     id: 57,
-    question: "What is the default IKE protocol version used for high-reliability, zero-touch VPN gateway configurations on modern Fireboxes? (Select one.)",
+    question: "Which IKE version does WatchGuard recommend for a new BOVPN gateway, unless the remote device does not support it? (Select one.)",
     options: ["IKEv1", "IKEv2", "IKEv3", "L2TP"],
     correctAnswer: "IKEv2",
   correctAnswers: ["IKEv2"],
@@ -789,12 +789,12 @@ export const examQuestions: Question[] = [
     question: "You need to restore a configuration onto a brand new replacement Firebox of a different model. Can you use a Backup Image (.fxi) file? (Select one.)",
     options: [
       "Yes, because Backup Images are completely model-independent artifacts.",
-      "No, Backup Images can only be restored to the identical physical Firebox or identical model.",
+      "No, a backup image can be restored only to the Firebox that created it.",
       "Yes, but you must first decrypt the feature keys it contains.",
       "No, because replacement Fireboxes can only ever be configured from scratch using the setup wizards."
     ],
-    correctAnswer: "No, Backup Images can only be restored to the identical physical Firebox or identical model.",
-  correctAnswers: ["No, Backup Images can only be restored to the identical physical Firebox or identical model."],
+    correctAnswer: "No, a backup image can be restored only to the Firebox that created it.",
+  correctAnswers: ["No, a backup image can be restored only to the Firebox that created it."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1126,10 +1126,10 @@ export const examQuestions: Question[] = [
   },
   {
     id: 87,
-    question: "You are configuring a Static NAT (SNAT) mapping. What are the valid destinations you can specify in the SNAT action? (Select TWO.)",
-    options: ["A single private IP address", "A domain name alias", "A virtual loopback IP address", "An IP address range or server pool with load balancing"],
-    correctAnswer: "A single private IP address | An IP address range or server pool with load balancing",
-  correctAnswers: ["A single private IP address", "An IP address range or server pool with load balancing"],
+    question: "Which TWO types of SNAT action can you add to the To section of a policy? (Select TWO.)",
+    options: ["Static NAT", "Server Load Balancing", "1-to-1 NAT", "Dynamic NAT"],
+    correctAnswer: "Static NAT | Server Load Balancing",
+  correctAnswers: ["Static NAT", "Server Load Balancing"],
     isMultiSelect: true,
     correctAnswersCount: 2,
     topic: "NAT"
@@ -1137,7 +1137,7 @@ export const examQuestions: Question[] = [
   {
     id: 88,
     question: "Which WatchGuard feature tests the latency, jitter, and packet loss of an interface link to determine optimal path routing for specific applications? (Select one.)",
-    options: ["Multi-WAN Spillover", "SD-WAN", "Dynamic Routing OSPF", "Policy-Based Routing (PBR)"],
+    options: ["Multi-WAN Interface Overflow", "SD-WAN", "Dynamic Routing OSPF", "Policy-Based Routing (PBR)"],
     correctAnswer: "SD-WAN",
   correctAnswers: ["SD-WAN"],
     isMultiSelect: false,

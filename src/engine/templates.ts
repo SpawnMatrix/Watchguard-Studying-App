@@ -300,14 +300,14 @@ export const questionTemplates: QuestionTemplate[] = [
         link('e4', 'rtr', 'lan', { zone: 'optional' }),
       ]) };
   }),
-  local(10055, 'Write the inbound policy destination', 'NAT', 'Static NAT, pp. 126-127', r => {
+  local(10055, 'Where the SNAT action goes', 'NAT', 'Static NAT, pp. 126-127', r => {
     const n = networks(r), port = pick(r, [443, 8443, 993, 3389]);
-    return { ...one(`An SNAT action maps ${n.publicIP}:${port} to the internal server ${n.server}:${port}. Which destination should the inbound policy that permits this traffic specify?`, n.server,
-      [n.publicIP, 'The Any-External alias', n.gateway],
-      `For an inbound connection the Firebox applies NAT before it looks for a matching policy, so by the time the lookup runs the packet is addressed to ${n.server}. A policy written to ${n.publicIP} never matches and the connection is denied as an unhandled packet. That ordering is the most common reason a correct-looking SNAT rule appears to do nothing at all.`),
+    return { ...one(`An SNAT action maps ${n.publicIP}:${port} to the internal server ${n.server}:${port}. What belongs in the To section of the inbound policy that permits this traffic?`, 'The SNAT action itself',
+      [`${n.server} on its own`, `${n.publicIP} on its own`, 'The Any-External alias'],
+      `Fireware applies static NAT through the policy: the SNAT action goes in the To section, and it carries both the public address ${n.publicIP} the client targets and the internal address ${n.server} it becomes. A policy naming only ${n.server} contains no translation, so a client connecting to ${n.publicIP} never reaches the server, and one naming only ${n.publicIP} does not forward anything. The same action can be reused in more than one policy.`),
       type: 'topology', topology: diagram('Inbound translation order', 900, 460, [
         node('client', 'client', 'Internet client', 130, 230, { detail: `to ${n.publicIP}:${port}`, zone: 'external' }),
-        node('fw', 'firebox', 'Firebox', 450, 230, { detail: 'SNAT, then policy lookup' }),
+        node('fw', 'firebox', 'Firebox', 450, 230, { detail: 'Policy with SNAT action' }),
         node('srv', 'server', 'Published server', 770, 230, { detail: `${n.server}:${port}`, zone: 'dmz' }),
       ], [
         link('e1', 'client', 'fw', { label: `dst ${n.publicIP}`, zone: 'external', flow: true }),

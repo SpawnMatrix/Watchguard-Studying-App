@@ -112,7 +112,7 @@ export const legacyTopologyScenes: Record<number, LegacyTopologyScene> = {
     options: ['Web server', 'Firebox', 'Edge router', 'Core switch'],
     answer: 'Web server',
     topic: 'NAT',
-    explanation: 'Static NAT rewrites the destination on the Firebox, so the packet leaves it addressed to 10.0.2.80 and the web server is the only device on this path that ever receives that form. The edge router and the Firebox both handle the packet while it still carries the public address. That ordering is why the server access log shows the private IP, and why the inbound policy has to be written to 10.0.2.80 rather than to 203.0.113.80. The core switch sits on the trusted side and is not on this path at all.',
+    explanation: 'Static NAT rewrites the destination on the Firebox, so the packet leaves it addressed to 10.0.2.80 and the web server is the only device on this path that ever receives that form. The edge router and the Firebox both handle the packet while it still carries the public address. That ordering is why the server access log shows the private IP. The permission and the translation live in the same place: the inbound policy lists the SNAT action in its To section. The core switch sits on the trusted side and is not on this path at all.',
     topology: {
       version: 1, title: 'Publishing a DMZ server', width: 1070, height: 460,
       nodes: [

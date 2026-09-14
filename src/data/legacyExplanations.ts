@@ -52,7 +52,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'True. The TCP-UDP proxy detects HTTP, HTTPS, FTP and SIP traffic on non-standard ports and hands the connection to the matching protocol proxy, which is exactly why it exists. It is the answer whenever a service has been moved off its well-known port but you still want application-layer inspection.',
   },
   10: {
-    explanation: 'Firebox-DB and RADIUS are the two authentication server types every Mobile VPN type can use, which is why they are the safe answer when the question says "every type". Active Directory and LDAP are supported by most Mobile VPN types - and are perfectly valid choices in a real deployment - but not by all of them, so they fail the "every type" test the stem sets.',
+    explanation: 'Firebox-DB and RADIUS are supported by every Mobile VPN type, which is what an "every type" question is testing. The other two fail for different reasons: LDAP works with Mobile VPN with SSL but is not supported for IKEv2 or L2TP, and Active Directory can authenticate IKEv2 and L2TP users only through a RADIUS server rather than directly. Both remain perfectly good choices for the VPN types that support them.',
   },
   11: {
     explanation: 'A factory-default Firebox serves DHCP on Interface 1, the Trusted interface, at 10.0.1.1/24, so that is where the management computer connects for the Quick Setup Wizard. Interface 0 is External and is configured to obtain an address rather than hand one out; the console port gives serial CLI access, not the browser-based wizard.',
@@ -106,7 +106,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'Phase 1 authenticates the peers and builds the IKE SA, so a mismatched pre-shared key or mismatched Phase 1 encryption proposals both break it. The two distractors are real misconfigurations but they are Phase 2 concerns - PFS and tunnel route (selector) subnets are negotiated after Phase 1 has already succeeded, so neither can be the cause of a Phase 1 failure.',
   },
   28: {
-    explanation: 'Spillover sends all traffic over the primary interface until it crosses a configured bandwidth threshold, and only then starts using the next interface - so it is the method keyed to utilisation. Round-robin distributes new connections across interfaces continuously (optionally by weight) without reference to how loaded a link is, and failover uses a backup interface only when the primary goes down.',
+    explanation: 'Interface Overflow sets a bandwidth limit on each external interface and sends outgoing connections to the interfaces in the order you list them, moving on as each one reaches its limit; once all of them have, the Firebox uses the routing table. Weighted Round-robin spreads connections by weight all the time rather than waiting for a limit, Routing Table uses ECMP to balance by source and destination address, and Failover, the default method, uses the first active interface until it fails.',
   },
   29: {
     explanation: 'Link Monitor probes a target with ICMP ping or a TCP port probe, and marks the interface down when the probe stops responding. Choosing a target that is genuinely representative matters: a probe to the ISP gateway can keep succeeding while the path beyond it is broken. RIP and BGP are routing protocols, not link tests.',
@@ -131,13 +131,13 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'APT Blocker and Data Loss Prevention both sit behind the Gateway AntiVirus scanner in the proxy pipeline: GAV has to extract and pass the content before either can examine it, so both require GAV configured and active. IPS inspects network traffic in its own engine, and WebBlocker decides on the URL before any content is scanned, so neither has that dependency.',
   },
   36: {
-    explanation: 'BOVPN failover rides on Multi-WAN: Link Monitor decides an external interface is down, Multi-WAN moves to the surviving interface, and the tunnel renegotiates from the new gateway address. This is why a BOVPN gateway can list more than one gateway pair. Pings inside a tunnel test the tunnel, not the link that carries it, and dynamic routing convergence is a separate mechanism.',
+    explanation: 'BOVPN failover moves between the gateway endpoint pairs defined on the gateway. When Link Monitor marks the external interface of the active pair as failed, the Firebox moves the tunnel to the next pair, and dead peer detection does the same when the remote peer stops responding. It needs at least two external interfaces with Link Monitor targets, and a matching endpoint for the backup interface on the remote Firebox. Multi-WAN methods do not make this decision - they apply to ordinary outgoing traffic, not to BOVPN traffic - and pings inside a tunnel test the tunnel rather than the link beneath it.',
   },
   37: {
     explanation: 'Firebox System Manager is the live-status application: Traffic Monitor, Front Panel, subscription status and the diagnostic tools all live there. Policy Manager edits configuration, and the Log Server and Report Server are back-end services that store and process log data rather than display it in real time.',
   },
   38: {
-    explanation: 'No. A 1-to-1 NAT mapping only defines the address translation; it creates no policies, so inbound traffic is still denied until you add a policy that permits it. Write that policy to the private address, because NAT is applied before the policy lookup for inbound connections - a policy written to the public address will not match.',
+    explanation: 'No. A 1-to-1 NAT mapping only defines the address translation; it creates no policies, so inbound traffic is still denied until you add a policy that permits it. Keep the trade-off in mind too: public addresses used for 1-to-1 NAT cannot be used for anything else, such as VPNs, which is why WatchGuard recommends SNAT on most networks and 1-to-1 NAT only where many public addresses are available.',
   },
   39: {
     explanation: 'The Firebox is an LDAP client to the domain controller, so it needs the server IP address, the domain name, and a search base that tells it where to look for user objects. It does not join the domain. A RADIUS shared secret belongs to a RADIUS server definition, which is a different authentication server type.',
@@ -179,7 +179,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'Dynamic NAT rewrites the source address of outbound packets from a private address to the external interface address, and tracks the connection so replies find their way back. Mapping inbound connections to internal servers by port is static NAT, and bidirectional subnet mapping is 1-to-1 NAT.',
   },
   52: {
-    explanation: 'Round-robin assigns each new connection to the next interface in turn, and interface weights bias that distribution so a faster link takes proportionally more. Spillover is threshold-based rather than proportional - it does not touch the second link until the first is saturated - and failover uses only one link at a time.',
+    explanation: 'Round-robin distributes outgoing connections across the external interfaces, and the weight you give each interface sets its share; with every weight at 1 it tries to equalise the number of connections. Interface Overflow does not use the next interface until the first reaches its bandwidth limit, Routing Table balances with ECMP on source and destination addresses rather than weights, and Failover, the default, uses one interface at a time.',
   },
   53: {
     explanation: 'A Firebox uses auto-order by default, ranking policies from most specific to least specific, so a single-host policy beats a subnet policy regardless of where either sits in the list. Switching to manual order hands that decision to you and the list order from top to bottom becomes what matters. Names, creation dates and port numbers never affect precedence.',
@@ -191,16 +191,16 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'APT Blocker uploads suspicious files to a cloud sandbox and executes them under full-system emulation, watching for malicious behaviour rather than matching a signature - which is how it catches malware no signature exists for. Gateway AntiVirus is signature-based, and IntelligentAV uses a machine-learning model on the device; neither detonates the file.',
   },
   56: {
-    explanation: 'Mobile VPN with IKEv2 authenticates users against Firebox-DB, RADIUS, or Active Directory and LDAP. SecurID is the distractor worth understanding: you can absolutely use SecurID tokens with IKEv2, but you do so through a RADIUS server, so it is not a separate authentication database the Firebox talks to directly.',
+    explanation: 'The Study Guide lists Firebox-DB, RADIUS and AuthPoint as the authentication servers for Mobile VPN with IKEv2. LDAP and SecurID are not supported for IKEv2 at all; both are available with Mobile VPN with SSL. Active Directory users can still connect over IKEv2, but only through a RADIUS server rather than as a directly configured authentication server.',
   },
   57: {
-    explanation: 'IKEv2 is the current recommendation for new gateways: fewer round trips to establish, built-in dead peer detection and NAT traversal, and MOBIKE so a client can change networks without rebuilding the tunnel. IKEv1 remains supported for interoperability with older peers. There is no IKEv3, and L2TP is not an IKE version.',
+    explanation: 'WatchGuard recommends IKEv2 because it is fast, it is the most secure option, and it works with both static and dynamic endpoints. It needs only four messages to set up a tunnel, and NAT traversal and dead peer detection are always enabled. IKEv1 remains for peers without IKEv2 support, and it is still the only option for managed BOVPN tunnels. There is no IKEv3, and L2TP is a Mobile VPN type rather than an IKE version.',
   },
   58: {
     explanation: 'Traffic Monitor in Firebox System Manager shows log messages as they are generated and can be filtered by client IP address, which is what "in real time" calls for. Status Report gives counters and device state rather than per-connection records, and the Log Server stores messages for historical reporting instead of streaming them.',
   },
   59: {
-    explanation: 'No. A backup image is tied to the device it came from and can be restored only to the same Firebox or an identical model, because it carries model-specific state and the original feature key. For a different model, migrate the XML configuration instead - and expect to remap interfaces, since interface counts and roles differ between models.',
+    explanation: 'No. A backup image can be restored only to the Firebox it was created from, because it carries that device\'s certificates and private keys, feature key and passwords - it cannot move settings to other hardware, even another unit of the same model. To move settings to a replacement, use a configuration file, which can be saved to a different model; review the interfaces afterwards, because settings for interfaces the new model lacks are removed.',
   },
   60: {
     explanation: 'NAT loopback is what lets a client on a Trusted or Optional network reach an internal server by its public address, so internal and external users can use one DNS name. The SNAT rule publishing the server has to exist first - loopback extends it to internal sources rather than replacing it, which is why static NAT alone is not the answer.',
@@ -224,7 +224,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'System Status > Routes shows the active routing table, including connected, static and dynamically learned routes, so it is where you confirm which route a destination actually matches. The Front Panel dashboard summarises device health, and the Policies page shows what is permitted rather than where a packet will be sent.',
   },
   67: {
-    explanation: 'The factory-default Web UI is reached at https://10.0.1.1:8080 - HTTPS, on the Trusted interface address, on port 8080. Plain HTTP on port 80 is not offered, and 4100 is the Authentication Portal for network users rather than an administration endpoint.',
+    explanation: 'The factory-default Web UI is reached at https://10.0.1.1:8080 - HTTPS, on the Trusted interface address, on port 8080. Plain HTTP on port 80 is not offered, and neither 4126 nor 4135 is a management port. The nearby WatchGuard ports worth knowing are 4100 for the Authentication Portal, 4117 for WatchGuard System Manager and 4118 for the CLI.',
   },
   68: {
     explanation: 'Scope the FTP policy to the Marketing group as its source and place it above the broad Outgoing policy so it is evaluated first - in auto-order the group-scoped policy is already the more specific match. The Firebox has no concept of an exception within a policy, and disabling Outgoing to solve one FTP requirement breaks every other outbound service.',
@@ -284,10 +284,10 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'Yes. An alias can contain IP addresses, address ranges, FQDNs, interfaces, users and groups, and other aliases, so you can build one named object per role and reuse it across policies. The payoff is maintenance: when the membership changes you edit the alias once instead of hunting through every policy that referenced the raw address.',
   },
   87: {
-    explanation: 'A SNAT action maps to a single internal IP address, or to a set of internal addresses with server load balancing across them. It is address-based: there is no domain-name destination, because the Firebox has to rewrite the packet header at forwarding time and cannot wait on a DNS lookup to do it.',
+    explanation: 'SNAT actions come in two types. A Static NAT action forwards traffic addressed to one IP address to a different internal address and port, and can name an FQDN as well as an IP address; a Server Load Balancing action forwards it to one of several servers using the algorithm and weights you choose, and needs Fireware with a Pro upgrade. 1-to-1 NAT and dynamic NAT are NAT rules rather than SNAT actions, so neither goes in a policy\'s To section.',
   },
   88: {
-    explanation: 'SD-WAN measures latency, jitter and packet loss on each link and steers individual applications to the link that meets their configured thresholds. Multi-WAN spillover only reacts to bandwidth, and policy-based routing pins traffic to an interface without any regard to whether that interface is currently performing well.',
+    explanation: 'SD-WAN measures latency, jitter and packet loss on each link and steers the traffic of a policy to the link that meets its configured thresholds. Interface Overflow only reacts to a bandwidth limit, and policy-based routing pins traffic to an interface without any regard to whether that interface is currently performing well.',
   },
   89: {
     explanation: 'WebBlocker exceptions match on an exact URL, a wildcard pattern, or a regular expression, so you can scope an exception as tightly or as broadly as the situation needs. The distractors describe things exceptions are not: they act on the URL in the request, not on DNS record mappings or IP subnet membership.',
