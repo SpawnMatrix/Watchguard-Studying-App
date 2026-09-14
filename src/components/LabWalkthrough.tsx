@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, HelpCircle, Layers, RotateCcw, ShieldCheck, Terminal, Trophy } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, FlaskConical, HelpCircle, Layers, RefreshCw, RotateCcw, ShieldCheck, Terminal, Trophy } from "lucide-react";
 import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort } from "../data/labs";
 import { checkpointFor } from "../data/labCheckpoints";
 import { entryFor, furthestReachable, isLabFinished, LAB_PROGRESS_KEY, markStepDone, resetLab, setResumeStep, validLabProgress, type LabProgress } from "../engine/labProgress";
@@ -7,6 +7,9 @@ import { readJSON, writeStudyValue } from "../account/storage";
 import { motion, AnimatePresence } from "motion/react";
 import { handleError } from "../utils/errorHandler";
 import LabCheckpointCard, { type CheckpointAttempt } from "./LabCheckpointCard";
+import { handsOnLabs, simForStep } from "../data/labTasks";
+import { simReduce, type FireboxSim, type PageId, type SimAction } from "../engine/labSim";
+import FireboxSimulator, { pageLabel } from "./labsim/FireboxSimulator";
 
 interface LabWalkthroughProps {
   onLabCompleted: (labId: number, name: string) => void;
@@ -31,6 +34,9 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
   const [attempts, setAttempts] = useState<Record<number, CheckpointAttempt | null>>({});
   const [missedSteps, setMissedSteps] = useState<number[]>([]);
   const [showSummary, setShowSummary] = useState(false);
+  // The simulated Firebox for hands-on labs. It is not saved: reopening a lab rebuilds it from step progress.
+  const [sim, setSim] = useState<FireboxSim | null>(null);
+  const [simPage, setSimPage] = useState<PageId>("bench");
 
   // Stuck sub-routine state
   const [isStuckMode, setIsStuckMode] = useState(false);
@@ -58,8 +64,14 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
   const checkpoint = activeLab && activeStep ? checkpointFor(activeLab.id, activeStep.stepNumber) : undefined;
   const attempt = attempts[activeStepIdx] ?? null;
   const stepDone = !!entry?.done.includes(activeStepIdx);
-  // A step with a checkpoint needs a correct answer, or a pass saved from an earlier visit.
-  const canComplete = !checkpoint || stepDone || !!attempt?.correct;
+  const handsOn = activeLab ? handsOnLabs[activeLab.id] : undefined;
+  const task = handsOn && activeStep ? handsOn.tasks[activeStep.stepNumber] : undefined;
+  const taskDone = !!task && !!sim && task.check(sim);
+  // A step with a checkpoint needs a correct answer, or a pass saved from an earlier visit. A hands-on
+  // step also needs its simulator task verified, so the lab cannot be clicked through without doing it.
+  const canComplete = (!checkpoint || stepDone || !!attempt?.correct) && (!task || stepDone || taskDone);
+  const simDispatch = (action: SimAction) => setSim(prev => (prev ? simReduce(prev, action) : prev));
+  const pageForStep = (lab: Lab, index: number): PageId => handsOnLabs[lab.id]?.tasks[lab.steps[index]?.stepNumber]?.page ?? "bench";
   const isLastStep = !!activeLab && activeStepIdx + 1 === activeLab.steps.length;
   const reachable = activeLab ? furthestReachable(progress, activeLab) : 0;
 
@@ -72,8 +84,11 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
   const handleSelectLab = (id: number) => {
     const lab = labs.find(l => l.id === id);
     if (!lab) return;
+    const start = entryFor(progress, lab).step;
     setSelectedLabId(id);
-    setActiveStepIdx(entryFor(progress, lab).step);
+    setActiveStepIdx(start);
+    setSim(simForStep(lab.id, start));
+    setSimPage(pageForStep(lab, start));
     setAttempts({});
     setMissedSteps([]);
     setShowSummary(isLabFinished(progress, lab));
@@ -83,6 +98,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
   const goToStep = (index: number) => {
     if (!activeLab || index < 0 || index > reachable) return;
     setActiveStepIdx(index);
+    setSimPage(pageForStep(activeLab, index));
     setProgress(p => setResumeStep(p, activeLab, index));
     setShowSummary(false);
     clearStuck();
@@ -102,6 +118,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
 
     if (!isLastStep) {
       setActiveStepIdx(activeStepIdx + 1);
+      setSimPage(pageForStep(activeLab, activeStepIdx + 1));
       clearStuck();
     } else if (isLabFinished(next, activeLab)) {
       onLabCompleted(activeLab.id, activeLab.name);
@@ -117,6 +134,8 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
     if (!activeLab) return;
     setProgress(p => resetLab(p, activeLab));
     setActiveStepIdx(0);
+    setSim(simForStep(activeLab.id, 0));
+    setSimPage(pageForStep(activeLab, 0));
     setAttempts({});
     setMissedSteps([]);
     setShowSummary(false);
@@ -178,7 +197,8 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
        column scrolls inside itself instead. */
     <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-6 h-full">
       {/* Labs Catalog / Left Navigation */}
-      <div className="lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full lg:max-h-[calc(100vh-8rem)]">
+      {/* A hands-on lab needs the width for the simulator, so the catalogue steps aside until Back to Catalog. */}
+      <div className={`${handsOn ? "hidden" : ""} lg:col-span-4 bg-watchguard-gray border border-watchguard-border rounded-xl p-4 shadow-xl flex flex-col h-full lg:max-h-[calc(100vh-8rem)]`}>
         <h3 className="font-display font-semibold text-white border-b border-watchguard-border pb-3 mb-3 flex items-center justify-between">
           <span className="flex items-center space-x-2">
             <Layers className="w-4 h-4 text-watchguard-orange" />
@@ -231,7 +251,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
                 <div className="flex-1 space-y-1 min-w-0">
                   <h4 className={`font-semibold ${isSelected ? "text-watchguard-orange" : "text-gray-200"}`}>{lab.name}</h4>
                   <p className="text-[10px] uppercase tracking-wide text-gray-600">
-                    {lab.category}{lab.requiresExtraKit ? " · needs extra kit" : ""}
+                    {lab.category}{lab.requiresExtraKit ? " · needs extra kit" : ""}{handsOnLabs[lab.id] ? " · hands-on" : ""}
                     {status && <span className={`lab-status-tag ${status.complete ? "is-complete" : ""}`}>{status.label}</span>}
                   </p>
                   <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{lab.objectives}</p>
@@ -248,7 +268,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
       </div>
 
       {/* Lab Simulation & Guidance Engine / Right Stage */}
-      <div className="lg:col-span-8 flex flex-col h-full lg:max-h-[calc(100vh-8rem)] bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl min-w-0">
+      <div className={`${handsOn ? "lg:col-span-12" : "lg:col-span-8"} flex flex-col h-full lg:max-h-[calc(100vh-8rem)] bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl min-w-0`}>
         {!activeLab || !activeStep || !entry ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
             <div className="p-4 bg-watchguard-orange/5 border border-watchguard-orange/15 rounded-full">
@@ -257,7 +277,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
             <div className="space-y-2 max-w-md">
               <h3 className="font-display font-semibold text-white">Pick a lab to start</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Each step tells you what to do on a Firebox, then asks a checkpoint question about it. Answer it correctly to complete the step. No Firebox? The checkpoints still drill the menu paths, values and checks the exam asks about. Progress saves as you go.
+                Each step tells you what to do on a Firebox, then asks a checkpoint question about it. Labs marked hands-on include a simulated Firebox and management PC, so you configure it and the lab checks your work. Progress saves as you go.
               </p>
             </div>
           </div>
@@ -320,8 +340,10 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
               </div>
             ) : (
               <>
-                {/* Active Walkthrough Stage */}
+                {/* Active Walkthrough Stage. Hands-on labs put the simulated Firebox beside the steps. */}
+                <div className={handsOn ? "lab-handson" : "flex-1 flex flex-col min-h-0"}>
                 <div className="flex-1 p-5 space-y-5 overflow-y-auto">
+                  {handsOn && <p className="lab-briefing"><FlaskConical className="w-4 h-4" aria-hidden="true" /> {handsOn.briefing}</p>}
                   {/* Step Display Card */}
                   <div className="bg-watchguard-dark/60 border border-watchguard-border rounded-xl p-5 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-watchguard-orange"></div>
@@ -341,6 +363,21 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
                       <p className="text-gray-300 text-sm leading-relaxed font-sans">{activeStep.instruction}</p>
                     </div>
                   </div>
+
+                  {task && sim && (
+                    <section className={`lab-task ${taskDone || stepDone ? "is-done" : ""}`} aria-label="Hands-on task">
+                      <div className="lab-task-head">
+                        <FlaskConical className="w-4 h-4" aria-hidden="true" />
+                        <h4>Do it in the simulator</h4>
+                        <span className="lab-task-status" role="status">{taskDone ? "✓ Verified" : stepDone ? "Completed earlier" : "Not done yet"}</span>
+                      </div>
+                      <p>{task.goal}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" className="secondary-button" onClick={() => setSimPage(task.page)}>Open {pageLabel(task.page)}</button>
+                        <button type="button" className="secondary-button" onClick={() => { setSim(simForStep(activeLab.id, activeStepIdx)); setSimPage(task.page); }}><RefreshCw className="w-4 h-4" />Reset simulator to this step</button>
+                      </div>
+                    </section>
+                  )}
 
                   {checkpoint && (
                     <LabCheckpointCard
@@ -449,6 +486,12 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
                     </AnimatePresence>
                   </div>
                 </div>
+                {handsOn && sim && (
+                  <div className="lab-handson-sim">
+                    <FireboxSimulator s={sim} dispatch={simDispatch} page={simPage} onPage={setSimPage} />
+                  </div>
+                )}
+                </div>
 
                 {/* Step Completion Footer: the primary action sits first so it is never pushed off the
                     right-hand edge of a narrow or partly covered window. */}
@@ -456,7 +499,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
                   <button
                     onClick={handleStepComplete}
                     disabled={!canComplete}
-                    title={canComplete ? undefined : "Answer the checkpoint correctly first"}
+                    title={canComplete ? undefined : task && !taskDone && !stepDone ? "Complete the simulator task and answer the checkpoint first" : "Answer the checkpoint correctly first"}
                     className="flex items-center space-x-2 bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg text-white font-semibold transition-all border border-watchguard-orange/40"
                   >
                     <span>{isLastStep ? "Complete Lab Exercise" : "Confirm Completion & Proceed"}</span>
@@ -471,7 +514,7 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
                     <ArrowLeft className="w-4 h-4" />Previous step
                   </button>
                   <span className="text-xs text-gray-400" role="status">
-                    {stepDone ? "✓ Step complete" : canComplete ? "Checkpoint passed" : "Answer the checkpoint to complete this step"}
+                    {stepDone ? "✓ Step complete" : canComplete ? "Ready to complete" : task && !taskDone ? "Complete the simulator task and the checkpoint to finish this step" : "Answer the checkpoint to complete this step"}
                   </span>
                 </div>
               </>
