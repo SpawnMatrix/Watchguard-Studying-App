@@ -8,6 +8,7 @@ import FlashcardStudioSidebar from "./FlashcardStudioSidebar";
 import FlashcardStudioCard from "./FlashcardStudioCard";
 import FlashcardStudioControls from "./FlashcardStudioControls";
 import FlashcardStudioResources from "./FlashcardStudioResources";
+import { isTypingTarget } from "../engine/shortcuts";
 
 interface Flashcard {
   id: number;
@@ -267,6 +268,17 @@ export default function FlashcardStudio() {
       setCurrentIndex((prev) => (prev - 1 + filteredCards.length) % filteredCards.length);
     }, 150);
   };
+
+  // Left and right arrows move through the deck; the card itself flips with Enter or Space.
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || isTypingTarget(e.target)) return;
+      if (e.key === "ArrowRight") { e.preventDefault(); handleNext(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); handlePrev(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const handleToggleMastered = (id: number) => {
     setMasteredIds((prev) => {

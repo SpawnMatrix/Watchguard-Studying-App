@@ -1,21 +1,27 @@
-import TopologyStudio from './components/TopologyStudio';
 import type { QuizLaunch } from './engine/useQuizEngine';
 import StudyHome from './components/StudyHome';
 import { LearningTrackSwitcher, useLearningTrack } from './engine/LearningTrack';
 import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
+import { tabFromHash } from "./engine/shortcuts";
+import { loadSection } from "./engine/lazySection";
+import SectionErrorBoundary from "./components/SectionErrorBoundary";
 import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
-import GeneralChat from "./components/GeneralChat";
-import PracticeQuiz from "./components/PracticeQuiz";
-import LabWalkthrough from "./components/LabWalkthrough";
-import PerformanceDashboard from "./components/PerformanceDashboard";
-import NetworkSimulator from "./components/NetworkSimulator";
-import FlashcardStudio from "./components/FlashcardStudio";
+// Study Home loads with the app; every other section is fetched the first time it is opened, so the
+// first visit does not download the lab simulator, the sandbox and the whole question bank at once.
+const GeneralChat = lazy(() => loadSection(() => import("./components/GeneralChat")));
+const PracticeQuiz = lazy(() => loadSection(() => import("./components/PracticeQuiz")));
+const LabWalkthrough = lazy(() => loadSection(() => import("./components/LabWalkthrough")));
+const PerformanceDashboard = lazy(() => loadSection(() => import("./components/PerformanceDashboard")));
+const NetworkSimulator = lazy(() => loadSection(() => import("./components/NetworkSimulator")));
+const FlashcardStudio = lazy(() => loadSection(() => import("./components/FlashcardStudio")));
+const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
 import { motion, AnimatePresence } from "motion/react";
 
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
+const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin"];
 
 interface QuizHistoryItem {
   questionId: number;
@@ -78,7 +84,18 @@ export default function App() {
   const account = useAccount();
   const [quizLaunch,setQuizLaunch]=useState<QuizLaunch|null>(null);
   const {track} = useLearningTrack();
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+  // The open section lives in the URL (#labs, #quiz), so a reload keeps your place and Back works.
+  const [activeTab, setActiveTab] = useState<Tab>(() => tabFromHash(window.location.hash, TABS) ?? "home");
+  useEffect(() => {
+    const current = tabFromHash(window.location.hash, TABS);
+    if (current !== activeTab && (current !== null || activeTab !== "home")) window.history.pushState(null, "", `#${activeTab}`);
+  }, [activeTab]);
+  useEffect(() => {
+    // Anchors that are not sections, such as the skip link, change the hash without changing section.
+    const onPop = () => { const tab = tabFromHash(window.location.hash, TABS); if (tab) setActiveTab(tab); else if (!window.location.hash) setActiveTab("home"); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     try { return localStorage.getItem("watchguard-portal-theme") === "light" ? "light" : "dark"; } catch { return "dark"; }
   });
@@ -299,6 +316,8 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
+              <SectionErrorBoundary>
+              <Suspense fallback={<p className="section-loading" role="status">Loading section…</p>}>
               {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
               {(activeTab === 'labs' || activeTab === 'sandbox') && track !== 'local' && <p className="track-notice" role="status">Shared local Firebox practice · apply networking concepts here. These exercises use locally-managed Fireboxes; cloud management workflows are covered in the Cloud Q&A, quizzes and flashcards.</p>}
               {activeTab === "chat" && <GeneralChat />}
@@ -316,6 +335,8 @@ export default function App() {
                   displayName={profileName || "Local learner"}
                 />
               )}
+              </Suspense>
+              </SectionErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>
