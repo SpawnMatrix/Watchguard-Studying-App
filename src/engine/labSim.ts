@@ -39,7 +39,7 @@ export type RouteType = 'Host IPv4' | 'Network IPv4';
 export interface SimRoute { type: RouteType; destination: string; prefix: number; gateway: string; metric: number }
 
 export type PolicyService =
-  'Ping' | 'DNS' | 'HTTP' | 'HTTPS' | 'FTP' | 'HTTP-proxy' | 'HTTPS-proxy' | 'FTP-proxy' | 'WatchGuard Web UI' | 'WatchGuard' | 'Outgoing';
+  'Ping' | 'DNS' | 'HTTP' | 'HTTPS' | 'FTP' | 'HTTP-proxy' | 'HTTPS-proxy' | 'FTP-proxy' | 'WatchGuard Certificate Portal' | 'WatchGuard Web UI' | 'WatchGuard' | 'Outgoing';
 
 export interface SimPolicy {
   id: string;
@@ -192,6 +192,7 @@ export function defaultPolicies(): SimPolicy[] {
     policy('ftp-proxy', 'FTP-proxy', 'FTP-proxy', ['Any-External']),
     policy('http-proxy', 'HTTP-proxy', 'HTTP-proxy', ['Any-External']),
     policy('https-proxy', 'HTTPS-proxy', 'HTTPS-proxy', ['Any-External']),
+    policy('certportal', 'WatchGuard Certificate Portal', 'WatchGuard Certificate Portal', ['Firebox']),
     policy('webui', 'WatchGuard Web UI', 'WatchGuard Web UI', ['Firebox']),
     policy('ping', 'Ping', 'Ping', ['Any']),
     policy('dns', 'DNS', 'DNS', ['Any-External']),
@@ -314,6 +315,8 @@ const SERVICE_PORTS: Record<PolicyService, { protocol: 'tcp' | 'udp' | 'icmp' | 
   'HTTPS-proxy': { protocol: 'tcp', ports: [443] },
   FTP: { protocol: 'tcp', ports: [21] },
   'FTP-proxy': { protocol: 'tcp', ports: [21] },
+  // The portal where users download the Proxy Authority certificate (Study Guide p. 217).
+  'WatchGuard Certificate Portal': { protocol: 'tcp', ports: [4126] },
   'WatchGuard Web UI': { protocol: 'tcp', ports: [8080] },
   WatchGuard: { protocol: 'tcp', ports: [4105, 4117, 4118] },
   Outgoing: { protocol: 'any', ports: [] },

@@ -149,9 +149,9 @@ export default function GeneralChat() {
               WatchGuard Study Companion
             </h2>
             <div className="flex items-center space-x-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${isAIFeaturesEnabledState ? "bg-green-500 animate-ping" : "bg-gray-500"}`}></span>
+              <span className={`w-1.5 h-1.5 rounded-full ${isAIFeaturesEnabledState ? "bg-green-500" : "bg-gray-500"}`}></span>
               <span className="text-[10px] font-mono text-gray-400">
-                {isAIFeaturesEnabledState ? "AI Tutor Mode Authorized" : "Syllabus Reference mode"}
+                {isAIFeaturesEnabledState ? "AI tutor available" : "Study notes · AI tutor off"}
               </span>
             </div>
           </div>
@@ -167,12 +167,12 @@ export default function GeneralChat() {
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Syllabus Q&A Desk
+            Study notes
           </button>
           <button
             onClick={() => {
               if (!isAIFeaturesEnabledState) {
-                alert("AI features are currently toggled offline by the administrator or require your own override key in the Admin Panel.");
+                alert("The AI tutor is turned off. An administrator can turn it on, or you can add your own Gemini API key in Progress & Admin, under Accounts & tutor settings.");
               }
               setMode("ai");
             }}

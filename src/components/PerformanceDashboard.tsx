@@ -7,6 +7,7 @@ import OverviewStats from "./dashboard/OverviewStats";
 import WeaknessTracker from "./dashboard/WeaknessTracker";
 import AuditReportBuilder from "./dashboard/AuditReportBuilder";
 import ReportVisualization from "./dashboard/ReportVisualization";
+import ExamReadiness from "./dashboard/ExamReadiness";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -92,8 +93,10 @@ export default function PerformanceDashboard({
       <div hidden={panel!=='progress'}>
       <OverviewStats score={score} completedLabs={completedLabs} history={history} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <WeaknessTracker topicWeaknesses={topicWeaknesses} />
+      <ExamReadiness history={history} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <WeaknessTracker history={history} />
 
         <AuditReportBuilder
           historyLength={history.length}

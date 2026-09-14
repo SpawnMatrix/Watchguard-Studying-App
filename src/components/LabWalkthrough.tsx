@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, FlaskConical, HelpCircle, Layers, RefreshCw, RotateCcw, ShieldCheck, Terminal, Trophy } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, FlaskConical, HelpCircle, Layers, RefreshCw, RotateCcw, Terminal, Trophy } from "lucide-react";
 import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort } from "../data/labs";
 import { checkpointFor } from "../data/labCheckpoints";
 import { entryFor, furthestReachable, isLabFinished, LAB_PROGRESS_KEY, markStepDone, resetLab, setResumeStep, validLabProgress, type LabProgress } from "../engine/labProgress";
@@ -10,6 +10,7 @@ import LabCheckpointCard, { type CheckpointAttempt } from "./LabCheckpointCard";
 import { handsOnLabs, simForStep } from "../data/labTasks";
 import { simReduce, type FireboxSim, type PageId, type SimAction } from "../engine/labSim";
 import FireboxSimulator, { pageLabel } from "./labsim/FireboxSimulator";
+import LabOverview, { labState } from "./LabOverview";
 
 interface LabWalkthroughProps {
   onLabCompleted: (labId: number, name: string) => void;
@@ -184,9 +185,9 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
   };
 
   const labStatus = (lab: Lab) => {
-    const { done } = entryFor(progress, lab);
-    if (done.length >= lab.steps.length || completedLabs.includes(lab.name)) return { label: "Completed", complete: true };
-    if (done.length > 0) return { label: `${done.length}/${lab.steps.length} steps`, complete: false };
+    const { complete, done } = labState(progress, lab, completedLabs);
+    if (complete) return { label: "Completed", complete: true };
+    if (done > 0) return { label: `${done}/${lab.steps.length} steps`, complete: false };
     return null;
   };
 
@@ -270,16 +271,9 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
       {/* Lab Simulation & Guidance Engine / Right Stage */}
       <div className={`${handsOn ? "lg:col-span-12" : "lg:col-span-8"} flex flex-col h-full lg:max-h-[calc(100vh-8rem)] bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl min-w-0`}>
         {!activeLab || !activeStep || !entry ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <div className="p-4 bg-watchguard-orange/5 border border-watchguard-orange/15 rounded-full">
-              <ShieldCheck className="w-10 h-10 text-watchguard-orange animate-pulse-soft" />
-            </div>
-            <div className="space-y-2 max-w-md">
-              <h3 className="font-display font-semibold text-white">Pick a lab to start</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Each step tells you what to do on a Firebox, then asks a checkpoint question about it. Labs marked hands-on include a simulated Firebox and management PC, so you configure it and the lab checks your work. Progress saves as you go.
-              </p>
-            </div>
+          <div className="flex-1 overflow-y-auto">
+            <LabOverview labs={labs} progress={progress} completedLabs={completedLabs}
+              handsOnIds={Object.keys(handsOnLabs).map(Number)} onSelect={handleSelectLab} />
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">

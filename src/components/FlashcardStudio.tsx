@@ -92,7 +92,7 @@ export default function FlashcardStudio() {
   };
 
   const handleResetProgress = () => {
-    if (window.confirm("Are you sure you want to reset your mastered flashcards status?")) {
+    if (window.confirm("Clear the mastered mark from every flashcard on all three tracks? Quiz history and lab progress are not affected.")) {
       setMasteredIds([]);
       writeStudyValue("watchguard_mastered_flashcards", null);
     }
@@ -133,7 +133,7 @@ export default function FlashcardStudio() {
           <div className="w-full text-center">
             {activeCard && (
               <span className="text-[9px] font-mono bg-watchguard-orange/10 border border-watchguard-orange/30 text-watchguard-orange px-2.5 py-1 rounded uppercase tracking-widest font-bold">
-                {activeCard.category} Topic • Core Exam Syllabus
+                {activeCard.category}
               </span>
             )}
           </div>
@@ -142,12 +142,12 @@ export default function FlashcardStudio() {
             {filteredCards.length === 0 ? (
               <div className="text-center space-y-3 py-12">
                 <AlertCircle className="w-10 h-10 text-gray-500 mx-auto" />
-                <p className="text-sm text-gray-400 font-mono">No matching high-yield flashcards found.</p>
+                <p className="text-sm text-gray-400 font-mono">No cards match this topic and search.</p>
                 <button 
                   onClick={() => { setSelectedCategory("All"); setSearchQuery(""); }}
                   className="text-xs bg-watchguard-orange/10 border border-watchguard-orange/30 text-watchguard-orange hover:bg-watchguard-orange/20 px-3 py-1.5 rounded transition-all font-mono cursor-pointer"
                 >
-                  Reset Study Filter
+                  Clear topic and search
                 </button>
               </div>
             ) : (

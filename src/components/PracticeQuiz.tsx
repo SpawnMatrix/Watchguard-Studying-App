@@ -12,7 +12,7 @@ import DomainBreakdown from './DomainBreakdown';
 import { useQuizEngine, type QuizMode, type QuizLaunch } from '../engine/useQuizEngine';
 import { studyQuestions, formatLabels, filtersForNewSession, type ContentMode, type QuestionFormat } from '../engine/catalog';
 import { trackLabels } from '../engine/types';
-import { BOX_COUNT, retainedCount, weakestTopics } from '../engine/srs';
+import { retainedCount, weakestTopics } from '../engine/srs';
 import { activatesOnEnter, isChosenQuizOption, isTypingTarget, quizShortcut } from '../engine/shortcuts';
 
 export type { QuizHistoryItem };
@@ -38,14 +38,16 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
     window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
   });
   const {session:s,deck,srs,loading,notice,correctCount,filtered}=engine;
-  const focus=weakestTopics(srs,3);
   const q=s.current;
   const topics=['All',...new Set(studyQuestions.filter(item=>s.filters.track==='all'||(item.track??'local')===s.filters.track).map(item=>item.topic))];
+  // Only topics the practice weighting is actually boosting, and only ones in this session's track.
+  const focus=weakestTopics(srs,Infinity).filter(item=>item.weight>1&&topics.includes(item.topic)).slice(0,3).sort((a,b)=>a.accuracy-b.accuracy);
+  const learned=retainedCount(srs);
   const rendererProps=q?{question:q,selectedOptions:s.selected,isSubmitted:!!s.evaluation,isLoading:loading,onOptionToggle:engine.toggle}:null;
   const examHistory=s.history.slice(s.examStart);
   return <div className="quiz-workspace">
     <header className="section-heading"><div><p className="eyebrow">PRACTICE & APPLY</p><h1>Build understanding. Test your instincts.</h1><p>Real configuration decisions, fresh scenarios, and explanations you can check.</p></div><span className="catalog-count"><BookOpen size={16}/>{studyQuestions.filter(item=>!item.variant).length} questions · {new Set(studyQuestions.filter(item=>item.variant).map(item=>item.id)).size} scenario types</span></header>
-    {focus.length>0&&<p className="srs-focus" role="status">Spaced repetition is prioritising {focus.map(item=>`${item.topic} (${Math.round(item.accuracy*100)}%)`).join(', ')} · {retainedCount(srs)} concepts retained at box {BOX_COUNT}</p>}
+    {(focus.length>0||learned>0)&&<div className="srs-focus" role="status">{focus.length>0&&<><span>Practice is showing more questions from your weakest topics:</span>{focus.map(item=><span key={item.topic} className="srs-chip">{item.topic} <b>{Math.round(item.accuracy*100)}%</b></span>)}</>}{learned>0&&<span className="srs-learned" title="A question counts as learned after four right answers in a row; it still comes back now and then.">{learned} {learned===1?'question':'questions'} learned</span>}</div>}
     {s.filters.track!==track && <div className="track-notice" role="status"><span>Your saved {s.filters.track==='all'?'All tracks':trackLabels[s.filters.track]} session is ready to resume. The header track applies when you start a new session.</span><button className="secondary-button" disabled={loading} onClick={()=>engine.configure(s.mode,{...s.filters,track,topic:'All'})}>Start {trackLabels[track]} session</button></div>}
     {s.mode==='weakness-review' && <p className="track-notice">Weakness review includes missed concepts from all tracks and question formats.</p>}
     <details className="quiz-filter-drawer"><summary>Practice settings <span>{s.mode==='mock-exam'?'Mock exam':s.mode==='weakness-review'?'Weakness review':'Practice'} · {s.filters.topic} · {s.filters.content} · {formatLabels[s.filters.format??'all']}</span></summary><div className="quiz-filters">

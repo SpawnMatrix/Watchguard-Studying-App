@@ -31,10 +31,9 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
           <div className="flex items-center justify-between border-b border-watchguard-border pb-4 mb-5 flex-wrap gap-3">
             <div>
               <h3 className="font-display font-bold text-white flex items-center space-x-2 text-sm sm:text-base">
-                <span className="w-2.5 h-2.5 bg-watchguard-orange rounded-full animate-ping"></span>
-                <span>STUDY PROGRESS REPORT</span>
+                <span>Study progress report</span>
               </h3>
-              <p className="text-[10px] font-mono text-gray-500 mt-0.5">Practice evidence · Review alongside hands-on lab work</p>
+              <p className="text-[10px] font-mono text-gray-500 mt-0.5">Based on your practice answers and completed labs</p>
             </div>
             <div className="flex items-center space-x-3">
               <div className="text-right">
@@ -74,7 +73,7 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
             {/* Recommended Labs & Summary */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-bold text-watchguard-orange font-mono tracking-wide uppercase mb-2">Recommended Study Remediation Labs</h4>
+                <h4 className="text-xs font-bold text-watchguard-orange font-mono tracking-wide uppercase mb-2">Recommended labs</h4>
                 <div className="flex flex-wrap gap-2">
                   {report.recommendedLabs.map((lab, idx) => (
                     <span
@@ -88,7 +87,7 @@ export default function ReportVisualization({ report }: ReportVisualizationProps
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-gray-400 font-mono tracking-wide uppercase mb-2">Auditor Summary & Outlook</h4>
+                <h4 className="text-xs font-bold text-gray-400 font-mono tracking-wide uppercase mb-2">Summary</h4>
                 <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-sans">
                   {report.summary}
                 </p>
