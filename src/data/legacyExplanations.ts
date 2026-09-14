@@ -212,7 +212,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'An Optional interface is a fully routed interface: it passes traffic, it is included in the default Outgoing policy alongside Trusted, and it has no inbound policies from External by default. Traffic between Optional and Trusted is not automatically permitted either - that is the separation an Optional zone exists to provide for DMZ hosts and guest networks.',
   },
   63: {
-    explanation: 'Reputation Enabled Defense scores the destination URL from a cloud reputation service, so a destination with a solidly good or bad reputation can skip full scanning and cut latency. It reasons about where the traffic is going. Contrast APT Blocker, which decides by running the file, and WebBlocker, which decides by content category rather than reputation.',
+    explanation: 'Reputation Enabled Defense looks up a score for each destination URL from a cloud reputation service: a bad score blocks the connection, and a good score lets the content skip Gateway AntiVirus scanning, which cuts latency. It reasons about where the traffic is going. Gateway AntiVirus scans the content itself, IPS matches traffic against attack signatures, and WebBlocker decides by content category rather than reputation.',
   },
   64: {
     explanation: 'Both keyed causes fit a tunnel that comes up but carries nothing. If the virtual IP pool overlaps the subnet the client is sitting on, the client routes VPN-destined traffic to its own LAN, and if no policy allows the SSL-VPN group to reach Any-Trusted, the Firebox denies the traffic after the tunnel is established. A missing client certificate would prevent the tunnel from connecting at all, and the virtual IP always comes from the VPN pool rather than an interface DHCP scope.',
@@ -266,7 +266,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
     explanation: 'The TCP-UDP proxy handles TCP or UDP traffic that no protocol-specific proxy covers, and hands off HTTP, HTTPS, FTP and SIP to their own proxies when it detects them on non-standard ports. Note what it does not do: there is no SSH or RDP parser in Fireware, so for those protocols it provides connection-level control, not command-level inspection.',
   },
   81: {
-    explanation: 'Application Control identifies applications by their traffic signature, so it blocks a streaming service regardless of which domain or port it uses that day. WebBlocker works from URL categories and is defeated as soon as the application moves to a new domain, and APT Blocker analyses files rather than classifying applications.',
+    explanation: 'Application Control identifies applications by their traffic signature, so it blocks a streaming service regardless of which domain or port it uses that day. WebBlocker works from URL categories and is defeated as soon as the application moves to a new domain, and the Intrusion Prevention Service looks for attacks and exploits, not for which application is in use.',
   },
   82: {
     explanation: 'The pool must not overlap any internal, routed or remote VPN subnet, because the client resolves overlapping destinations to its own local network and the traffic never enters the tunnel. This is the most common reason a "connected" SSL VPN client reaches nothing, and it is why the 192.168.113.0/24 default is worth changing if your sites use common home-router ranges.',
@@ -369,7 +369,7 @@ export const legacyRevisions: Record<number, LegacyRevision> = {
   },
   114: {
     topic: 'Routing', track: 'network-plus',
-    explanation: 'OSPF is a link-state protocol that sums the cost of each link along a path, with cost derived from bandwidth by default, so a fast multi-hop path can beat a slow single hop. Hop count is what RIP uses, and that difference is precisely why OSPF makes better decisions on networks with mixed link speeds.',
+    explanation: 'OSPF is a link-state protocol that sums the cost of each link along a path, with cost derived from bandwidth by default, so a fast multi-hop path can beat a slow single hop. RIP counts hops, up to 15, which is why OSPF makes better decisions on networks with mixed link speeds. Bandwidth and delay combined is the default EIGRP metric, and reliability and load are optional EIGRP inputs, not OSPF ones.',
   },
   115: {
     topic: 'Switching & Wireless', track: 'network-plus',
