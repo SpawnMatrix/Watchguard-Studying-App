@@ -7,7 +7,7 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 
 ## Study upgrade
 
-- **630 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **630 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters. Scenario questions are written from the Study Guide and N10-009 objectives with plausible wrong options, and a test keeps the right answer from standing out by length.
 - **Local Firebox bank shaped like the WatchGuard NSE exam**: all 485 Local Firebox items are classified against the six Assessment Objectives in WatchGuard's Network Security Essentials Study Guide, and every category is within four points of its published weight. Local and Network+ mock exams draw to their blueprint, and the results screen scores each category, comparing NSE attempts with the published 75% pass mark. Mock exams take at most one question per fact, and the bank has been checked against the Study Guide, with tests pinning the facts that were corrected.
 - **Network+ bank shaped like the N10-009 exam**: 174 items classified by domain, each domain within a point of its published weighting, and a test that fails if a new question upsets the balance. See [the blueprint notes](docs/study-engine.md#network-exam-blueprint).
 - **42 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.

@@ -85,15 +85,15 @@ export const examQuestions: Question[] = [
   },
   {
     id: 6,
-    question: "What is the purpose of a Static NAT (SNAT) policy mapping public IP 203.0.113.80 to private IP 10.0.20.80 on port 80? (Select one.)",
+    question: "What is the purpose of a static NAT (SNAT) action that maps public IP 203.0.113.80 to private IP 10.0.20.80 on port 80? (Select one.)",
     options: [
-      "To allow clients on an external network to connect to a secure web server on a trusted or optional network by using its private IP address",
-      "To allow clients on your trusted network to connect to a secure web server on an external network using its private IP address",
-      "To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address",
-      "To allow clients on your trusted network to connect to a secure web server on a trusted or optional network using its public IP address"
+      "To allow clients on an external network to connect to a web server on a trusted or optional network using its private IP address",
+      "To allow clients on your trusted network to connect to a web server on an external network using its private IP address",
+      "To allow clients on an external network to connect to a web server on a trusted or optional network using its public IP address",
+      "To allow clients on your trusted network to connect to a web server on a trusted or optional network using its public IP address"
     ],
-    correctAnswer: "To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address",
-  correctAnswers: ["To allow clients on an external network to connect to a secure web server on a trusted or optional network using the server's public IP address"],
+    correctAnswer: "To allow clients on an external network to connect to a web server on a trusted or optional network using its public IP address",
+  correctAnswers: ["To allow clients on an external network to connect to a web server on a trusted or optional network using its public IP address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -520,8 +520,8 @@ export const examQuestions: Question[] = [
     options: [
       "Firebox System Manager",
       "Policy Manager",
-      "Log Server",
-      "Report Server"
+      "WatchGuard Log Server",
+      "WatchGuard Report Server"
     ],
     correctAnswer: "Firebox System Manager",
   correctAnswers: ["Firebox System Manager"],
@@ -589,12 +589,12 @@ export const examQuestions: Question[] = [
     question: "What happens to a packet when multiple Multi-WAN interfaces are configured and one interface becomes unavailable during a Link Monitor check? (Select one.)",
     options: [
       "The Firebox drops all outgoing traffic to prevent data leakage.",
-      "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
+      "The Firebox routes new traffic over the remaining active interfaces.",
       "The Firebox triggers an administrative reboot of the device.",
       "The dead interface simply remains in the routing table with a metric of 0."
     ],
-    correctAnswer: "The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces.",
-  correctAnswers: ["The Firebox dynamically routes traffic to the remaining active Multi-WAN interfaces."],
+    correctAnswer: "The Firebox routes new traffic over the remaining active interfaces.",
+  correctAnswers: ["The Firebox routes new traffic over the remaining active interfaces."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -624,12 +624,12 @@ export const examQuestions: Question[] = [
     question: "What is the primary security goal of WatchGuard DNSWatch? (Select one.)",
     options: [
       "To cache internal DNS query results so that pages load more quickly",
-      "To intercept and analyze DNS requests, blocking connections to known malicious domains",
+      "To filter DNS requests and block connections to known malicious domains",
       "To assign local DNS names to the private IP addresses used on the Trusted zone",
       "To synchronize DNS records with third-party domain registrars"
     ],
-    correctAnswer: "To intercept and analyze DNS requests, blocking connections to known malicious domains",
-  correctAnswers: ["To intercept and analyze DNS requests, blocking connections to known malicious domains"],
+    correctAnswer: "To filter DNS requests and block connections to known malicious domains",
+  correctAnswers: ["To filter DNS requests and block connections to known malicious domains"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Security Services"
@@ -662,7 +662,7 @@ export const examQuestions: Question[] = [
   {
     id: 48,
     question: "Which tool inside WatchGuard System Manager (WSM) allows you to run diagnostic checks like Ping, DNS lookup, TCP Dump, or Traceroute? (Select one.)",
-    options: ["Policy Manager", "Firebox System Manager", "Log Server", "Report Server"],
+    options: ["Policy Manager", "Firebox System Manager", "WatchGuard Log Server", "WatchGuard Report Server"],
     correctAnswer: "Firebox System Manager",
   correctAnswers: ["Firebox System Manager"],
     isMultiSelect: false,
@@ -699,12 +699,12 @@ export const examQuestions: Question[] = [
     question: "What is the function of Dynamic NAT (DNAT)? (Select one.)",
     options: [
       "To map inbound connections through to internal servers based on their destination port numbers",
-      "To change the source IP address of outbound packets from private IP addresses to a public IP address",
+      "To change the source IP address of outbound packets from a private to a public address",
       "To map an entire internal subnet onto an external zone in both directions",
       "To automatically update the dynamic DNS records for the external interface"
     ],
-    correctAnswer: "To change the source IP address of outbound packets from private IP addresses to a public IP address",
-  correctAnswers: ["To change the source IP address of outbound packets from private IP addresses to a public IP address"],
+    correctAnswer: "To change the source IP address of outbound packets from a private to a public address",
+  correctAnswers: ["To change the source IP address of outbound packets from a private to a public address"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "NAT"
@@ -815,11 +815,11 @@ export const examQuestions: Question[] = [
     options: [
       "The Firebox blocks the connection and silently drops the packet without returning anything at all to the client.",
       "The Firebox removes TLS from the session and delivers the page to the client over plain HTTP.",
-      "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns.",
+      "It is allowed, but the Firebox re-signs it with a certificate the client won't trust, so the browser warns.",
       "The Firebox bypasses content inspection and allows the client to establish a direct TLS tunnel."
     ],
-    correctAnswer: "The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns.",
-  correctAnswers: ["The connection is allowed, but the Firebox re-signs it with a certificate the client does not trust, so the browser warns."],
+    correctAnswer: "It is allowed, but the Firebox re-signs it with a certificate the client won't trust, so the browser warns.",
+  correctAnswers: ["It is allowed, but the Firebox re-signs it with a certificate the client won't trust, so the browser warns."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Proxies"
@@ -841,8 +841,8 @@ export const examQuestions: Question[] = [
   },
   {
     id: 63,
-    question: "Which subscription service assigns a reputational score to outbound connection destinations to optimize scanning latency? (Select one.)",
-    options: ["DNSWatch", "Reputation Enabled Defense (RED)", "WebBlocker", "Application Control"],
+    question: "Which subscription service uses a cloud-based score for each web destination, so the Firebox can block bad sites and skip scanning known-good ones? (Select one.)",
+    options: ["Intrusion Prevention Service (IPS)", "Reputation Enabled Defense (RED)", "WebBlocker", "Gateway AntiVirus (GAV)"],
     correctAnswer: "Reputation Enabled Defense (RED)",
   correctAnswers: ["Reputation Enabled Defense (RED)"],
     isMultiSelect: false,
@@ -969,12 +969,12 @@ export const examQuestions: Question[] = [
     question: "While reviewing logs, you observe 'proposes phase two negotiation failed: Mismatched SA life'. How would you adjust the configuration to resolve this? (Select one.)",
     options: [
       "Configure an entirely new pre-shared key within the BOVPN Gateway settings.",
-      "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
+      "Set the Phase 2 key expiration to match the remote peer's settings.",
       "Change the Phase 1 Diffie-Hellman group within the Gateway settings.",
       "Enable Perfect Forward Secrecy (PFS) within the Gateway settings."
     ],
-    correctAnswer: "Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer.",
-  correctAnswers: ["Adjust the Phase 2 Tunnel expiration time or kilobytes settings to match the remote peer."],
+    correctAnswer: "Set the Phase 2 key expiration to match the remote peer's settings.",
+  correctAnswers: ["Set the Phase 2 key expiration to match the remote peer's settings."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1057,7 +1057,7 @@ export const examQuestions: Question[] = [
   {
     id: 81,
     question: "You want to block access to specific online streaming applications (like YouTube or Netflix) regardless of their URL domain. Which service should you configure? (Select one.)",
-    options: ["WebBlocker", "Application Control", "APT Blocker", "DNSWatch"],
+    options: ["WebBlocker", "Application Control", "Intrusion Prevention Service", "DNSWatch"],
     correctAnswer: "Application Control",
   correctAnswers: ["Application Control"],
     isMultiSelect: false,
@@ -1081,15 +1081,15 @@ export const examQuestions: Question[] = [
   },
   {
     id: 83,
-    question: "In a Policy-Based BOVPN, what controls which traffic is allowed to traverse the VPN tunnel? (Select one.)",
+    question: "In a manual BOVPN, what decides which traffic the Firebox sends through the tunnel? (Select one.)",
     options: [
-      "The static routing table configured on the Virtual Interface BOVPN tunnel",
-      "The VPN Gateway ID names configured on each peer",
-      "Firewall policies with the BOVPN tunnel configured as action/destination",
-      "The dynamic routing protocol in use on the tunnel"
+      "The static routes configured on a BOVPN virtual interface",
+      "The gateway ID names configured on each of the peers",
+      "Tunnel routes that match the traffic's source and destination",
+      "Firewall policies that name the tunnel as their destination"
     ],
-    correctAnswer: "Firewall policies with the BOVPN tunnel configured as action/destination",
-  correctAnswers: ["Firewall policies with the BOVPN tunnel configured as action/destination"],
+    correctAnswer: "Tunnel routes that match the traffic's source and destination",
+  correctAnswers: ["Tunnel routes that match the traffic's source and destination"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "BOVPN"
@@ -1097,9 +1097,9 @@ export const examQuestions: Question[] = [
   {
     id: 84,
     question: "Traffic Monitor only shows messages as they arrive. What has to be in place before a manager can run a report covering last week? (Select one.)",
-    options: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies", "A considerably larger Traffic Monitor scroll-back buffer on the management workstation itself", "An SNMP trap receiver collecting counters from the Trusted network", "A second administrator account holding Device Monitor access rights"],
-    correctAnswer: "A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies",
-  correctAnswers: ["A log server such as WatchGuard Dimension or WatchGuard Cloud, with logging enabled on the relevant policies"],
+    options: ["A log server such as Dimension or WatchGuard Cloud, with logging enabled on the policies", "A considerably larger Traffic Monitor scroll-back buffer on the management workstation itself", "An SNMP trap receiver collecting counters from the Trusted network", "A second administrator account holding Device Monitor access rights"],
+    correctAnswer: "A log server such as Dimension or WatchGuard Cloud, with logging enabled on the policies",
+  correctAnswers: ["A log server such as Dimension or WatchGuard Cloud, with logging enabled on the policies"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Logging & Monitoring"
@@ -1152,7 +1152,7 @@ export const examQuestions: Question[] = [
       "Pattern match (using wildcards like *)",
       "Regular Expression match",
       "FQDN record mapping",
-      "IP subnet zone"
+      "Application Control signature match"
     ],
     correctAnswer: "Exact URL match | Pattern match (using wildcards like *) | Regular Expression match",
   correctAnswers: ["Exact URL match", "Pattern match (using wildcards like *)", "Regular Expression match"],
@@ -1355,12 +1355,12 @@ export const examQuestions: Question[] = [
     question: "In what scenario would you use a Drop-In network configuration? (Select one.)",
     options: [
       "When you have multiple public IP addresses and you want to route each of them to a different internal subnet.",
-      "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
+      "When you want to add the Firebox without changing the IP addresses of the existing networks.",
       "When configuring a high-availability active/active cluster.",
       "When you need to use NAT for all outbound traffic."
     ],
-    correctAnswer: "When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks.",
-  correctAnswers: ["When you want the Firebox to act transparently without changing the IP addresses of the internal and external networks."],
+    correctAnswer: "When you want to add the Firebox without changing the IP addresses of the existing networks.",
+  correctAnswers: ["When you want to add the Firebox without changing the IP addresses of the existing networks."],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Initial Setup"
@@ -1379,7 +1379,7 @@ export const examQuestions: Question[] = [
   {
     id: 107,
     question: "WatchGuard ThreatSync correlates events from the Firebox and which other endpoint agent to detect and remediate threats? (Select one.)",
-    options: ["AuthPoint Agent", "WatchGuard Endpoint Security (EPDR)", "DNSWatchGO Client", "WatchGuard Mobile VPN Client"],
+    options: ["WatchGuard AuthPoint Agent", "WatchGuard Endpoint Security (EPDR)", "WatchGuard DNSWatchGO Client", "WatchGuard Mobile VPN with SSL Client"],
     correctAnswer: "WatchGuard Endpoint Security (EPDR)",
   correctAnswers: ["WatchGuard Endpoint Security (EPDR)"],
     isMultiSelect: false,
@@ -1449,9 +1449,9 @@ export const examQuestions: Question[] = [
   {
     id: 114,
     question: "In a network topology utilizing OSPF (Open Shortest Path First), which routing metric does OSPF use to determine the best path? (Select one.)",
-    options: ["Hop Count", "Cost (based on link bandwidth)", "Delay", "Reliability"],
-    correctAnswer: "Cost (based on link bandwidth)",
-  correctAnswers: ["Cost (based on link bandwidth)"],
+    options: ["Hop count, up to a maximum of 15", "Cost, derived from link bandwidth", "Bandwidth and delay combined", "Reliability and load averages"],
+    correctAnswer: "Cost, derived from link bandwidth",
+  correctAnswers: ["Cost, derived from link bandwidth"],
     isMultiSelect: false,
     correctAnswersCount: 1,
     topic: "Routing"
@@ -1590,7 +1590,7 @@ export const examQuestions: Question[] = [
   {
     id: 127,
     question: "In the locally managed Fireware Web UI, where can you perform built-in network troubleshooting tasks like Ping, Traceroute, and DNS Lookup? (Select one.)",
-    options: ["Dashboard > FireWatch", "System > Backup", "System Status > Diagnostics", "Network > Interfaces"],
+    options: ["Dashboard > FireWatch", "System > Backup and Restore Image", "System Status > Diagnostics", "Network > Interfaces"],
     correctAnswer: "System Status > Diagnostics",
   correctAnswers: ["System Status > Diagnostics"],
     isMultiSelect: false,
@@ -1765,14 +1765,14 @@ examQuestions.push({
     "The Firebox must be joined to the Active Directory domain as a member server before users can log in.",
     "A separate LDAP or RADIUS authentication server must be configured to broker the directory lookup.",
     "The Single Sign-On agent must be installed on the domain controller before any authentication works.",
-    "Active Directory server details, including IP address, base DN and search string, in Authentication Servers."
+    "The Active Directory domain, server address and search base in Authentication Servers."
   ],
-  correctAnswer: "Active Directory server details, including IP address, base DN and search string, in Authentication Servers.",
-  correctAnswers: ["Active Directory server details, including IP address, base DN and search string, in Authentication Servers."],
+  correctAnswer: "The Active Directory domain, server address and search base in Authentication Servers.",
+  correctAnswers: ["The Active Directory domain, server address and search base in Authentication Servers."],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Security Services",
-  explanation: "To use Active Directory authentication, you must specify the Active Directory server settings, such as IP address, Base DN, and Search string, within the Authentication Servers configuration on the Firebox."
+  explanation: "Fireware authenticates against Active Directory directly: in Authentication Servers you add the Active Directory domain with its server address, port and search base, plus a searching user if the directory needs one. The Firebox never joins the domain and needs no separate LDAP or RADIUS server in between, and Single Sign-On is an optional way to log users in transparently, not a prerequisite. (Mobile VPN with IKEv2 is the exception: it reaches Active Directory through RADIUS.)"
 });
 
 examQuestions.push({
@@ -1790,9 +1790,9 @@ examQuestions.push({
 examQuestions.push({
   id: 305,
   question: "You must enforce YouTube Restricted mode for users who reach youtube.com over TLS. Besides selecting the restricted-mode setting itself, what must the HTTPS-proxy policy have enabled?",
-  options: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header", "WebBlocker, with the Streaming Media category set to Deny", "Gateway AntiVirus, with the default scan size and action limits", "Application Control, with the YouTube application set to Drop"],
-  correctAnswer: "Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header",
-  correctAnswers: ["Content inspection, so the Firebox can decrypt the request and insert the restricted-mode header"],
+  options: ["Content inspection, so the proxy can add the restricted-mode header", "WebBlocker, with the Streaming Media category set to Deny for all users", "Gateway AntiVirus, with the default scan size and action limits", "Application Control, with the YouTube application set to Drop"],
+  correctAnswer: "Content inspection, so the proxy can add the restricted-mode header",
+  correctAnswers: ["Content inspection, so the proxy can add the restricted-mode header"],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Proxies",
@@ -1815,17 +1815,17 @@ examQuestions.push({
   id: 307,
   question: "A client reports they cannot reach a server on another interface. You check Traffic Monitor and see traffic is being Denied. What is the most likely cause?",
   options: [
-    "The server is down.",
-    "A firewall policy is denying the traffic or there is no policy allowing it.",
+    "The server is down or not listening on that port.",
+    "A policy denies the traffic, or no policy allows it.",
     "The routing table is misconfigured on the Firebox.",
     "The client is using the wrong default gateway."
   ],
-  correctAnswer: "A firewall policy is denying the traffic or there is no policy allowing it.",
-  correctAnswers: ["A firewall policy is denying the traffic or there is no policy allowing it."],
+  correctAnswer: "A policy denies the traffic, or no policy allows it.",
+  correctAnswers: ["A policy denies the traffic, or no policy allows it."],
   isMultiSelect: false,
   correctAnswersCount: 1,
   topic: "Policies",
-  explanation: "If Traffic Monitor shows a 'Denied' log message for the traffic, it means the Firebox actively blocked it because of a denying policy (like Unhandled Packet or a specific deny rule)."
+  explanation: "A Denied entry in Traffic Monitor is the Firebox's own decision: either a policy that denies the traffic matched it, or no policy allowed it and it was dropped as an unhandled packet. A server that is down or not listening would not make the Firebox log a deny, and a client with the wrong default gateway would never reach the Firebox to be logged. Read the policy name in the log entry, then fix that policy or add one that allows the traffic."
 });
 
 examQuestions.push({

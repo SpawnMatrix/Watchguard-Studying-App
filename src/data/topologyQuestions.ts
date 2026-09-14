@@ -316,10 +316,10 @@ const localScenarios: Question[] = [
   }),
   topo({
     id: 1609, topic: 'Logging & Monitoring', track: 'local', objective: 'Traffic Monitor, pp. 60-61',
-    title: 'Reading a denied path',
+    title: 'Reading an allowed path',
     size: SIZE4,
     question: 'A client cannot reach the application server, and Traffic Monitor logs the attempt as Allow. Which conclusion does that log entry support?',
-    answer: 'The Firebox permitted the traffic, so the failure is somewhere past the policy decision.',
+    answer: 'The Firebox permitted it, so the failure lies beyond the policy decision.',
     wrong: [
       'The application transaction completed successfully.',
       'The server replied and the client successfully received the complete response.',
