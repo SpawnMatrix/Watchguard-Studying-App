@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createExam, filterQuestions } from './catalog';
-import { blueprintQuotas, createBlueprintExam, createMockExam, domainResults } from './mockExam';
+import { blueprintQuotas, createBlueprintExam, createMockExam, domainResults, examResults } from './mockExam';
+import { nseCategory } from '../data/nseBlueprint';
 import { NETWORK_PLUS_DOMAIN, type NetworkPlusDomain } from '../data/networkPlusBlueprint';
 import DomainBreakdown from '../components/DomainBreakdown';
 
@@ -66,10 +67,11 @@ describe('Network+ mock exams', () => {
 
 describe('pools with no blueprint to honour keep the uniform draw', () => {
   const cases = [
-    ['Local Firebox track', { track: 'local' as const }],
     ['WatchGuard Cloud track', { track: 'cloud' as const }],
     ['All tracks', { track: 'all' as const }],
     ['one Network+ topic', { track: 'network-plus' as const, topic: 'Routing' }],
+    ['one Local Firebox topic', { track: 'local' as const, topic: 'NAT' }],
+    ['Local Firebox generated only, which has no Basics template', { track: 'local' as const, content: 'generated' as const }],
     ['Network+ generated only, which has no Security template', { track: 'network-plus' as const, content: 'generated' as const }],
     ['Network+ diagrams only', { track: 'network-plus' as const, format: 'topology' as const }],
   ] as const;
@@ -103,9 +105,9 @@ describe('score by domain', () => {
     expect(html).toMatch(/Weakest in this attempt: <strong>Network Security<\/strong>, worth 14%/);
   });
 
-  it('shows nothing for a mock that is not wholly Network+', () => {
-    const local = createMockExam(filterQuestions({ track: 'local' }), 8);
-    const history = local.map(q => ({ questionId: q.id, isCorrect: true }));
+  it('shows nothing for a mock that belongs to no published blueprint', () => {
+    const cloud = createMockExam(filterQuestions({ track: 'cloud' }), 8);
+    const history = cloud.map(q => ({ questionId: q.id, isCorrect: true }));
     expect(domainResults(history)).toEqual([]);
     expect(renderToStaticMarkup(<DomainBreakdown history={history} />)).toBe('');
     expect(domainResults([])).toEqual([]);
@@ -127,5 +129,59 @@ describe('quiz engine wiring', () => {
   it('shows the domain breakdown on the exam-complete screen', () => {
     const source = readFileSync(path.join(__dirname, '../components/PracticeQuiz.tsx'), 'utf8');
     expect(source).toMatch(/s\.complete&&<DomainBreakdown history=\{examHistory\}\/>/);
+  });
+});
+
+describe('Network Security Essentials mock exams', () => {
+  const pool = filterQuestions({ track: 'local' });
+  const nse = (questions: readonly { id: number; topic: string }[]) => {
+    const tally: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+    for (const q of questions) tally[nseCategory(q as never)!]++;
+    return tally;
+  };
+
+  it('gives a 50-question mock the published NSE category split', () => {
+    expect(blueprintQuotas(50, 'nse')).toEqual({ 1: 5, 2: 5, 3: 7, 4: 13, 5: 13, 6: 7 });
+    for (let size = 1; size <= 80; size++) {
+      expect(Object.values(blueprintQuotas(size, 'nse')).reduce((a, b) => a + b, 0), `size ${size}`).toBe(size);
+    }
+  });
+
+  it('draws a whole Local Firebox pool to the blueprint, whatever the seed', () => {
+    for (let seed = 1; seed <= 150; seed++) {
+      const exam = createMockExam(pool, seed);
+      expect(exam).toHaveLength(50);
+      expect(nse(exam), `seed ${seed}`).toEqual({ 1: 5, 2: 5, 3: 7, 4: 13, 5: 13, 6: 7 });
+      expect(exam.every(q => (q.track ?? 'local') === 'local')).toBe(true);
+    }
+  });
+
+  it('keeps the uniform draw for a Network+ pool mixed with Local questions', () => {
+    const mixed = filterQuestions({ track: 'all' });
+    expect(createBlueprintExam(mixed, 4)).toBeNull();
+  });
+
+  it('scores a finished NSE mock by category and against the 75% pass mark', () => {
+    const exam = createMockExam(pool, 31);
+    // Everything right except Authentication and VPNs.
+    const history = exam.map(q => ({ questionId: q.id, isCorrect: nseCategory(q) !== 6 }));
+    const results = examResults(history)!;
+    expect(results.blueprint).toBe('nse');
+    expect(results.passMark).toBe(75);
+    expect(results.rows.map(r => [r.domain, r.correct, r.total])).toEqual([[1, 5, 5], [2, 5, 5], [3, 7, 7], [4, 13, 13], [5, 13, 13], [6, 0, 7]]);
+    const html = renderToStaticMarkup(<DomainBreakdown history={history} />);
+    expect(html).toContain('Score by exam category');
+    expect(html).toContain('86% overall. The real exam needs 75%, so this attempt would pass.');
+    expect(html).toContain('Weakest in this attempt: <strong>Authentication and VPNs</strong>, worth 15%');
+
+    const failing = exam.map((q, i) => ({ questionId: q.id, isCorrect: i % 2 === 0 }));
+    expect(renderToStaticMarkup(<DomainBreakdown history={failing} />)).toContain('50% overall. The real exam needs 75%, so this attempt is 25 points short.');
+  });
+
+  it('does not claim a percentage pass mark for Network+', () => {
+    const exam = createMockExam(filterQuestions({ track: 'network-plus' }), 3);
+    const html = renderToStaticMarkup(<DomainBreakdown history={exam.map(q => ({ questionId: q.id, isCorrect: true }))} />);
+    expect(html).toContain('Score by exam domain');
+    expect(html).not.toContain('The real exam needs');
   });
 });
