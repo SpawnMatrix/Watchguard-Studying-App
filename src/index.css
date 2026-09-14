@@ -18,19 +18,19 @@
 .topology-figure figcaption{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--color-wg-border);font-size:.85rem}
 .topology-figure figcaption span,.topology-caption{color:var(--color-wg-text-muted);font-size:.72rem}
 .topology-scroll{overflow-x:auto;overscroll-behavior-x:contain;background-image:radial-gradient(var(--color-wg-border) .65px,transparent .65px);background-size:18px 18px}
-.topology-svg{width:100%;display:block;max-height:520px}
+.topology-svg{width:100%;display:block;max-height:640px}
 .zone-neutral{--zone:var(--color-watchguard-orange)}
 .zone-trusted{--zone:#34d399}.zone-external{--zone:#fb7185}.zone-optional{--zone:#fbbf24}.zone-dmz{--zone:#60a5fa}.zone-vpn{--zone:#c084fc}
 :root[data-theme="light"] .zone-trusted{--zone:#047857}:root[data-theme="light"] .zone-external{--zone:#be123c}:root[data-theme="light"] .zone-optional{--zone:#92400e}:root[data-theme="light"] .zone-dmz{--zone:#1d4ed8}:root[data-theme="light"] .zone-vpn{--zone:#7e22ce}
 .topology-node{color:var(--zone);transition:filter .2s}
-.node-card{fill:var(--color-wg-gray);stroke:var(--zone);stroke-width:1.5;transition:fill .2s,stroke .2s,stroke-width .2s}
-.node-zone{fill:var(--zone);font:10px var(--font-mono);text-transform:uppercase;letter-spacing:1.3px}
-.node-label{fill:var(--color-wg-text);font:600 14px var(--font-display)}
-.node-detail{fill:var(--color-wg-text-muted);font:11px var(--font-mono)}
-.link-line{fill:none;stroke:var(--zone);stroke-width:2;opacity:.65}
+.node-card{fill:var(--color-wg-gray);stroke:var(--zone);stroke-width:2;transition:fill .2s,stroke .2s,stroke-width .2s}
+.node-zone{fill:var(--zone);font:600 12px var(--font-mono);text-transform:uppercase;letter-spacing:1.1px}
+.node-label{fill:var(--color-wg-text);font:600 17px var(--font-display)}
+.node-detail{fill:var(--color-wg-text-muted);font:13px var(--font-mono)}
+.link-line{fill:none;stroke:var(--zone);stroke-width:2.5;opacity:.75}
 .link-vpn,.link-wireless{stroke-dasharray:8 6}
 .link-hit{fill:none;stroke:transparent;stroke-width:44}
-.link-label{fill:var(--color-wg-text);font:11px var(--font-mono);paint-order:stroke;stroke:var(--color-wg-dark);stroke-width:5;stroke-linejoin:round}
+.link-label{fill:var(--color-wg-text);font:600 13px var(--font-mono);paint-order:stroke;stroke:var(--color-wg-dark);stroke-width:6;stroke-linejoin:round}
 .packet-flow{fill:none;stroke:var(--zone);stroke-width:4;stroke-dasharray:5 25;animation:packet-travel 2s linear infinite}
 @keyframes packet-travel{to{stroke-dashoffset:-60}}
 .topology-node.is-active .node-card{animation:node-pulse 2.8s ease-in-out infinite}
@@ -44,9 +44,9 @@
 .topology-node.is-incorrect .node-card{stroke:#ef4444;stroke-width:4;fill:color-mix(in srgb,#ef4444 15%,var(--color-wg-gray))}
 .topology-edge.is-correct{--zone:#22c55e}.topology-edge.is-incorrect{--zone:#ef4444}
 .topology-edge.is-selected .link-line,.topology-edge.is-correct .link-line,.topology-edge.is-incorrect .link-line{stroke-width:5;opacity:1}
-.topology-legend{display:flex;flex-wrap:wrap;gap:14px;padding:12px 16px 0;font:10px var(--font-mono);text-transform:uppercase}
-.topology-legend span{display:flex;align-items:center;gap:6px;color:var(--color-wg-text-muted)}
-.topology-legend i{display:block;width:8px;height:8px;border-radius:50%;background:var(--zone)}
+.topology-legend{display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px 0;font:600 11.5px var(--font-mono);text-transform:uppercase;letter-spacing:.5px}
+.topology-legend span{display:flex;align-items:center;gap:7px;color:var(--color-wg-text-muted)}
+.topology-legend i{display:block;width:9px;height:9px;border-radius:50%;background:var(--zone)}
 .topology-caption{padding:10px 16px 14px}
 .home-hero{display:flex;justify-content:space-between;gap:24px;padding:32px;border:1px solid var(--color-wg-border);border-radius:18px;background:radial-gradient(ellipse at right top,color-mix(in srgb,var(--color-watchguard-orange) 12%,transparent),transparent 65%),var(--color-wg-gray)}
 .home-hero h1{font:600 clamp(1.6rem,3vw,2.3rem)/1.2 var(--font-display);margin:12px 0}

@@ -13,7 +13,7 @@ interface Props {
   defaultFit?: boolean;
 }
 const icons = { firebox: ShieldCheck, router: Router, switch: Network, server: Server, client: Monitor, subnet: Waypoints, cloud: Cloud };
-function lines(text: string, limit = 25) {
+function lines(text: string, limit = 21) {
   const words = text.split(/\s+/), result: string[] = [];
   for (const word of words) {
     const last = result.length - 1;
@@ -64,10 +64,10 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
           return <g key={node.id} transform={`translate(${node.x} ${node.y})`} className={`topology-node zone-${node.zone || 'neutral'} ${state(spot)} ${node.active ? 'is-active' : ''} ${spot&&onSelect ? 'is-hotspot' : ''}`} {...controls(spot)}>
             <title>{[node.label,node.detail,node.zone].filter(Boolean).join(' · ')}</title>
             <rect className="node-card" x={-105} y={-60} width={210} height={120} rx={12}/>
-            <Icon x={-90} y={-43} width={24} height={24} aria-hidden="true"/>
-            <text className="node-zone" x={-56} y={-27}>{node.zone || node.kind}</text>
-            <text className="node-label" x={-88} y={0}>{node.label}</text>
-            {detail.slice(0,3).map((line,i)=><text className="node-detail" key={i} x={-88} y={19+i*14}>{line}</text>)}
+            <Icon x={-90} y={-45} width={26} height={26} aria-hidden="true"/>
+            <text className="node-zone" x={-58} y={-27}>{node.zone || node.kind}</text>
+            <text className="node-label" x={-88} y={2}>{node.label}</text>
+            {detail.slice(0,3).map((line,i)=><text className="node-detail" key={i} x={-88} y={22+i*16}>{line}</text>)}
           </g>;
         })}
       </svg>
