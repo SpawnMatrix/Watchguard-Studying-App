@@ -86,6 +86,6 @@ describe('wiring', () => {
   it('keeps the current section in the URL and loads heavy sections on demand', () => {
     const app = read('App.tsx');
     expect(app).toMatch(/tabFromHash\(/);
-    expect(app).toMatch(/lazy\(\(\) => import\(".\/components\/LabWalkthrough"\)\)/);
+    expect(app).toMatch(/lazy\(\(\) => loadSection\(\(\) => import\(".\/components\/LabWalkthrough"\)\)\)/);
   });
 });

@@ -6,16 +6,18 @@ import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
 import { tabFromHash } from "./engine/shortcuts";
+import { loadSection } from "./engine/lazySection";
+import SectionErrorBoundary from "./components/SectionErrorBoundary";
 import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
 // Study Home loads with the app; every other section is fetched the first time it is opened, so the
 // first visit does not download the lab simulator, the sandbox and the whole question bank at once.
-const GeneralChat = lazy(() => import("./components/GeneralChat"));
-const PracticeQuiz = lazy(() => import("./components/PracticeQuiz"));
-const LabWalkthrough = lazy(() => import("./components/LabWalkthrough"));
-const PerformanceDashboard = lazy(() => import("./components/PerformanceDashboard"));
-const NetworkSimulator = lazy(() => import("./components/NetworkSimulator"));
-const FlashcardStudio = lazy(() => import("./components/FlashcardStudio"));
-const TopologyStudio = lazy(() => import("./components/TopologyStudio"));
+const GeneralChat = lazy(() => loadSection(() => import("./components/GeneralChat")));
+const PracticeQuiz = lazy(() => loadSection(() => import("./components/PracticeQuiz")));
+const LabWalkthrough = lazy(() => loadSection(() => import("./components/LabWalkthrough")));
+const PerformanceDashboard = lazy(() => loadSection(() => import("./components/PerformanceDashboard")));
+const NetworkSimulator = lazy(() => loadSection(() => import("./components/NetworkSimulator")));
+const FlashcardStudio = lazy(() => loadSection(() => import("./components/FlashcardStudio")));
+const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
 import { motion, AnimatePresence } from "motion/react";
 
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
@@ -314,6 +316,7 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
+              <SectionErrorBoundary>
               <Suspense fallback={<p className="section-loading" role="status">Loading section…</p>}>
               {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
               {(activeTab === 'labs' || activeTab === 'sandbox') && track !== 'local' && <p className="track-notice" role="status">Shared local Firebox practice · apply networking concepts here. These exercises use locally-managed Fireboxes; cloud management workflows are covered in the Cloud Q&A, quizzes and flashcards.</p>}
@@ -333,6 +336,7 @@ export default function App() {
                 />
               )}
               </Suspense>
+              </SectionErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>
