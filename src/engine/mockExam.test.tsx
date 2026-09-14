@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createExam, filterQuestions } from './catalog';
-import { blueprintQuotas, createBlueprintExam, createMockExam, domainResults, examResults } from './mockExam';
+import { blueprintQuotas, createBlueprintExam, createMockExam, domainResults, examResults, withoutTwins } from './mockExam';
 import { nseCategory } from '../data/nseBlueprint';
 import { NETWORK_PLUS_DOMAIN, type NetworkPlusDomain } from '../data/networkPlusBlueprint';
 import DomainBreakdown from '../components/DomainBreakdown';
@@ -80,7 +80,8 @@ describe('pools with no blueprint to honour keep the uniform draw', () => {
     it(label, () => {
       const pool = filterQuestions(filters);
       expect(createBlueprintExam(pool, 99)).toBeNull();
-      expect(createMockExam(pool, 99)).toEqual(createExam(pool, 99));
+      // Still the uniform draw, taken from the pool with at most one question per same-fact group.
+      expect(createMockExam(pool, 99)).toEqual(createExam(withoutTwins(pool, 99, 50), 99));
     });
   }
 

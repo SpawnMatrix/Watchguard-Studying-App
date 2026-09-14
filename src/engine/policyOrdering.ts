@@ -193,7 +193,7 @@ export const orderingScenarios: ((r: Random) => OrderingScenario)[] = [
       'Both permitted sources must be above the catch-all management deny, otherwise the deny matches first and the device becomes unreachable from every address including your own. ' +
       'Order the two allows narrowest first out of habit, even though they do not overlap here, because a later edit that widens one of them will then fail safely rather than silently swallowing the other. ' +
       'This is the change most worth testing from a second session that is already connected: if the order is wrong you will find out while you still have a way back in.',
-    webUi: 'Firewall → Firewall Policies → Manual Order, and System → Managed Access',
+    webUi: 'Firewall → Firewall Policies → Manual Order, and the From list of the WatchGuard Web UI policy',
     section: 'Device Management Access',
     };
   },

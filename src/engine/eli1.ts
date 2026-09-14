@@ -38,10 +38,10 @@ interface TopicGuide {
 const GUIDES: Record<string, TopicGuide> = {
   'Policies': {
     plainLanguage:
-      'A policy is a rule that says "traffic that looks like this is allowed (or denied)". The Firebox reads its rules from the top down and stops at the first one that fits. Everything it never finds a rule for is dropped at the end — that final drop is not a rule you can see in the list.',
+      'A policy is a rule that says "traffic that looks like this is allowed (or denied)". Only the highest-ranked rule that fits is used. By default the Firebox ranks the rules itself, putting the most specific ones first; in Manual Order the list position decides. Everything it never finds a rule for is dropped at the end — that final drop is not a rule you can see in the list.',
     networkPlus:
       'This is access control list (ACL) processing. Network+ covers it as first-match-wins rule evaluation with an implicit deny at the end — the same model as a router ACL or a cloud security group.',
-    webUiPath: 'Firewall → Firewall Policies. Set Manual Order to control the sequence yourself.',
+    webUiPath: 'Firewall → Firewall Policies. Auto-Order is the default; switch to Manual Order only when you need to control the sequence yourself.',
     checkFirst:
       'Read the policy name in the Traffic Monitor log. If it says "Unhandled Internal Packet", no rule matched and you need to add one. If it names a real policy, that policy matched and you need to change or reorder it.',
   },
@@ -59,7 +59,7 @@ const GUIDES: Record<string, TopicGuide> = {
       'NAT rewrites addresses as traffic crosses the Firebox. Dynamic NAT lets many internal devices share one public address on the way out. Static NAT (SNAT) publishes one internal server on a public address so people outside can reach it.',
     networkPlus:
       'Network+ calls these PAT/NAT overload for the outbound case and port forwarding or destination NAT for the inbound case.',
-    webUiPath: 'Firewall → NAT for dynamic NAT; Firewall → SNAT for published servers.',
+    webUiPath: 'Network → NAT for dynamic NAT and 1-to-1 NAT; Firewall → SNAT for the SNAT actions that publish servers.',
     checkFirst:
       'Confirm which direction is failing. Outbound problems are usually dynamic NAT or routing; inbound problems are usually a missing SNAT action or a policy whose destination is the public address rather than the SNAT object.',
   },
@@ -95,16 +95,16 @@ const GUIDES: Record<string, TopicGuide> = {
       'Security services are the subscription features layered on top of the firewall — antivirus, intrusion prevention, reputation and botnet blocking. They run after a policy has matched and can drop traffic the policy allowed.',
     networkPlus:
       'Network+ groups these under IDS/IPS and content filtering as part of defence in depth.',
-    webUiPath: 'Subscription Services → (service), and Firewall → Firewall Policies → (policy) → Security Services to enable it on that policy.',
+    webUiPath: 'Subscription Services → (service), then the proxy action or policy that carries the traffic, since scanning services such as Gateway AntiVirus run inside a proxy action.',
     checkFirst:
-      'Check whether the service is enabled on the specific policy carrying the traffic, not just globally. Also check Firewall → Blocked Sites, since IPS and Botnet Detection add temporary entries there that outlive the original event.',
+      'Check whether the service is enabled on the specific policy carrying the traffic, not just globally. Also check System Status → Blocked Sites, since services and packet handling settings with the Block action add auto-blocked entries that outlive the original event.',
   },
   'Initial Setup': {
     plainLanguage:
       'Initial setup is where interfaces get their roles. Trusted is your internal network, External faces the internet, and Optional is for anything you want separated, like guests or servers. Those roles drive the default policies and the spoofing checks.',
     networkPlus:
       'Network+ covers this as network segmentation and the screened subnet (DMZ) design.',
-    webUiPath: 'Network → Interfaces, and System → Setup Wizard for a fresh device.',
+    webUiPath: 'Network → Interfaces; on a factory-default device, the Web Setup Wizard at https://10.0.1.1:8080.',
     checkFirst:
       'Verify each interface has the right zone and the right subnet mask. An interface with the wrong role produces spoofing drops that look like an attack but are really a configuration error.',
   },
@@ -158,7 +158,7 @@ const GUIDES: Record<string, TopicGuide> = {
       'Operations covers the routine work that keeps a firewall healthy: backups before changes, firmware upgrades, and knowing how to roll back when an upgrade goes badly.',
     networkPlus:
       'Network+ covers this under change management, configuration backups, and business continuity.',
-    webUiPath: 'System → Backup Image, and System → Upgrade OS.',
+    webUiPath: 'System → Backup and Restore Image, and System → Upgrade OS.',
     checkFirst:
       'Take a backup image before any change. It is the difference between a five-minute rollback and a rebuild.',
   },

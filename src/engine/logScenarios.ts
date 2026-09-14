@@ -58,6 +58,14 @@ const net = (r: Random) => {
   };
 };
 
+/** Protocol and destination port a Traffic Monitor flood entry carries for each kind of flood. */
+const FLOOD_PROTOCOL: Record<string, { proto: string; port: number }> = {
+  ICMP: { proto: 'icmp', port: 0 },
+  SYN: { proto: 'tcp', port: 443 },
+  UDP: { proto: 'udp', port: 53 },
+  IPSec: { proto: 'udp', port: 500 },
+};
+
 /**
  * The scenario builders. Each returns a complete, self-consistent case:
  * the log line, the real cause, and wrong answers that are wrong for a
@@ -405,7 +413,7 @@ ${ts(r)} firebox firewall: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp (Geolo
     };
   },
 
-  // 15. Flood threshold.
+  // 15. Flood threshold. The logged protocol and port follow the kind of flood, so a UDP flood never logs as TCP.
   r => {
     const n = net(r), kind = pick(r, ['IPSec', 'ICMP', 'SYN', 'UDP']);
     return {
@@ -419,7 +427,7 @@ ${ts(r)} firebox firewall: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp (Geolo
         'The connection was dropped because no route existed towards the destination.',
       ],
       log: `SIMULATED TRAFFIC MONITOR
-${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} 0 ${kind === 'ICMP' ? 'icmp' : 'tcp'} (${kind} flood attack) threshold="exceeded" in_ifname="External" out_ifname="Firebox"`,
+${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} ${FLOOD_PROTOCOL[kind].port} ${FLOOD_PROTOCOL[kind].proto} (${kind} flood attack) threshold="exceeded" in_ifname="External" out_ifname="Firebox"`,
       explanation:
         `Flood protection is part of default packet handling, so it runs before policy evaluation and no policy name appears in the entry. ` +
         `The important judgement is whether the threshold matches real demand: a busy but legitimate service can trip a default value, and the fix then is to measure the workload and tune the threshold rather than to switch the protection off. ` +
