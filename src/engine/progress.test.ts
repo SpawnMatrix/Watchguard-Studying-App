@@ -9,3 +9,13 @@ describe('evidence-based progress reports',()=>{
  });
  it('supports existing aggregate API callers without adding a score bonus',()=>{expect(buildStudyReport({totalQuizAttempts:10,correctQuizAnswers:8}).readinessScore).toBe('80%');});
 });
+describe('lab recommendations',()=>{
+ it('recommends labs for the weakest topic first',()=>{
+  const miss=(topic:string,n:number,of:number)=>Array.from({length:of},(_,i)=>({topic,isCorrect:i>=n}));
+  // Initial Setup missed once in ten; BOVPN missed four times in five.
+  const r=buildStudyReport({history:[...miss('Initial Setup',1,10),...miss('BOVPN',4,5)]});
+  expect(r.criticalVulnerabilities).toEqual(['Review BOVPN','Review Initial Setup']);
+  expect(r.recommendedLabs[0]).toBe(watchguardLabs.find(l=>l.id===16)!.name);
+  expect(r.recommendedLabs.slice(1)).toEqual([1,3,17].map(id=>watchguardLabs.find(l=>l.id===id)!.name));
+ });
+});
