@@ -8,7 +8,9 @@
  *
  * It models what the single-Firebox labs exercise, and no more: interfaces, static routes, a first
  * setup wizard, DNS, device passphrases and users, packet filter and proxy policies in a simplified
- * automatic order, traffic management actions, configuration files, backup images and OS upgrades.
+ * automatic order, traffic management actions, configuration files, backup images and OS upgrades,
+ * Link Monitor and SD-WAN actions, HTTP URL path rules with HTTPS content inspection, and Firebox-DB
+ * users and groups with the authentication portal.
  * Traffic from the management PC is traced through the route table and the policies and written to
  * a Traffic Monitor log in the shape Fireware uses. It is a teaching simulation, not Fireware.
  */
@@ -50,7 +52,15 @@ export interface SimPolicy {
   /** Traffic management action names; empty for none. */
   tmForward: string;
   tmReverse: string;
+  /** SD-WAN action name; empty to use the routing table. */
+  sdwan: string;
 }
+
+export interface ProbeTarget { type: 'Ping' | 'DNS' | 'TCP'; host: string; port: number; query: string }
+export interface MonitoredInterface { ifaceId: number; nextHop: string; targets: ProbeTarget[]; measure: number | null }
+export interface SdwanAction { name: string; interfaces: number[] }
+export interface UrlPathRule { pattern: string; action: 'Allow' | 'Deny'; log: boolean }
+export interface FireboxDbUser { name: string; passphrase: string; groups: string[] }
 
 export interface TmAction { name: string; maxKbps: number; scope: 'Per policy' | 'All policies' }
 export interface DeviceUser { name: string; role: 'Device Administrator' | 'Device Monitor' }
@@ -63,6 +73,11 @@ export interface ConfigSnapshot {
   dns: string[];
   trafficManagement: { enabled: boolean; actions: TmAction[] };
   users: DeviceUser[];
+  linkMonitor: MonitoredInterface[];
+  sdwanActions: SdwanAction[];
+  /** Default-HTTP-Client URL path rules, and what the HTTPS-proxy does when no domain rule matches. */
+  proxy: { urlPaths: UrlPathRule[]; httpsNoMatch: 'Allow' | 'Inspect' };
+  auth: { users: FireboxDbUser[]; groups: string[]; autoRedirect: boolean };
 }
 
 export interface BackupImage { id: string; name: string; version: string; key: string; automatic: boolean; snapshot: ConfigSnapshot }
@@ -70,12 +85,13 @@ export interface BackupImage { id: string; name: string; version: string; key: s
 export type PageId =
   | 'bench' | 'wizard' | 'frontPanel' | 'trafficMonitor' | 'fireWatch' | 'statusRoutes'
   | 'interfaces' | 'routes' | 'policies' | 'policyChecker' | 'trafficManagement'
-  | 'globalSettings' | 'usersRoles' | 'configFile' | 'backup' | 'upgrade';
+  | 'globalSettings' | 'usersRoles' | 'configFile' | 'backup' | 'upgrade'
+  | 'linkMonitor' | 'sdwan' | 'sdwanStatus' | 'proxyActions' | 'authServers' | 'authSettings' | 'authList';
 
 export type SimEvent =
   | { kind: 'ipconfig'; ip: string }
   | { kind: 'ping'; dst: string; egress: string; replied: boolean }
-  | { kind: 'browse'; host: string; allowed: boolean; policy: string }
+  | { kind: 'browse'; host: string; url: string; allowed: boolean; policy: string; redirected?: boolean; blockedBy?: 'policy' | 'proxy' | 'certificate' }
   | { kind: 'speedtest'; downMbps: number; upMbps: number }
   | { kind: 'view'; page: PageId }
   | { kind: 'trafficFilter'; text: string }
@@ -86,7 +102,9 @@ export type SimEvent =
   | { kind: 'saveConfig'; withBackup: boolean }
   | { kind: 'createBackup'; id: string; version: string }
   | { kind: 'restore'; id: string; version: string }
-  | { kind: 'upgrade'; from: string; to: string };
+  | { kind: 'upgrade'; from: string; to: string }
+  | { kind: 'caInstalled' }
+  | { kind: 'authLogin'; user: string };
 
 export interface LogLine { id: number; disposition: 'Allow' | 'Deny' | 'Info'; text: string }
 
@@ -121,6 +139,8 @@ export interface FireboxSim extends ConfigSnapshot {
   terminal: string[];
   message: { tone: 'error' | 'success'; text: string } | null;
   seq: number;
+  /** The management PC's own state: certificate trust and who is signed in to the Firebox. */
+  pc: { caDownloaded: boolean; trustsProxyCa: boolean; authUser: string };
 }
 
 /* ------------------------------------------------------------------------------------------------
@@ -139,6 +159,7 @@ export const INTERNET_HOSTS: Record<string, string> = {
   'downloads.example.com': '198.51.100.81',
   'www.watchguard.com': '198.51.100.40',
   'speedtest.example.net': '198.51.100.200',
+  'search.lab.test': '198.51.100.90',
 };
 const PINGABLE = new Set(['8.8.4.4', '8.8.8.8', '1.1.1.1', '198.51.100.40', '198.51.100.80']);
 const DNS_SERVERS = new Set(['8.8.8.8', '8.8.4.4', '1.1.1.1', '1.0.0.1', '9.9.9.9']);
@@ -166,7 +187,7 @@ const iface = (id: number, name: string, type: InterfaceType, ip: string, extra:
 export function defaultPolicies(): SimPolicy[] {
   const internal = ['Any-Trusted', 'Any-Optional'];
   const policy = (id: string, name: string, service: PolicyService, to: string[]): SimPolicy =>
-    ({ id, name, service, enabled: true, action: 'Allowed', from: [...internal], to, tmForward: '', tmReverse: '' });
+    ({ id, name, service, enabled: true, action: 'Allowed', from: [...internal], to, tmForward: '', tmReverse: '', sdwan: '' });
   return [
     policy('ftp-proxy', 'FTP-proxy', 'FTP-proxy', ['Any-External']),
     policy('http-proxy', 'HTTP-proxy', 'HTTP-proxy', ['Any-External']),
@@ -185,6 +206,11 @@ const base = (): Omit<FireboxSim, 'deviceName' | 'setupComplete' | 'bench' | 'po
   routes: [],
   trafficManagement: { enabled: false, actions: [] },
   users: [],
+  linkMonitor: [],
+  sdwanActions: [],
+  proxy: { urlPaths: [], httpsNoMatch: 'Allow' },
+  auth: { users: [], groups: [], autoRedirect: false },
+  pc: { caDownloaded: false, trustsProxyCa: false, authUser: '' },
   wizard: {
     page: 0, deviceName: '', externalMode: 'Static', externalIp: '', externalPrefix: 24, externalGateway: '',
     trustedIp: '10.0.1.1', trustedPrefix: 24, dhcpEnabled: true, dns1: '', dns2: '', statusPassphrase: '', adminPassphrase: '',
@@ -240,6 +266,7 @@ export function configuredFirebox(): FireboxSim {
 export const snapshot = (s: FireboxSim): ConfigSnapshot => structuredClone({
   deviceName: s.deviceName, interfaces: s.interfaces, routes: s.routes, policies: s.policies,
   dns: s.dns, trafficManagement: s.trafficManagement, users: s.users,
+  linkMonitor: s.linkMonitor, sdwanActions: s.sdwanActions, proxy: s.proxy, auth: s.auth,
 });
 
 /* ------------------------------------------------------------------------------------------------
@@ -292,10 +319,13 @@ const SERVICE_PORTS: Record<PolicyService, { protocol: 'tcp' | 'udp' | 'icmp' | 
   Outgoing: { protocol: 'any', ports: [] },
 };
 
-export interface Flow { protocol: 'tcp' | 'udp' | 'icmp'; port: number; srcIp: string; srcZone: InterfaceType; dst: string; fqdn?: string }
+export interface Flow { protocol: 'tcp' | 'udp' | 'icmp'; port: number; srcIp: string; srcZone: InterfaceType; dst: string; fqdn?: string; user?: string }
 
-function endpointMatches(entry: string, ip: string, zone: InterfaceType, s: FireboxSim, fqdn?: string): boolean {
+function endpointMatches(entry: string, ip: string, zone: InterfaceType, s: FireboxSim, fqdn?: string, user?: string): boolean {
   if (entry === 'Any') return true;
+  // A Firebox-DB group or user only matches traffic from someone signed in as that user or a member.
+  if (s.auth.groups.includes(entry)) return !!user && !!s.auth.users.find(u => u.name === user)?.groups.includes(entry);
+  if (s.auth.users.some(u => u.name === entry)) return user === entry;
   if (entry === 'Any-Trusted') return zone === 'Trusted';
   if (entry === 'Any-Optional') return zone === 'Optional';
   if (entry === 'Any-External') return zone === 'External';
@@ -329,11 +359,43 @@ export function matchPolicy(s: FireboxSim, flow: Flow, dstZone: InterfaceType): 
     if (!p.enabled) return false;
     const svc = SERVICE_PORTS[p.service];
     const serviceOk = svc.protocol === 'any' ? flow.protocol !== 'icmp' : svc.protocol === flow.protocol && (svc.protocol === 'icmp' || svc.ports.includes(flow.port));
-    return serviceOk && p.from.some(f => endpointMatches(f, flow.srcIp, flow.srcZone, s)) && p.to.some(t => endpointMatches(t, flow.dst, dstZone, s, flow.fqdn));
+    return serviceOk && p.from.some(f => endpointMatches(f, flow.srcIp, flow.srcZone, s, undefined, flow.user)) && p.to.some(t => endpointMatches(t, flow.dst, dstZone, s, flow.fqdn));
   });
 }
 
-export interface TraceResult { allowed: boolean; policy: string; egress: string; reached: boolean; detail: string }
+export interface TraceResult { allowed: boolean; policy: string; egress: string; reached: boolean; detail: string; redirected?: boolean }
+
+export interface InterfaceHealth { monitored: boolean; active: boolean; lossPct: number; latencyMs: number | null; jitterMs: number | null; detail: string }
+
+/**
+ * What Link Monitor concludes about an interface. External targets on the Internet answer when the
+ * external link is up; nothing answers on internal networks, because the lab has no devices there.
+ * An interface is active while at least one of its probes succeeds.
+ */
+export function interfaceHealth(s: FireboxSim, ifaceId: number): InterfaceHealth {
+  const i = s.interfaces.find(x => x.id === ifaceId);
+  const entry = s.linkMonitor.find(m => m.ifaceId === ifaceId);
+  const linkUp = !!i && i.type !== 'Disabled' && (i.type !== 'External' || s.bench.externalCable);
+  if (!entry) return { monitored: false, active: linkUp, lossPct: linkUp ? 0 : 100, latencyMs: null, jitterMs: null, detail: linkUp ? 'Not monitored; link is up.' : 'Link is down.' };
+  const onInternet = linkUp && i!.type === 'External';
+  const answers = (target: ProbeTarget) => {
+    if (!onInternet) return false;
+    const ip = isIPv4(target.host) ? target.host : INTERNET_HOSTS[target.host.toLowerCase()];
+    if (!ip) return false;
+    if (target.type === 'Ping') return PINGABLE.has(ip);
+    if (target.type === 'DNS') return DNS_SERVERS.has(ip) && target.query.trim() !== '';
+    return Object.values(INTERNET_HOSTS).includes(ip) && (target.port === 80 || target.port === 443);
+  };
+  const probes = entry.targets.length ? entry.targets : [{ type: 'Ping' as const, host: entry.nextHop || i?.gateway || '', port: 0, query: '' }];
+  const results = probes.map(answers);
+  const active = results.some(Boolean);
+  const measured = entry.measure !== null && entry.targets[entry.measure] ? answers(entry.targets[entry.measure]) : active;
+  return {
+    monitored: true, active,
+    lossPct: measured ? 0 : 100, latencyMs: measured ? 24 : null, jitterMs: measured ? 3 : null,
+    detail: active ? `${results.filter(Boolean).length} of ${probes.length} probes answering.` : `No probe answers${entry.nextHop ? ` through next hop ${entry.nextHop}` : ''}.`,
+  };
+}
 
 const serviceLabel = (f: Flow) => f.protocol === 'icmp' ? 'icmp' : `${f.protocol === 'udp' && f.port === 53 ? 'dns' : f.port === 443 ? 'https' : f.port === 80 ? 'http' : f.protocol}/${f.protocol} ${f.port}`;
 
@@ -349,7 +411,13 @@ function trace(s: FireboxSim, flow: Flow): TraceResult {
   const src = `1-${s.interfaces.find(i => i.id === 1)!.name}`;
   const dstLabel = flow.fqdn ? `${flow.dst} (${flow.fqdn})` : flow.dst;
   const policy = matchPolicy(s, flow, egress.type);
+  const srcUser = flow.user ? ` src_user="${flow.user}"` : '';
   if (!policy) {
+    if (s.auth.autoRedirect && !flow.user && flow.protocol === 'tcp' && (flow.port === 80 || flow.port === 443)) {
+      const portal = `https://${s.interfaces.find(i => i.id === 1)!.ip}:4100`;
+      logLine(s, 'Info', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${zoneName} redirected to authentication portal ${portal}`);
+      return { allowed: false, policy: 'Authentication redirect', egress: egress.name, reached: false, detail: `Sign in at ${portal} first.`, redirected: true };
+    }
     logLine(s, 'Deny', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${zoneName} Denied (Unhandled Internal Packet-00)`);
     return { allowed: false, policy: 'Unhandled Internal Packet', egress: egress.name, reached: false, detail: 'No policy matched, so the implicit deny applied.' };
   }
@@ -357,10 +425,23 @@ function trace(s: FireboxSim, flow: Flow): TraceResult {
     logLine(s, 'Deny', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${zoneName} Denied (${policy.name}-00)`);
     return { allowed: false, policy: policy.name, egress: egress.name, reached: false, detail: `Denied by ${policy.name}.` };
   }
-  const nat = egress.type === 'External' ? ` src_ip_nat="${egress.ip}"` : '';
-  logLine(s, 'Allow', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${zoneName} Allowed (${policy.name}-00)${nat} route="${route.label}"`);
-  const onInternet = egress.type === 'External' && route.nextHop === egress.gateway && egress.gateway === ISP_GATEWAY && s.bench.externalCable;
-  return { allowed: true, policy: policy.name, egress: egress.name, reached: onInternet, detail: `Allowed by ${policy.name}, out ${egress.name}.` };
+  let out = egress, nextHop = route.nextHop, routeLabel = route.label;
+  if (policy.sdwan) {
+    // An SD-WAN action overrides the routing table for this policy: use the first active interface it lists.
+    const action = s.sdwanActions.find(a => a.name === policy.sdwan);
+    const chosen = action?.interfaces.map(id => s.interfaces.find(i => i.id === id)).find(i => i && interfaceHealth(s, i.id).active);
+    if (!chosen) {
+      logLine(s, 'Deny', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${zoneName} Denied (${policy.name}-00)${srcUser} SD-WAN action "${policy.sdwan}": all gateways are down`);
+      return { allowed: false, policy: policy.name, egress: '', reached: false, detail: `SD-WAN action ${policy.sdwan} has no active interface: all gateways are down.` };
+    }
+    out = chosen;
+    nextHop = chosen.type === 'External' ? chosen.gateway : s.linkMonitor.find(m => m.ifaceId === chosen.id)?.nextHop ?? '';
+    routeLabel = `SD-WAN action ${policy.sdwan} via ${chosen.name}`;
+  }
+  const nat = out.type === 'External' ? ` src_ip_nat="${out.ip}"` : '';
+  logLine(s, 'Allow', `${flow.srcIp} ${dstLabel} ${serviceLabel(flow)} ${src} ${out.id}-${out.name} Allowed (${policy.name}-00)${srcUser}${nat} route="${routeLabel}"`);
+  const onInternet = out.type === 'External' && nextHop === out.gateway && out.gateway === ISP_GATEWAY && s.bench.externalCable;
+  return { allowed: true, policy: policy.name, egress: out.name, reached: onInternet, detail: `Allowed by ${policy.name}, out ${out.name}.` };
 }
 
 function logLine(s: FireboxSim, disposition: LogLine['disposition'], text: string) {
@@ -372,7 +453,7 @@ function resolve(s: FireboxSim, host: string, pc: ReturnType<typeof pcAddress>):
   if (isIPv4(host)) return { ip: host };
   const known = INTERNET_HOSTS[host.toLowerCase()];
   for (const server of pc.dns) {
-    const result = trace(s, { protocol: 'udp', port: 53, srcIp: pc.ip, srcZone: 'Trusted', dst: server });
+    const result = trace(s, { protocol: 'udp', port: 53, srcIp: pc.ip, srcZone: 'Trusted', dst: server, user: s.pc.authUser || undefined });
     if (result.allowed && result.reached && DNS_SERVERS.has(server)) return known ? { ip: known } : { problem: `DNS server ${server} returned NXDOMAIN for ${host}.` };
   }
   return { problem: pc.dns.length ? `DNS lookup for ${host} timed out: no DNS server could be reached.` : `No DNS server is configured for ${host}.` };
@@ -395,7 +476,7 @@ export type SimAction =
   | { type: 'saveInterface'; iface: SimInterface }
   | { type: 'addRoute'; route: SimRoute }
   | { type: 'deleteRoute'; index: number }
-  | { type: 'setPolicy'; id: string; patch: Partial<Pick<SimPolicy, 'enabled' | 'action' | 'to' | 'from' | 'tmForward' | 'tmReverse' | 'name'>> }
+  | { type: 'setPolicy'; id: string; patch: Partial<Pick<SimPolicy, 'enabled' | 'action' | 'to' | 'from' | 'tmForward' | 'tmReverse' | 'name' | 'sdwan'>> }
   | { type: 'addPolicy'; service: PolicyService; name: string; action: SimPolicy['action']; from: string[]; to: string[] }
   | { type: 'deletePolicy'; id: string }
   | { type: 'setTrafficManagement'; enabled: boolean }
@@ -411,6 +492,19 @@ export type SimAction =
   | { type: 'createBackup'; name: string; key: string }
   | { type: 'restoreBackup'; id: string; key: string }
   | { type: 'upgrade'; adminPassphrase: string }
+  | { type: 'setMonitoredInterface'; entry: MonitoredInterface }
+  | { type: 'removeMonitoredInterface'; ifaceId: number }
+  | { type: 'addSdwanAction'; action: SdwanAction }
+  | { type: 'addUrlPath'; rule: UrlPathRule }
+  | { type: 'deleteUrlPath'; index: number }
+  | { type: 'setHttpsNoMatch'; value: 'Allow' | 'Inspect' }
+  | { type: 'downloadProxyCa' }
+  | { type: 'installProxyCa' }
+  | { type: 'addAuthUser'; name: string; passphrase: string }
+  | { type: 'addAuthGroup'; name: string; members: string[] }
+  | { type: 'setAutoRedirect'; enabled: boolean }
+  | { type: 'authLogin'; user: string; passphrase: string }
+  | { type: 'authLogout' }
   | { type: 'dismissMessage' };
 
 const fail = (s: FireboxSim, text: string) => { s.message = { tone: 'error', text }; return s; };
@@ -450,7 +544,7 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
       if (pc.problem) { say(s, '   PING: transmit failed. General failure.'); return s; }
       const resolved = resolve(s, host, pc);
       if (!resolved.ip) { say(s, `   Ping request could not find host ${host}. ${resolved.problem ?? ''}`); return s; }
-      const result = trace(s, { protocol: 'icmp', port: 0, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip });
+      const result = trace(s, { protocol: 'icmp', port: 0, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip, user: s.pc.authUser || undefined });
       const replied = result.allowed && (result.reached ? PINGABLE.has(resolved.ip) : s.interfaces.some(i => i.ip === resolved.ip));
       say(s, replied ? `   Reply from ${resolved.ip}: bytes=32 time=18ms TTL=117 (via ${result.egress})` : `   Request timed out.${result.allowed ? ` (sent out ${result.egress})` : ` (${result.detail})`}`);
       event(s, { kind: 'ping', dst: resolved.ip, egress: result.egress, replied });
@@ -458,19 +552,45 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
     }
 
     case 'browse': {
-      const match = /^(https?):\/\/([^/\s]+)/i.exec(action.url.trim());
+      const match = /^(https?):\/\/([^/\s?#]+)([^\s]*)$/i.exec(action.url.trim());
       const pc = pcAddress(s);
       say(s, `> open ${action.url.trim()}`);
       if (!match) { say(s, '   Enter a URL such as http://www.example.com'); return s; }
-      const [, scheme, host] = match;
+      const [, scheme, rawHost, path] = match;
+      const host = rawHost.toLowerCase(), url = action.url.trim();
       if (pc.problem) { say(s, '   This site can\'t be reached: no network connection.'); return s; }
       const resolved = resolve(s, host, pc);
-      if (!resolved.ip) { say(s, `   This site can't be reached. ${resolved.problem ?? ''}`); event(s, { kind: 'browse', host, allowed: false, policy: 'DNS' }); return s; }
-      const port = scheme.toLowerCase() === 'https' ? 443 : 80;
-      const result = trace(s, { protocol: 'tcp', port, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip, fqdn: host });
-      const loaded = result.allowed && result.reached;
-      say(s, loaded ? `   ${host} loaded (${result.policy}).` : result.allowed ? `   ${host} timed out after leaving ${result.egress}.` : `   ${host} is blocked: ${result.detail}`);
-      event(s, { kind: 'browse', host, allowed: loaded, policy: result.policy });
+      if (!resolved.ip) { say(s, `   This site can't be reached. ${resolved.problem ?? ''}`); event(s, { kind: 'browse', host, url, allowed: false, policy: 'DNS' }); return s; }
+      const https = scheme.toLowerCase() === 'https';
+      const result = trace(s, { protocol: 'tcp', port: https ? 443 : 80, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip, fqdn: host, user: s.pc.authUser || undefined });
+      if (result.redirected) {
+        say(s, `   Redirected to the Firebox authentication portal. ${result.detail}`);
+        event(s, { kind: 'browse', host, url, allowed: false, policy: result.policy, redirected: true });
+        return s;
+      }
+      if (result.allowed && result.reached) {
+        const policy = s.policies.find(p => p.name === result.policy);
+        const inspected = https && policy?.service === 'HTTPS-proxy' && s.proxy.httpsNoMatch === 'Inspect';
+        if (inspected && !s.pc.trustsProxyCa) {
+          say(s, `   Your connection is not private: the certificate for ${host} was issued by the Firebox Proxy Authority, which this PC does not trust.`);
+          event(s, { kind: 'browse', host, url, allowed: false, policy: result.policy, blockedBy: 'certificate' });
+          return s;
+        }
+        // Without inspection the HTTPS-proxy only sees the host name, so URL path rules cannot apply.
+        const visible = policy?.service === 'HTTP-proxy' && !https ? host + (path || '/') : inspected ? host + (path || '/') : '';
+        const rule = visible ? s.proxy.urlPaths.find(r => r.action === 'Deny' && globMatch(r.pattern, visible)) : undefined;
+        if (rule) {
+          if (rule.log) logLine(s, 'Deny', `${pc.ip} ${resolved.ip} (${host}) ${https ? 'https' : 'http'}/tcp ${https ? 443 : 80} ProxyDeny: HTTP Request URL match (${policy!.name}-00)${s.pc.authUser ? ` src_user="${s.pc.authUser}"` : ''} rule="${rule.pattern}"${inspected ? ' tls_inspected="yes"' : ''}`);
+          say(s, `   ${host} is blocked: the URL matched the proxy rule ${rule.pattern}.`);
+          event(s, { kind: 'browse', host, url, allowed: false, policy: result.policy, blockedBy: 'proxy' });
+          return s;
+        }
+        say(s, `   ${host} loaded (${result.policy}${inspected ? ', inspected' : ''}).`);
+        event(s, { kind: 'browse', host, url, allowed: true, policy: result.policy });
+        return s;
+      }
+      say(s, result.allowed ? `   ${host} timed out after leaving ${result.egress || 'the Firebox'}.` : `   ${host} is blocked: ${result.detail}`);
+      event(s, { kind: 'browse', host, url, allowed: false, policy: result.policy, blockedBy: result.allowed ? undefined : 'policy' });
       return s;
     }
 
@@ -480,7 +600,7 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
       if (pc.problem) { say(s, '   No network connection.'); return s; }
       const resolved = resolve(s, 'speedtest.example.net', pc);
       if (!resolved.ip) { say(s, `   Test failed. ${resolved.problem ?? ''}`); return s; }
-      const result = trace(s, { protocol: 'tcp', port: 443, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip, fqdn: 'speedtest.example.net' });
+      const result = trace(s, { protocol: 'tcp', port: 443, srcIp: pc.ip, srcZone: 'Trusted', dst: resolved.ip, fqdn: 'speedtest.example.net', user: s.pc.authUser || undefined });
       if (!result.allowed || !result.reached) { say(s, `   Test failed: ${result.detail}`); return s; }
       let { down, up } = LINK;
       if (s.trafficManagement.enabled) {
@@ -570,7 +690,7 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
       if (s.policies.some(p => p.name.toLowerCase() === name.toLowerCase())) return fail(s, `A policy named ${name} already exists.`);
       if (!action.from.length || !action.to.length) return fail(s, 'A policy needs at least one From and one To member.');
       s.seq++;
-      s.policies = [...s.policies, { id: `p${s.seq}`, name, service: action.service, enabled: true, action: action.action, from: action.from, to: action.to, tmForward: '', tmReverse: '' }];
+      s.policies = [...s.policies, { id: `p${s.seq}`, name, service: action.service, enabled: true, action: action.action, from: action.from, to: action.to, tmForward: '', tmReverse: '', sdwan: '' }];
       return ok(s, `Policy ${name} added.`);
     }
     case 'deletePolicy': s.policies = s.policies.filter(p => p.id !== action.id); return ok(s, 'Policy deleted.');
@@ -641,6 +761,86 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
       return ok(s, `Restored ${image.name}. The Firebox restarted.`);
     }
 
+    case 'setMonitoredInterface': {
+      const m = action.entry;
+      const i = s.interfaces.find(x => x.id === m.ifaceId);
+      if (!i || i.type === 'Disabled') return fail(s, 'Choose an enabled interface to monitor.');
+      if (i.type !== 'External' && !sameSubnet(m.nextHop, i.ip, i.prefix)) return fail(s, `Enter a next hop on the ${i.name} network (${i.ip}/${i.prefix}).`);
+      for (const target of m.targets) {
+        if (!target.host.trim()) return fail(s, 'Every probe target needs a host or IP address.');
+        if (target.type === 'TCP' && !(Number.isInteger(target.port) && target.port >= 1 && target.port <= 65535)) return fail(s, 'A TCP probe needs a port from 1 to 65535.');
+        if (target.type === 'DNS' && !target.query.trim()) return fail(s, 'A DNS probe needs a domain name to query.');
+      }
+      if (m.measure !== null && !m.targets[m.measure]) return fail(s, 'Choose a probe target to measure loss, latency and jitter.');
+      s.linkMonitor = [...s.linkMonitor.filter(x => x.ifaceId !== m.ifaceId), structuredClone(m)].sort((a, b) => a.ifaceId - b.ifaceId);
+      return ok(s, `Link Monitor settings for ${i.name} saved.`);
+    }
+    case 'removeMonitoredInterface': s.linkMonitor = s.linkMonitor.filter(x => x.ifaceId !== action.ifaceId); return ok(s, 'Interface removed from Link Monitor.');
+    case 'addSdwanAction': {
+      const name = action.action.name.trim();
+      if (!name) return fail(s, 'Enter a name for the SD-WAN action.');
+      if (s.sdwanActions.some(a => a.name === name)) return fail(s, `An SD-WAN action named ${name} already exists.`);
+      if (!action.action.interfaces.length) return fail(s, 'Add at least one interface to the SD-WAN action.');
+      if (action.action.interfaces.some(id => s.interfaces.find(i => i.id === id)?.type === 'Disabled')) return fail(s, 'SD-WAN actions can only use enabled interfaces.');
+      s.sdwanActions = [...s.sdwanActions, { name, interfaces: [...action.action.interfaces] }];
+      return ok(s, `SD-WAN action ${name} added.`);
+    }
+    case 'addUrlPath': {
+      if (!action.rule.pattern.trim()) return fail(s, 'Enter a URL path pattern, such as *example*.');
+      s.proxy.urlPaths = [...s.proxy.urlPaths, { ...action.rule, pattern: action.rule.pattern.trim() }];
+      return ok(s, `URL path rule ${action.rule.pattern.trim()} added to Default-HTTP-Client.`);
+    }
+    case 'deleteUrlPath': s.proxy.urlPaths = s.proxy.urlPaths.filter((_, i) => i !== action.index); return ok(s, 'URL path rule removed.');
+    case 'setHttpsNoMatch':
+      s.proxy.httpsNoMatch = action.value;
+      return ok(s, action.value === 'Inspect' ? 'Default-HTTPS-Client now inspects connections with Default-HTTP-Client.' : 'Default-HTTPS-Client now allows connections without inspection.');
+    case 'downloadProxyCa': {
+      if (pcAddress(s).problem) return fail(s, 'The management PC cannot reach the Firebox.');
+      s.pc.caDownloaded = true;
+      say(s, `> open http://${s.interfaces.find(i => i.id === 1)!.ip}:4126`, '   Downloaded Proxy Authority certificate (Firebox HTTPS Proxy Authority CA).');
+      return s;
+    }
+    case 'installProxyCa': {
+      if (!s.pc.caDownloaded) return fail(s, 'Download the Proxy Authority certificate from the Certificate Portal first.');
+      s.pc.trustsProxyCa = true;
+      say(s, '   Certificate imported into Trusted Root Certification Authorities.');
+      event(s, { kind: 'caInstalled' });
+      return s;
+    }
+    case 'addAuthUser': {
+      const name = action.name.trim();
+      if (!name) return fail(s, 'Enter a user name.');
+      if (s.auth.users.some(u => u.name === name) || s.auth.groups.includes(name)) return fail(s, `${name} already exists in Firebox-DB.`);
+      if (action.passphrase.length < 8) return fail(s, 'The passphrase must be at least 8 characters.');
+      s.auth.users = [...s.auth.users, { name, passphrase: action.passphrase, groups: [] }];
+      return ok(s, `Firebox-DB user ${name} added.`);
+    }
+    case 'addAuthGroup': {
+      const name = action.name.trim();
+      if (!name) return fail(s, 'Enter a group name.');
+      if (s.auth.groups.includes(name) || s.auth.users.some(u => u.name === name)) return fail(s, `${name} already exists in Firebox-DB.`);
+      s.auth.groups = [...s.auth.groups, name];
+      s.auth.users = s.auth.users.map(u => action.members.includes(u.name) ? { ...u, groups: [...u.groups, name] } : u);
+      return ok(s, `Firebox-DB group ${name} added with ${action.members.length} member${action.members.length === 1 ? '' : 's'}.`);
+    }
+    case 'setAutoRedirect':
+      s.auth.autoRedirect = action.enabled;
+      return ok(s, `Automatic redirect to the authentication page ${action.enabled ? 'enabled' : 'disabled'}.`);
+    case 'authLogin': {
+      const pc = pcAddress(s);
+      if (pc.problem) return fail(s, 'The management PC cannot reach the authentication portal.');
+      const user = s.auth.users.find(u => u.name === action.user.trim());
+      if (!user || user.passphrase !== action.passphrase) {
+        logLine(s, 'Info', `Authentication of Firebox-DB user [${action.user.trim()}@Firebox-DB] from ${pc.ip} was rejected, invalid credentials`);
+        return fail(s, 'Sign-in failed: check the user name and passphrase.');
+      }
+      s.pc.authUser = user.name;
+      logLine(s, 'Info', `Authentication of Firebox-DB user [${user.name}@Firebox-DB] from ${pc.ip} was accepted`);
+      event(s, { kind: 'authLogin', user: user.name });
+      return ok(s, `Signed in as ${user.name}.`);
+    }
+    case 'authLogout': s.pc.authUser = ''; return ok(s, 'Signed out of the Firebox.');
+
     case 'upgrade': {
       if (s.version === UPGRADE_VERSION) return fail(s, `Fireware ${UPGRADE_VERSION} is already installed.`);
       if (action.adminPassphrase !== s.passphrases.admin) return fail(s, 'The admin passphrase is not correct.');
@@ -653,6 +853,12 @@ export function simReduce(previous: FireboxSim, action: SimAction): FireboxSim {
       return ok(s, `Upgraded from Fireware ${from} to ${UPGRADE_VERSION}. An automatic backup of the ${from} configuration was saved.`);
     }
   }
+}
+
+/** Proxy-style wildcard match: * matches any run of characters; the whole string must match. */
+export function globMatch(pattern: string, value: string): boolean {
+  const escaped = pattern.trim().toLowerCase().replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  return new RegExp(`^${escaped}$`).test(value.toLowerCase());
 }
 
 const lastOctet = (ip: string, n: number) => isIPv4(ip) ? ip.split('.').slice(0, 3).concat(String(n)).join('.') : '';

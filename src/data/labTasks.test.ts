@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { handsOnLabs, simForStep } from './labTasks';
 import { watchguardLabs } from './labs';
-import { configuredFirebox, factoryDefault, matchPolicy, pcAddress, routeLookup, simReduce, type FireboxSim, type SimAction } from '../engine/labSim';
+import { configuredFirebox, factoryDefault, globMatch, interfaceHealth, matchPolicy, pcAddress, routeLookup, simReduce, type FireboxSim, type SimAction } from '../engine/labSim';
 
 const run = (s: FireboxSim, ...actions: SimAction[]) => actions.reduce(simReduce, s);
 
@@ -104,5 +104,78 @@ describe('simulated Firebox behaviour the labs depend on', () => {
     s = run(s, { type: 'wizardUpdate', patch: { dns1: '1.1.1.1' } }, { type: 'wizardNext' }, { type: 'wizardUpdate', patch: { statusPassphrase: 'same-pass', adminPassphrase: 'same-pass' } }, { type: 'wizardNext' });
     expect(s.setupComplete).toBe(false);
     expect(s.message?.text).toMatch(/must be different/);
+  });
+});
+
+describe('simulated behaviour for the labs that build on the basics', () => {
+  const lastBrowse = (s: FireboxSim) => [...s.events].reverse().find(e => e.kind === 'browse');
+
+  it('matches proxy URL patterns the way the lab writes them', () => {
+    expect(globMatch('*example*', 'search.lab.test/search?q=example')).toBe(true);
+    expect(globMatch('*example*', 'www.watchguard.com/')).toBe(false);
+    expect(globMatch('*.exe', 'downloads.lab.test/setup.exe')).toBe(true);
+  });
+
+  it('only applies URL path rules inside HTTPS once content inspection is on and the CA is trusted', () => {
+    const search = { type: 'browse' as const, url: 'https://search.lab.test/search?q=example' };
+    let s = simForStep(11, 2)!; // packet filters removed, *example* rule added, no inspection yet
+    s = run(s, search);
+    expect(lastBrowse(s)).toMatchObject({ allowed: true });
+    s = run(s, { type: 'setHttpsNoMatch', value: 'Inspect' }, search);
+    expect(lastBrowse(s)).toMatchObject({ allowed: false, blockedBy: 'certificate' });
+    s = run(s, { type: 'downloadProxyCa' }, { type: 'installProxyCa' }, search);
+    expect(lastBrowse(s)).toMatchObject({ allowed: false, blockedBy: 'proxy' });
+    expect(s.log.find(l => l.text.includes('ProxyDeny'))?.text).toContain('rule="*example*" tls_inspected="yes"');
+    s = run(s, { type: 'browse', url: 'https://www.watchguard.com/' });
+    expect(lastBrowse(s)).toMatchObject({ allowed: true });
+  });
+
+  it('will not install a certificate that was never downloaded', () => {
+    const s = run(configuredFirebox(), { type: 'installProxyCa' });
+    expect(s.pc.trustsProxyCa).toBe(false);
+    expect(s.message?.tone).toBe('error');
+  });
+
+  it('fails SD-WAN traffic over to the next active interface, and drops it when none is active', () => {
+    let s = simForStep(8, 3)!; // External and DMZ monitored, no SD-WAN yet
+    expect(interfaceHealth(s, 0).active).toBe(true);
+    expect(interfaceHealth(s, 2).active).toBe(false);
+    s = run(s, { type: 'addSdwanAction', action: { name: 'DMZ-then-External', interfaces: [2, 0] } }, { type: 'setPolicy', id: 'ping', patch: { sdwan: 'DMZ-then-External' } }, { type: 'ping', host: '1.1.1.1' });
+    expect(s.events.at(-1)).toMatchObject({ kind: 'ping', replied: true, egress: 'External' });
+    s = run(s, { type: 'addSdwanAction', action: { name: 'DMZ-only', interfaces: [2] } }, { type: 'setPolicy', id: 'ping', patch: { sdwan: 'DMZ-only' } }, { type: 'ping', host: '1.1.1.1' });
+    expect(s.events.at(-1)).toMatchObject({ kind: 'ping', replied: false });
+    expect(s.log[0].text).toMatch(/all gateways are down/);
+  });
+
+  it('validates Link Monitor targets', () => {
+    const base = simForStep(8, 1)!;
+    const dnsWithoutQuery = run(base, { type: 'setMonitoredInterface', entry: { ifaceId: 0, nextHop: '', measure: 0, targets: [{ type: 'DNS', host: '1.1.1.1', port: 53, query: '' }] } });
+    expect(dnsWithoutQuery.message?.text).toMatch(/needs a domain name/);
+    const dmzWithoutNextHop = run(base, { type: 'setMonitoredInterface', entry: { ifaceId: 2, nextHop: '10.9.9.9', measure: null, targets: [] } });
+    expect(dmzWithoutNextHop.message?.text).toMatch(/next hop on the DMZ network/);
+  });
+
+  it('lets only signed-in group members through a group-scoped policy, redirecting everyone else when asked to', () => {
+    let s = simForStep(14, 2)!; // group exists and the proxies are scoped to it
+    s = run(s, { type: 'browse', url: 'https://www.watchguard.com' });
+    expect(lastBrowse(s)).toMatchObject({ allowed: false, blockedBy: 'policy' });
+    s = run(s, { type: 'setAutoRedirect', enabled: true }, { type: 'browse', url: 'https://www.watchguard.com' });
+    expect(lastBrowse(s)).toMatchObject({ allowed: false, redirected: true });
+    s = run(s, { type: 'authLogin', user: 'jsmith', passphrase: 'wrong-pass' });
+    expect(s.pc.authUser).toBe('');
+    s = run(s, { type: 'authLogin', user: 'jsmith', passphrase: 'jsmith-pass' }, { type: 'browse', url: 'https://www.watchguard.com' });
+    expect(lastBrowse(s)).toMatchObject({ allowed: true });
+    expect(s.log.find(l => l.disposition === 'Allow' && l.text.includes('HTTPS-proxy'))?.text).toMatch(/src_user="jsmith"/);
+    // DNS is still allowed from Any-Trusted, so lookups never needed a signed-in user.
+    expect(s.log.some(l => l.text.includes('(DNS-00)') && !l.text.includes('src_user') && l.disposition === 'Allow')).toBe(true);
+  });
+
+  it('carries the new configuration through backup and restore', () => {
+    let s = simForStep(14, 3)!;
+    s = run(s, { type: 'createBackup', name: 'with-auth', key: 'lab-backup-key' });
+    s = run(s, { type: 'setAutoRedirect', enabled: false }, { type: 'deleteUrlPath', index: 0 });
+    s = run(s, { type: 'restoreBackup', id: s.backups.at(-1)!.id, key: 'lab-backup-key' });
+    expect(s.auth.autoRedirect).toBe(true);
+    expect(s.proxy.urlPaths).toHaveLength(1);
   });
 });

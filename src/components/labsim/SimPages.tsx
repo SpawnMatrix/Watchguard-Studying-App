@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Power, Plug, TerminalSquare, Trash2 } from 'lucide-react';
+import { PortalPanels } from './SimPagesAdvanced';
 import {
   INTERNET_HOSTS, UPGRADE_VERSION, fireWatchConnections, isIPv4, matchPolicy, orderedPolicies, pcAddress, routeLookup,
   type FireboxSim, type Flow, type InterfaceType, type PolicyService, type SimAction, type SimInterface, type SimRoute,
@@ -44,6 +45,7 @@ export function BenchPage({ s, dispatch }: PageProps) {
       <button type="button" className="secondary-button" onClick={() => dispatch({ type: 'speedtest' })}>speed test</button>
     </div>
     <pre className="fbx-terminal" aria-live="polite" aria-label="Command output">{s.terminal.length ? s.terminal.join('\n') : 'Command output appears here.'}</pre>
+    <PortalPanels s={s} dispatch={dispatch} />
   </section>;
 }
 
@@ -199,7 +201,7 @@ const SERVICES: PolicyService[] = ['HTTP', 'HTTPS', 'DNS', 'Ping', 'FTP', 'HTTP-
 
 export function PoliciesPage({ s, dispatch }: PageProps) {
   const [editing, setEditing] = useState<string | null>(null);
-  const [draft, setDraft] = useState({ name: '', action: 'Allowed' as 'Allowed' | 'Denied', to: '', tmForward: '', tmReverse: '' });
+  const [draft, setDraft] = useState({ name: '', action: 'Allowed' as 'Allowed' | 'Denied', from: '', to: '', tmForward: '', tmReverse: '', sdwan: '' });
   const [adding, setAdding] = useState({ service: 'HTTP' as PolicyService, name: '', action: 'Allowed' as 'Allowed' | 'Denied', from: 'Any-Trusted', to: 'Any-External' });
   const ordered = orderedPolicies(s);
   const tm = s.trafficManagement.actions;
@@ -213,13 +215,15 @@ export function PoliciesPage({ s, dispatch }: PageProps) {
         <td className={p.action === 'Denied' ? 'fbx-deny' : 'fbx-allow'}>{p.action}</td>
         <td>{p.from.join(', ')}</td><td>{p.to.join(', ')}</td>
         <td>{p.tmForward || p.tmReverse ? `${p.tmForward || '-'} / ${p.tmReverse || '-'}` : '-'}</td>
-        <td className="fbx-row-actions"><button type="button" className="fbx-link" onClick={() => { setEditing(p.id); setDraft({ name: p.name, action: p.action, to: p.to.join(', '), tmForward: p.tmForward, tmReverse: p.tmReverse }); }}>Edit</button><button type="button" className="fbx-link" aria-label={`Delete ${p.name}`} onClick={() => dispatch({ type: 'deletePolicy', id: p.id })}><Trash2 size={14} /></button></td>
+        <td className="fbx-row-actions"><button type="button" className="fbx-link" onClick={() => { setEditing(p.id); setDraft({ name: p.name, action: p.action, from: p.from.join(', '), to: p.to.join(', '), tmForward: p.tmForward, tmReverse: p.tmReverse, sdwan: p.sdwan }); }}>Edit</button><button type="button" className="fbx-link" aria-label={`Delete ${p.name}`} onClick={() => dispatch({ type: 'deletePolicy', id: p.id })}><Trash2 size={14} /></button></td>
       </tr>)}</tbody></table></div>
-    {editing && <form className="fbx-form fbx-card" onSubmit={e => { e.preventDefault(); dispatch({ type: 'setPolicy', id: editing, patch: { name: draft.name, action: draft.action, to: splitList(draft.to), tmForward: draft.tmForward, tmReverse: draft.tmReverse } }); setEditing(null); }}>
+    {editing && <form className="fbx-form fbx-card" onSubmit={e => { e.preventDefault(); dispatch({ type: 'setPolicy', id: editing, patch: { name: draft.name, action: draft.action, from: splitList(draft.from), to: splitList(draft.to), tmForward: draft.tmForward, tmReverse: draft.tmReverse, sdwan: draft.sdwan } }); setEditing(null); }}>
       <h4>Edit {s.policies.find(p => p.id === editing)?.name}</h4>
       <Field label="Name"><input className="fbx-input" value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></Field>
       <Field label="Connections are"><select className="fbx-input" value={draft.action} onChange={e => setDraft({ ...draft, action: e.target.value as 'Allowed' | 'Denied' })}><option>Allowed</option><option>Denied</option></select></Field>
+      <Field label="From" hint="Comma separated: Any-Trusted, an IP address, or a Firebox-DB user or group"><input className="fbx-input" value={draft.from} onChange={e => setDraft({ ...draft, from: e.target.value })} /></Field>
       <Field label="To" hint="Comma separated: Any-External, an IP address, or a domain such as *.example.com"><input className="fbx-input" value={draft.to} onChange={e => setDraft({ ...draft, to: e.target.value })} /></Field>
+      <Field label="SD-WAN action"><select className="fbx-input" value={draft.sdwan} onChange={e => setDraft({ ...draft, sdwan: e.target.value })}><option value="">None (use the routing table)</option>{s.sdwanActions.map(a => <option key={a.name}>{a.name}</option>)}</select></Field>
       <Field label="Traffic management: forward"><select className="fbx-input" value={draft.tmForward} onChange={e => setDraft({ ...draft, tmForward: e.target.value })}><option value="">None</option>{tm.map(a => <option key={a.name}>{a.name}</option>)}</select></Field>
       <Field label="Traffic management: reverse"><select className="fbx-input" value={draft.tmReverse} onChange={e => setDraft({ ...draft, tmReverse: e.target.value })}><option value="">None</option>{tm.map(a => <option key={a.name}>{a.name}</option>)}</select></Field>
       <div className="fbx-actions"><button type="button" className="secondary-button" onClick={() => setEditing(null)}>Cancel</button><button type="submit" className="primary-button">Save</button></div>

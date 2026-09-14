@@ -6,6 +6,7 @@ import {
   PolicyCheckerPage, RoutesPage, StatusRoutesPage, TrafficManagementPage, TrafficMonitorPage, UpgradePage, UsersRolesPage, WizardPage,
   type PageProps,
 } from './SimPages';
+import { AuthListPage, AuthServersPage, AuthSettingsPage, LinkMonitorPage, ProxyActionsPage, SdwanPage, SdwanStatusPage } from './SimPagesAdvanced';
 
 export const PAGES: { group: string; items: { id: PageId; label: string; component: ComponentType<PageProps>; needsSetup: boolean }[] }[] = [
   { group: 'Lab bench', items: [{ id: 'bench', label: 'Management PC', component: BenchPage, needsSetup: false }] },
@@ -15,15 +16,26 @@ export const PAGES: { group: string; items: { id: PageId; label: string; compone
     { id: 'trafficMonitor', label: 'Traffic Monitor', component: TrafficMonitorPage, needsSetup: true },
     { id: 'fireWatch', label: 'FireWatch', component: FireWatchPage, needsSetup: true },
   ] },
-  { group: 'System Status', items: [{ id: 'statusRoutes', label: 'Routes', component: StatusRoutesPage, needsSetup: true }] },
+  { group: 'System Status', items: [
+    { id: 'statusRoutes', label: 'Routes', component: StatusRoutesPage, needsSetup: true },
+    { id: 'sdwanStatus', label: 'SD-WAN', component: SdwanStatusPage, needsSetup: true },
+    { id: 'authList', label: 'Authentication List', component: AuthListPage, needsSetup: true },
+  ] },
   { group: 'Network', items: [
     { id: 'interfaces', label: 'Interfaces', component: InterfacesPage, needsSetup: true },
     { id: 'routes', label: 'Routes', component: RoutesPage, needsSetup: true },
+    { id: 'linkMonitor', label: 'Link Monitor', component: LinkMonitorPage, needsSetup: true },
+    { id: 'sdwan', label: 'SD-WAN', component: SdwanPage, needsSetup: true },
   ] },
   { group: 'Firewall', items: [
     { id: 'policies', label: 'Firewall Policies', component: PoliciesPage, needsSetup: true },
+    { id: 'proxyActions', label: 'Proxy Actions', component: ProxyActionsPage, needsSetup: true },
     { id: 'policyChecker', label: 'Policy Checker', component: PolicyCheckerPage, needsSetup: true },
     { id: 'trafficManagement', label: 'Traffic Management', component: TrafficManagementPage, needsSetup: true },
+  ] },
+  { group: 'Authentication', items: [
+    { id: 'authServers', label: 'Servers', component: AuthServersPage, needsSetup: true },
+    { id: 'authSettings', label: 'Settings', component: AuthSettingsPage, needsSetup: true },
   ] },
   { group: 'System', items: [
     { id: 'globalSettings', label: 'Global Settings', component: GlobalSettingsPage, needsSetup: true },

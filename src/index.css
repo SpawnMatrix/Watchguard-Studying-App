@@ -653,3 +653,10 @@ button:disabled{cursor:default}
 [data-theme="light"] .lab-task.is-done .lab-task-status,[data-theme="light"] .fbx-allow,[data-theme="light"] .fbx-log li.is-allow span,[data-theme="light"] .fbx-message.is-success svg,[data-theme="light"] .fbx-toggle.is-on svg{color:#15803d}
 [data-theme="light"] .fbx-deny,[data-theme="light"] .fbx-log li.is-deny span,[data-theme="light"] .fbx-message.is-error svg{color:#b91c1c}
 [data-theme="light"] .lab-task-head,[data-theme="light"] .fbx-link,[data-theme="light"] .lab-briefing svg,[data-theme="light"] .fbx-top svg{color:#a63416}
+.fbx-targets{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+.fbx-target{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border:1px solid var(--color-wg-border);border-radius:8px}
+.fbx-target .fbx-input{width:9rem;max-width:100%}
+.fbx-fieldset{grid-column:1/-1;border:1px solid var(--color-wg-border);border-radius:8px;padding:8px 10px;margin:0;display:flex;flex-wrap:wrap;gap:4px 16px}
+.fbx-fieldset legend{font-size:.75rem;color:var(--color-wg-text-muted);padding:0 4px}
+.fbx-portals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:10px}
+.fbx-portals .fbx-card{display:flex;flex-direction:column;gap:8px}
