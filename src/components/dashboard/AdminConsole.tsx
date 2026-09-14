@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useId, useState } from 'react';
 import { Settings, Key, Eye, EyeOff, Lock, Users, ShieldCheck, LogOut } from 'lucide-react';
 import { handleError } from '../../utils/errorHandler';
 
@@ -46,6 +46,8 @@ async function adminRequest(path: string, body?: unknown, method = 'POST') {
 }
 
 export default function AdminConsole({ displayName }: AdminConsoleProps) {
+  const id = useId();
+  const [view, setView] = useState<'tutor' | 'admin'>('tutor');
   const [userCustomKey, setUserCustomKey] = useState(() => localStorage.getItem('watchguard_custom_gemini_api_key') || '');
   const [showKey, setShowKey] = useState(false);
   const [password, setPassword] = useState('');
@@ -141,11 +143,11 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
   };
 
   return (
-    <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-6 shadow-2xl space-y-6 transition-transform hover:-translate-y-1 hover:shadow-watchguard-orange/10">
+    <div className="bg-watchguard-gray border border-watchguard-border rounded-2xl p-4 sm:p-6 space-y-6">
       <div className="flex items-center justify-between border-b border-watchguard-border pb-3 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
           <Settings className="w-4 h-4 text-watchguard-orange" />
-          <h3 className="font-display font-semibold text-white">Administration Control Console</h3>
+          <h3 className="font-display font-semibold text-white">Accounts & tutor settings</h3>
         </div>
         <div className="flex items-center space-x-2.5 text-[10px] font-mono">
           <span className="text-gray-400">Current User:</span>
@@ -162,22 +164,27 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column: Student Custom Key Override */}
-        <div className="space-y-4">
+      <div className="console-tabs" role="group" aria-label="Settings sections">
+        <button type="button" aria-pressed={view === 'tutor'} aria-controls={`${id}-tutor`} className={view === 'tutor' ? 'is-active' : ''} onClick={() => setView('tutor')}>Personal tutor</button>
+        <button type="button" aria-pressed={view === 'admin'} aria-controls={`${id}-admin`} className={view === 'admin' ? 'is-active' : ''} onClick={() => setView('admin')}>Administrator</button>
+      </div>
+
+      <div>
+        <section id={`${id}-tutor`} aria-label="Personal tutor" hidden={view !== 'tutor'} className="space-y-4">
           <div>
             <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
               <Key className="w-3.5 h-3.5 text-watchguard-orange" />
-              <span>Custom Gemini API Key Override</span>
+              <span>Your Gemini API key</span>
             </h4>
             <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
-              Want to run your own unlimited AI endpoints? Provide your own Google Gemini API key to override administrator resource control gates. This key is saved locally in your browser.
+              Add your own Gemini API key for optional tutor feedback. It is saved in this browser. You can study questions, explanations and labs without a key.
             </p>
           </div>
 
           <div className="space-y-2">
             <div className="relative">
               <input
+                aria-label="Your Gemini API key"
                 type={showKey ? 'text' : 'password'}
                 value={userCustomKey}
                 onChange={(e) => handleSaveCustomKey(e.target.value)}
@@ -206,10 +213,10 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Right Column: Server-authenticated admin controls */}
-        <div className="space-y-4 border-t md:border-t-0 md:border-l border-watchguard-border pt-4 md:pt-0 md:pl-6">
+        <section id={`${id}-admin`} aria-label="Administrator" hidden={view !== 'admin'} className="space-y-4">
           <div>
             <h4 className="text-xs font-bold text-gray-200 font-mono flex items-center space-x-1.5 mb-1">
               <Lock className="w-3.5 h-3.5 text-watchguard-orange" />
@@ -230,14 +237,15 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
 
           {!state.isAdmin && (
             <form onSubmit={handleElevate} className="space-y-2">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
+                  aria-label="Administrator password"
                   type="password"
                   autoComplete="current-password"
                   placeholder={state.accountIsAdmin ? 'Not required — press Authenticate' : 'Administrator password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex-1 bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
+                  className="min-w-0 flex-1 bg-watchguard-dark border border-watchguard-border text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
                 />
                 <button
                   type="submit"
@@ -330,7 +338,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
               {message}
             </p>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
