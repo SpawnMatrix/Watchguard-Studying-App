@@ -7,7 +7,8 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 
 ## Study upgrade
 
-- **561 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **630 authored questions**, including a 16-scenario diagram section and 73 multi-select items, with Local Firebox as the default track plus Network+ and WatchGuard Cloud filters.
+- **Local Firebox bank shaped like the WatchGuard NSE exam**: all 485 Local Firebox items are classified against the six Assessment Objectives in WatchGuard's Network Security Essentials Study Guide, and every category is within four points of its published weight. Local and Network+ mock exams draw to their blueprint, and the results screen scores each category, comparing NSE attempts with the published 75% pass mark.
 - **Network+ bank shaped like the N10-009 exam**: 174 items classified by domain, each domain within a point of its published weighting, and a test that fails if a new question upsets the balance. See [the blueprint notes](docs/study-engine.md#network-exam-blueprint).
 - **42 reproducible scenario templates** generate fresh IPs, subnets, ports, routing decisions, and troubleshooting cases. Grading is deterministic and works without AI.
 - **Traffic Monitor log analysis**: read a simulated Fireware log line and identify why the packet was dropped — unhandled packet, explicit deny, ProxyDrop, spoofing, Blocked Sites, missing route, inactive schedule, or a BOVPN tunnel-route miss.
@@ -16,8 +17,10 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 - **"Explain like I'm an L1"**: on a missed answer, a beginner-level breakdown citing the Fireware Web UI menu path and the underlying Network+ concept. Works with AI disabled.
 - **300 flashcards**, resumable quizzes and mock exams, and a weakness deck that requires three correct answers to clear a concept.
 - **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
+- **Interactive NSE labs**: all 20 Lab Book exercises, each step paired with a checkpoint question (81 in total) that must be answered correctly to complete it. Progress is saved per step and syncs with your account, so a lab can be finished across sessions, with or without a Firebox in front of you.
 - Study Home with observed topic accuracy, recent practice comparisons, activity, and a saved-quiz resume action; all six existing study sections remain available.
 - Persistent learning-track selection, filtered Q&A and flashcards, and explicit track changes for saved quizzes.
+- **Fix a broken network** (Topology Lab): a generated branch office with one fault from 17 types. Run connectivity tests, read packet traces, inspect and edit devices, and re-test. Tests trace traffic through the live configuration rather than an answer key, so any real fix passes.
 - Dedicated **Topology Lab** with scenario previews, selected-diagram practice, and topology mock exams. Inline SVG diagrams have keyboard-accessible hotspots, fit/readable-size views, optional animation, and complete network details. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).
 - Practice can filter by question format: diagrams, traffic logs, policy ordering, or multiple choice.
 - Every PR must bump the package version, match the lockfile versions, and add release notes. Run `npm run check:release` after fetching origin/main. The footer shows the version, author, and immutable build time. [Version 1.2.0 release notes](docs/releases/v1.2.0.md).
@@ -271,3 +274,8 @@ The GitHub Actions workflow also builds and publishes an amd64 image to GHCR
 after pushes to `main`. The homelab updater builds from its read-only checkout,
 so it does not require a GitHub Packages token and never stores write access to
 the repository.
+
+Nightly database backups are available as an opt-in timer in the same folder.
+Each backup is verified before older ones are pruned, and nothing is needed on
+the host beyond Docker. See [Automated daily backups](docs/deployment-data.md#automated-daily-backups)
+for installation and restore steps.

@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily backup of the WatchGuard Study Portal database
+
+[Timer]
+# Overnight, with jitter so it never lands on the updater's tick.
+OnCalendar=*-*-* 03:20:00
+RandomizedDelaySec=20min
+# Catch up after the host was off rather than skipping the day entirely.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -2,7 +2,7 @@
 
 ## Scope
 
-561 authored questions (145 existing IDs retained + 400 original additions + 16 diagram scenarios), 36 hand-written scenario templates, 16 Traffic Monitor log-analysis cases and 10 policy-ordering exercises, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
+630 authored questions (145 existing IDs retained + 469 original additions + 16 diagram scenarios), 36 hand-written scenario templates, 16 Traffic Monitor log-analysis cases and 10 policy-ordering exercises, and 300 flashcards. The default track is Local Firebox. Network+ and WatchGuard Cloud have separate filters; All tracks combines them. This is independent practice material, not an official exam or a pass guarantee.
 
 ## Generator contract
 
@@ -29,6 +29,23 @@ Mock exams contain up to 50 questions. Static questions are unique within an exa
 | 5.0 Network Troubleshooting | 24% | 24% (41) |
 
 Before 1.5.0 the same measurement gave Operations 29% and Security 6%. `networkPlusBlueprint.test.ts` fails if a Network+ question is left unclassified, if a classified id no longer exists, if any domain drifts more than three points from its weighting, or if a domain has fewer than 20 questions. Two placements surprise people: DHCP, DNS and NTP are 3.4 (Operations), and ports and protocols are 1.4 (Concepts).
+
+From 1.6.0 a Network+ mock exam also draws to the blueprint rather than uniformly: 12 Concepts, 10 Implementation, 9 Operations, 7 Security and 12 Troubleshooting questions, interleaved (`src/engine/mockExam.ts`). A uniform draw from the same bank gave Security between 1 and 16 questions, and four or fewer in one mock in ten. The blueprint applies only to a whole Network+ pool that can fill every quota; a single topic, a format or content filter that empties a domain, and the Cloud and All tracks keep the uniform draw. (Local Firebox pools draw to their own blueprint from 1.9.0, below.) A finished Network+ mock shows its score for each domain beside that domain's exam weight.
+
+## NSE exam blueprint
+
+`src/data/nseBlueprint.ts` places every Local Firebox question in one of the six Assessment Objectives categories published in WatchGuard's *Network Security Essentials for Locally-Managed Fireboxes Study Guide* (Fireware v12.9.2, pp. 336-338). The exam is 70 questions with a 75% passing score. A question's topic sets its default category; 86 questions are overridden by id where the topic is misleading, for example authentication questions filed under Policies, Default Threat Protection filed under Security Services, and Traffic Monitor log-reading scenarios, which WatchGuard lists under Monitoring.
+
+| Category | Exam weight | Before 1.9.0 | Bank (1.9.0) |
+| --- | --- | --- | --- |
+| Network and Network Security Basics | 10% | 0% (1) | 8% (37) |
+| Administration and Setup | 10% | 15% (63) | 13% (63) |
+| Monitoring, Logging, and Reporting | 15% | 13% (53) | 14% (69) |
+| Networking and NAT | 25% | 22% (93) | 23% (110) |
+| Policies, Proxies, and Security Services | 25% | 27% (113) | 23% (113) |
+| Authentication and VPNs | 15% | 22% (93) | 19% (93) |
+
+`nseBlueprint.test.ts` fails if a Local Firebox question is unclassified, if any category drifts more than five points from its weight, or if a category has fewer than 30 questions. A Local Firebox mock exam draws 5/5/7/13/13/7 questions by category, and the results screen compares the attempt with the 75% pass mark. Network+ results show no percentage pass mark, because CompTIA reports a scaled score.
 
 ## Compatibility
 

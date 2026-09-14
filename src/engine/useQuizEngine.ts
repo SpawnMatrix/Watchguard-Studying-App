@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../data/questions';
 import type { QuizHistoryItem } from '../components/QuizAnalyticsPanel';
 import type { EvaluationData } from '../components/QuizEvaluation';
-import { filterQuestions, createExam, materialize, questionById, type QuestionFilters } from './catalog';
+import { filterQuestions, materialize, questionById, type QuestionFilters } from './catalog';
+import { createMockExam } from './mockExam';
 import { gradeQuestion } from './grading';
 import { newSeed, pick, seededRandom } from './random';
 import type { Track } from './types';
@@ -23,7 +24,7 @@ const SRS_KEY='watchguard-srs-v1';
 const DEFAULT_FILTERS:Filters={topic:'All',track:'local',content:'mixed'};
 function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:QuizHistoryItem[]=[],srs:SrsState=emptySrsState()):Session {
   const pool=mode==='weakness-review'?Object.keys(deck).map(Number).map(id=>questionById.get(id)).filter((q):q is Question=>!!q):filterQuestions(filters);
-  const queue=mode==='mock-exam'?createExam(pool,newSeed()):[];
+  const queue=mode==='mock-exam'?createMockExam(pool,newSeed()):[];
   // Spaced repetition biases which question comes next; it never changes the
   // pool itself, so every existing filter and mode keeps its meaning.
   const q=mode==='mock-exam'?queue[0]:pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;

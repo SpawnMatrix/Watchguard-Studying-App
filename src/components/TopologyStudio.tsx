@@ -1,25 +1,32 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Layers, Network, Shuffle, Timer } from 'lucide-react';
+import { ArrowRight, Layers, Network, Shuffle, Timer, Wrench } from 'lucide-react';
 import { filterQuestions, materialize } from '../engine/catalog';
 import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
 import { questionTopology } from '../engine/topologyAdapters';
 import { newSeed } from '../engine/random';
 import type { QuizLaunch } from '../engine/useQuizEngine';
 import NetworkTopology from './NetworkTopology';
+import BreakFixLab from './BreakFixLab';
 
 export default function TopologyStudio({onPractice}:{onPractice:(launch:QuizLaunch)=>void}) {
   const {track}=useLearningTrack();
   const pool=useMemo(()=>filterQuestions({track,format:'topology'}),[track]);
   const [selectedId,setSelectedId]=useState<number|null>(null),[seed,setSeed]=useState(newSeed);
+  const [troubleshooting,setTroubleshooting]=useState(false);
   const selected=pool.find(q=>q.id===selectedId)??pool[0];
   const question=useMemo(()=>selected?materialize(selected,seed):null,[selected,seed]);
   const diagram=question?questionTopology(question):undefined;
   const filters={track,topic:'All',content:'mixed' as const,format:'topology' as const};
+  if(troubleshooting)return <div className="space-y-6">
+    <header className="section-heading"><div><p className="eyebrow">TOPOLOGY LAB · TROUBLESHOOTING</p><h1>Something is broken. Find it.</h1><p>Run the tests, read the traces, inspect each device and change what is wrong. Every network is generated, so there is always another one.</p></div></header>
+    <BreakFixLab onExit={()=>setTroubleshooting(false)}/>
+  </div>;
   return <div className="space-y-6">
     <header className="section-heading"><div><p className="eyebrow">TOPOLOGY LAB</p><h1>Read the network. Make the call.</h1><p>Explore zones, routing paths, and VPN links. Then practice the decision behind the diagram.</p></div><span className="catalog-count"><Network size={16}/>{pool.length} diagram scenarios</span></header>
     <div className="topology-study-modes">
       <button className="home-card" disabled={!pool.length} onClick={()=>onPractice({mode:'practice',filters})}><Layers size={22}/><strong>Guided practice</strong><span>One diagram at a time, with explanations after each answer.</span><ArrowRight size={17}/></button>
       <button className="home-card" disabled={!pool.length} onClick={()=>onPractice({mode:'mock-exam',filters})}><Timer size={22}/><strong>Topology mock exam</strong><span>A bounded quiz drawn from this track’s diagrams. Feedback after each answer; no time limit.</span><ArrowRight size={17}/></button>
+      <button className="home-card" onClick={()=>setTroubleshooting(true)}><Wrench size={22}/><strong>Fix a broken network</strong><span>A generated office network with one fault. Run tests, read packet traces, inspect devices and fix the setting. Works on any track.</span><ArrowRight size={17}/></button>
     </div>
     <p className="text-sm text-gray-400">{learningTrackLabels[track]} · Starting practice replaces the current quiz session and keeps your answer history.</p>
     {!diagram||!question?<div className="home-card"><h2>More diagrams are on the way</h2><p>Choose another learning track to explore the current topology catalog. Other question formats remain available in Practice Quiz.</p></div>:<div className="topology-studio-grid">

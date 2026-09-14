@@ -1,0 +1,5 @@
+# Host-side deployment files run on the Linux Docker host; a CRLF checkout makes bash fail with
+# "$'\r': command not found" and can confuse systemd unit parsing.
+*.sh text eol=lf
+*.service text eol=lf
+*.timer text eol=lf
