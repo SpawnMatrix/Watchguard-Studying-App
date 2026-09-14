@@ -102,8 +102,8 @@ describe('lab walkthrough wiring', () => {
   const walkthrough = readFileSync(path.join(__dirname, '../components/LabWalkthrough.tsx'), 'utf8');
   const app = readFileSync(path.join(__dirname, '../App.tsx'), 'utf8');
 
-  it('requires the checkpoint before a step can be completed', () => {
-    expect(walkthrough).toMatch(/const canComplete = !checkpoint \|\| stepDone \|\| !!attempt\?\.correct;/);
+  it('requires the checkpoint, and on hands-on steps the simulator task, before a step can be completed', () => {
+    expect(walkthrough).toContain('const canComplete = (!checkpoint || stepDone || !!attempt?.correct) && (!task || stepDone || taskDone);');
     expect(walkthrough).toMatch(/disabled=\{!canComplete\}/);
   });
 
