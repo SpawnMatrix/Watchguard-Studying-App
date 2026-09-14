@@ -239,7 +239,7 @@ button, a, input, select, textarea { touch-action: manipulation; }
 .skip-link:focus { top: 1rem; }
 .text-xs { font-size: .875rem; line-height: 1.5; }
 [class*="text-[10px]"], [class*="text-[11px]"] { font-size: .75rem; }
-@media (max-width: 1100px) { .study-layout { grid-template-columns: 175px minmax(0,1fr); gap: 1.25rem; padding: 1.25rem; } }
+@media (max-width: 1100px) { .study-layout { grid-template-columns: 185px minmax(0,1fr); gap: 1.25rem; padding: 1.25rem; } .study-nav-item { gap: .6rem; padding: .75rem .65rem; font-size: .84rem; } }
 @media (max-width: 800px) {
   .app-header-inner { padding: 1rem; }
   .study-layout { display: flex; flex-direction: column; padding: 1rem; gap: 1.25rem; }
@@ -357,6 +357,38 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .lab-stepper-count{margin-left:4px;font-size:.75rem;color:var(--color-wg-text-muted)}
 .lab-status-tag{margin-left:6px;padding:1px 6px;border-radius:999px;border:1px solid var(--color-wg-border);color:var(--color-wg-text-muted);text-transform:none;letter-spacing:0;white-space:nowrap}
 .lab-status-tag.is-complete{border-color:#15803d;color:#4ade80}
+/* Lab stage before a lab is open: progress, resume, next lab and the hands-on labs */
+.lab-overview{display:flex;flex-direction:column;gap:18px;max-width:640px;margin:0 auto;padding:28px 24px;color:var(--color-wg-text-muted);font-size:.85rem}
+.lab-overview-head{display:flex;align-items:center;gap:14px}
+.lab-overview-icon{display:inline-flex;padding:12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--color-watchguard-orange) 25%,transparent);background:color-mix(in srgb,var(--color-watchguard-orange) 8%,transparent);color:var(--color-watchguard-orange)}
+.lab-overview-icon svg{width:26px;height:26px}
+.lab-overview-head h3{margin:0;color:var(--color-wg-text);font-family:var(--font-display);font-size:1.1rem;font-weight:600}
+.lab-overview-head p{margin:2px 0 0}
+.lab-overview-meter{display:block;width:100%;height:6px;border:0;border-radius:3px;overflow:hidden;accent-color:var(--color-watchguard-orange);background:var(--color-wg-border)}
+.lab-overview-meter::-webkit-progress-bar{background:var(--color-wg-border)}
+.lab-overview-meter::-webkit-progress-value{background:#16a34a}
+.lab-overview-meter::-moz-progress-bar{background:#16a34a}
+.lab-overview-actions{display:grid;gap:10px}
+.lab-overview-action{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:1px solid var(--color-wg-border);border-radius:12px;background:var(--color-wg-dark);color:var(--color-wg-text);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.lab-overview-action:hover,.lab-overview-action:focus-visible{border-color:var(--color-watchguard-orange)}
+.lab-overview-action.is-primary{border-color:color-mix(in srgb,var(--color-watchguard-orange) 60%,transparent);background:color-mix(in srgb,var(--color-watchguard-orange) 9%,var(--color-wg-dark))}
+.lab-overview-action>svg{width:20px;height:20px;flex:none;color:var(--color-watchguard-orange)}
+.lab-overview-action>span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.lab-overview-action strong{font-weight:600;overflow-wrap:anywhere}
+.lab-overview-action small{color:var(--color-wg-text-muted);font-size:.75rem}
+.lab-overview-done{display:flex;align-items:center;gap:10px;margin:0;padding:14px 16px;border:1px solid #15803d;border-radius:12px;color:var(--color-wg-text)}
+.lab-overview-done svg{width:20px;height:20px;flex:none;color:#16a34a}
+.lab-overview-handson h4{margin:0 0 8px;color:var(--color-wg-text);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.lab-overview-handson ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.lab-overview-handson button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--color-wg-border);border-radius:10px;background:var(--color-wg-dark);color:var(--color-wg-text);text-align:left;cursor:pointer}
+.lab-overview-handson button:hover,.lab-overview-handson button:focus-visible{border-color:var(--color-watchguard-orange)}
+.lab-overview-handson small{margin-left:auto;color:var(--color-wg-text-muted);font-size:.72rem;white-space:nowrap}
+.lab-overview-number{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border-radius:999px;border:1px solid var(--color-wg-border);font:11px var(--font-mono);color:var(--color-wg-text-muted)}
+.lab-overview-number.is-complete{border-color:#16a34a;background:#16a34a;color:#fff}
+.lab-overview-number svg{width:14px;height:14px}
+.lab-overview-name{min-width:0;font-size:.82rem;overflow-wrap:anywhere}
+.lab-overview-help{margin:0;padding-top:14px;border-top:1px solid var(--color-wg-border);font-size:.78rem;line-height:1.6}
+@media(max-width:640px){.lab-overview{padding:18px 14px}}
 .lab-checkpoint{border:1px solid var(--color-wg-border);border-radius:12px;padding:16px;background:var(--color-wg-gray)}
 .lab-checkpoint-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--color-watchguard-orange)}
 .lab-checkpoint-head h4{margin:0;font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
@@ -376,6 +408,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .lab-checkpoint-result.is-incorrect .lab-checkpoint-verdict{color:#f87171}
 .quiz-filters.lab-catalog-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:0;border:0;background:none;margin:0 0 8px}
 .lab-catalog-filters select{width:100%;min-width:0}
+@media(min-width:1024px) and (max-width:1279px){.quiz-filters.lab-catalog-filters{grid-template-columns:minmax(0,1fr)}}
 .lab-summary{max-width:560px;margin:24px auto;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
 [data-theme="light"] .lab-status-tag.is-complete,[data-theme="light"] .lab-checkpoint-result.is-correct .lab-checkpoint-verdict{color:#15803d}
 [data-theme="light"] .lab-checkpoint-result.is-incorrect .lab-checkpoint-verdict{color:#b91c1c}

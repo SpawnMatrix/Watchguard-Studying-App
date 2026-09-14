@@ -19,7 +19,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Quiz accuracy</span>
           <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
         </div>
-        <div className="p-3 bg-watchguard-orange/10 rounded-full">
+        <div className="hidden xl:block p-3 bg-watchguard-orange/10 rounded-full">
           <Award className="w-6 h-6 text-watchguard-orange" />
         </div>
       </div>
@@ -30,7 +30,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Labs completed</span>
           <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / {watchguardLabs.length}</div>
         </div>
-        <div className="p-3 bg-green-500/10 rounded-full">
+        <div className="hidden xl:block p-3 bg-green-500/10 rounded-full">
           <CheckCircle2 className="w-6 h-6 text-green-400" />
         </div>
       </div>
@@ -42,7 +42,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
           <div className="text-3xl font-display font-bold text-white">{history.length}</div>
           <span className="text-xs text-gray-400 block">{history.filter((h) => h.isCorrect).length} answered correctly</span>
         </div>
-        <div className="p-3 bg-blue-500/10 rounded-full">
+        <div className="hidden xl:block p-3 bg-blue-500/10 rounded-full">
           <BookOpen className="w-6 h-6 text-blue-400" />
         </div>
       </div>
