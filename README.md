@@ -274,3 +274,8 @@ The GitHub Actions workflow also builds and publishes an amd64 image to GHCR
 after pushes to `main`. The homelab updater builds from its read-only checkout,
 so it does not require a GitHub Packages token and never stores write access to
 the repository.
+
+Nightly database backups are available as an opt-in timer in the same folder.
+Each backup is verified before older ones are pruned, and nothing is needed on
+the host beyond Docker. See [Automated daily backups](docs/deployment-data.md#automated-daily-backups)
+for installation and restore steps.
