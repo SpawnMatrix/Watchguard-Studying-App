@@ -13,6 +13,7 @@ import { useQuizEngine, type QuizMode, type QuizLaunch } from '../engine/useQuiz
 import { studyQuestions, formatLabels, filtersForNewSession, type ContentMode, type QuestionFormat } from '../engine/catalog';
 import { trackLabels } from '../engine/types';
 import { BOX_COUNT, retainedCount, weakestTopics } from '../engine/srs';
+import { activatesOnEnter, isChosenQuizOption, isTypingTarget, quizShortcut } from '../engine/shortcuts';
 
 export type { QuizHistoryItem };
 interface PracticeQuizProps {onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void;launch?:QuizLaunch|null;onLaunchConsumed?:()=>void}
@@ -20,6 +21,22 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
   const {track}=useLearningTrack();
   const engine=useQuizEngine(onScoreUpdated,track,launch);
   useEffect(()=>{if(launch)onLaunchConsumed?.();},[launch]);
+  const keyQuestion=engine.session.current;
+  const keyOptions=keyQuestion&&(keyQuestion.type??'standard')==='standard'?keyQuestion.options.length:0;
+  // Keyboard study: 1-9 or A-Z choose, Enter checks then moves on. Ignored while typing in a field,
+  // and Enter on a focused button is left to the button so an answer is never checked twice.
+  useEffect(()=>{
+    const onKey=(e:KeyboardEvent)=>{
+      if(e.defaultPrevented||!engine.session.current||engine.loading||isTypingTarget(e.target))return;
+      if(e.key==='Enter'&&activatesOnEnter(e.target)&&!isChosenQuizOption(e.target))return;
+      const current=engine.session.current;
+      const action=quizShortcut({key:e.key,optionCount:keyOptions,hasSelection:engine.session.selected.length>0,submitted:!!engine.session.evaluation,ctrlOrMeta:e.ctrlKey||e.metaKey,altKey:e.altKey});
+      if(!action)return;
+      e.preventDefault();
+      if(action.kind==='select')engine.toggle(current.options[action.index]);else if(action.kind==='submit')engine.submit();else engine.next();
+    };
+    window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
+  });
   const {session:s,deck,srs,loading,notice,correctCount,filtered}=engine;
   const focus=weakestTopics(srs,3);
   const q=s.current;
@@ -45,6 +62,7 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
         {!q&&<div className="quiz-empty"><CheckCircle2 size={42}/><h2>{s.complete?'Exam complete':s.mode==='weakness-review'?'Review complete':'No questions in this selection'}</h2><p>{s.complete?`${examHistory.filter(h=>h.isCorrect).length} of ${examHistory.length} correct · ${examHistory.length?Math.round(examHistory.filter(h=>h.isCorrect).length/examHistory.length*100):0}%`:s.mode==='weakness-review'?'Your weakness deck is clear. Missed concepts return here until you answer them correctly three times.':'Try another topic, question format, or question pool.'}</p>{s.complete&&<DomainBreakdown history={examHistory}/>}{!s.complete&&s.mode!=='weakness-review'&&s.filters.format&&s.filters.format!=='all'&&<button className="secondary-button" onClick={()=>engine.configure(s.mode,{...s.filters,format:'all'})}>Show all question formats</button>}{s.complete&&<button className="primary-button" onClick={()=>engine.configure('mock-exam',filtersForNewSession(s.filters,track))}>Start another exam</button>}</div>}
         {q&&rendererProps&&<>{q.type==='topology'?<TopologyQuizzer {...rendererProps}/>:q.type==='log'?<LogSimulator {...rendererProps}/>:q.type==='ordering'?<PolicyOrderer {...rendererProps} onOrderChange={engine.setOrder}/>:<StandardQuizzer {...rendererProps}/>}
           {s.mode==='weakness-review'&&<p className="review-streak">Correct streak: {deck[q.id]??3}/3</p>}
+          <p className="quiz-shortcut-hint">{s.evaluation?'Press Enter for the next question':keyOptions?`Keys: 1-${keyOptions} or A-${String.fromCharCode(64+keyOptions)} to choose, Enter to check`:'Press Enter to check your answer'}</p>
         </>}
         {notice&&<p className="quiz-notice" role="status">{notice}</p>}
         {s.evaluation&&<div aria-live="polite"><QuizEvaluation evaluation={s.evaluation}/></div>}

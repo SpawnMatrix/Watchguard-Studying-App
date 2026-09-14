@@ -660,3 +660,6 @@ button:disabled{cursor:default}
 .fbx-fieldset legend{font-size:.75rem;color:var(--color-wg-text-muted);padding:0 4px}
 .fbx-portals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:10px}
 .fbx-portals .fbx-card{display:flex;flex-direction:column;gap:8px}
+.quiz-shortcut-hint{margin:10px 0 0;font-size:.72rem;color:var(--color-wg-text-muted)}
+@media (hover:none){.quiz-shortcut-hint{display:none}}
+.section-loading{padding:40px 16px;text-align:center;color:var(--color-wg-text-muted);font-size:.9rem}
