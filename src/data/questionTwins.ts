@@ -47,6 +47,7 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [1131, 1517], // keeping management access narrow without locking yourself out
   [1144, 1518], // an IPS signature exception for a suspected false positive
   [1005, 1501, 1540], // the Fireware CLI over SSH on TCP 4118
+  [1063, 1542], // a static route needs a reachable gateway
   // Network+
   [114, 1612], // OSPF chooses by cost
   [1383, 1442], // recovery point objective
