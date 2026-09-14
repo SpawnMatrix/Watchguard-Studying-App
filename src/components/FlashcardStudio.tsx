@@ -92,7 +92,7 @@ export default function FlashcardStudio() {
   };
 
   const handleResetProgress = () => {
-    if (window.confirm("Are you sure you want to reset your mastered flashcards status?")) {
+    if (window.confirm("Clear the mastered mark from every flashcard on all three tracks? Quiz history and lab progress are not affected.")) {
       setMasteredIds([]);
       writeStudyValue("watchguard_mastered_flashcards", null);
     }
