@@ -7,7 +7,7 @@
  * (simulator state is not saved, step progress is), and it lets labTasks.test.ts prove every check can
  * be satisfied by doing exactly what the lab says, and is not satisfied before.
  *
- * Only single-Firebox labs are hands-on. Labs needing a second Firebox, Active Directory, Dimension or
+ * Only single-Firebox labs are hands-on: 1, 3, 6, 8, 9, 10, 11, 14 and 17. Labs needing a second Firebox, Active Directory, Dimension or
  * WatchGuard Cloud keep their instructions and checkpoints.
  */
 import {
@@ -37,6 +37,13 @@ const afterIndex = (s: FireboxSim, first: (e: FireboxSim['events'][number]) => b
 };
 const policyNamed = (s: FireboxSim, name: string) => s.policies.find(p => p.name.toLowerCase() === name.toLowerCase());
 const manualBackup = (s: FireboxSim) => [...s.backups].reverse().find(b => !b.automatic && b.version === s.version);
+
+/** A lab's finished state, as the starting point for a lab that builds on it, with its history cleared. */
+function afterLab(labId: number): FireboxSim {
+  const lab = handsOnLabs[labId];
+  const done = Object.entries(lab.tasks).sort(([a], [b]) => Number(a) - Number(b)).reduce((s, [, task]) => task.solve(s), lab.initial());
+  return { ...done, events: [], log: [], terminal: [], message: null };
+}
 
 const CONFIGURED_BRIEFING = 'This Firebox already has the Lab 1 configuration: Trusted 10.0.1.1/24 with DHCP, External 203.0.113.2/24, DNS 1.1.1.1 and 8.8.8.8. Admin passphrase: readwrite-pass.';
 
@@ -266,6 +273,128 @@ export const handsOnLabs: Record<number, HandsOnLab> = {
         check: s => s.events.some(e => e.kind === 'policyCheck'),
         solve: s => run(s, { type: 'policyCheck', flow: { protocol: 'tcp', port: 443, srcIp: '10.0.1.2', srcZone: 'Trusted', dst: '198.51.100.40' } }),
       },
+    },
+  },
+};
+
+handsOnLabs[8] = {
+  initial: () => afterLab(6),
+  briefing: 'This Firebox has the Lab 1 configuration plus Lab 6: interface 2 is DMZ, Optional, 192.168.10.1/24. Nothing on the DMZ network answers, which is what this lab relies on.',
+  tasks: {
+    1: {
+      goal: 'On the Management PC page, ping 1.1.1.1 as your baseline and note that it replies through External.',
+      page: 'bench',
+      check: s => s.events.some(e => e.kind === 'ping' && e.dst === '1.1.1.1' && e.replied && e.egress === 'External'),
+      solve: s => run(s, { type: 'ping', host: '1.1.1.1' }),
+    },
+    2: {
+      goal: 'In Network > Link Monitor, monitor External with three targets: Ping 8.8.8.8, DNS 1.1.1.1 querying watchguard.com, and TCP www.watchguard.com on port 80. Measure loss, latency and jitter with the DNS probe.',
+      page: 'linkMonitor',
+      check: s => {
+        const m = s.linkMonitor.find(x => x.ifaceId === 0);
+        if (!m) return false;
+        const has = (type: string, host: string) => m.targets.some(x => x.type === type && x.host === host);
+        return has('Ping', '8.8.8.8') && m.targets.some(x => x.type === 'DNS' && x.host === '1.1.1.1' && x.query.trim() !== '') &&
+          m.targets.some(x => x.type === 'TCP' && x.port === 80) && m.measure !== null && m.targets[m.measure]?.type === 'DNS';
+      },
+      solve: s => run(s, { type: 'setMonitoredInterface', entry: { ifaceId: 0, nextHop: '', measure: 1, targets: [
+        { type: 'Ping', host: '8.8.8.8', port: 0, query: '' },
+        { type: 'DNS', host: '1.1.1.1', port: 53, query: 'watchguard.com' },
+        { type: 'TCP', host: 'www.watchguard.com', port: 80, query: '' },
+      ] } }),
+    },
+    3: {
+      goal: 'Add the DMZ interface to Link Monitor with next hop 192.168.10.2.',
+      page: 'linkMonitor',
+      check: s => s.linkMonitor.some(x => x.ifaceId === 2 && x.nextHop === '192.168.10.2'),
+      solve: s => run(s, { type: 'setMonitoredInterface', entry: { ifaceId: 2, nextHop: '192.168.10.2', measure: null, targets: [] } }),
+    },
+    4: {
+      goal: 'In Network > SD-WAN, add an action named DMZ that uses the DMZ interface. Then edit the Ping policy to route through the DMZ SD-WAN action.',
+      page: 'sdwan',
+      check: s => !!s.sdwanActions.find(a => a.name === 'DMZ')?.interfaces.includes(2) && policyNamed(s, 'Ping')?.sdwan === 'DMZ',
+      solve: s => run(s, { type: 'addSdwanAction', action: { name: 'DMZ', interfaces: [2] } }, { type: 'setPolicy', id: policyNamed(s, 'Ping')!.id, patch: { sdwan: 'DMZ' } }),
+    },
+    5: {
+      goal: 'Ping 1.1.1.1 again and watch it fail, then look at System Status > SD-WAN to see why. Finally remove the SD-WAN action from the Ping policy.',
+      page: 'bench',
+      check: s => s.events.some(e => e.kind === 'ping' && e.dst === '1.1.1.1' && !e.replied) &&
+        s.events.some(e => e.kind === 'view' && e.page === 'sdwanStatus') && policyNamed(s, 'Ping')?.sdwan === '',
+      solve: s => run(s, { type: 'ping', host: '1.1.1.1' }, { type: 'view', page: 'sdwanStatus' }, { type: 'setPolicy', id: policyNamed(s, 'Ping')!.id, patch: { sdwan: '' } }),
+    },
+  },
+};
+
+handsOnLabs[11] = {
+  initial: () => afterLab(10),
+  briefing: 'This Firebox has Lab 10 applied: Outgoing is disabled, DNS only reaches 1.1.1.1 and 8.8.8.8, and HTTP Deny and HTTPS Deny block *.example.com. The management PC does not yet trust the Firebox Proxy Authority.',
+  tasks: {
+    1: {
+      goal: 'In Firewall > Firewall Policies, delete the HTTP Deny and HTTPS Deny policies so the proxies take over.',
+      page: 'policies',
+      check: s => !policyNamed(s, 'HTTP Deny') && !policyNamed(s, 'HTTPS Deny'),
+      solve: s => run(s, { type: 'deletePolicy', id: policyNamed(s, 'HTTP Deny')!.id }, { type: 'deletePolicy', id: policyNamed(s, 'HTTPS Deny')!.id }),
+    },
+    2: {
+      goal: 'In Firewall > Proxy Actions, add a URL Paths rule to Default-HTTP-Client: pattern *example*, action Deny, logging on.',
+      page: 'proxyActions',
+      check: s => s.proxy.urlPaths.some(r => r.action === 'Deny' && r.log && /example/i.test(r.pattern)),
+      solve: s => run(s, { type: 'addUrlPath', rule: { pattern: '*example*', action: 'Deny', log: true } }),
+    },
+    3: {
+      goal: 'On Default-HTTPS-Client, set the action for connections that match no rule to Inspect, using Default-HTTP-Client.',
+      page: 'proxyActions',
+      check: s => s.proxy.httpsNoMatch === 'Inspect',
+      solve: s => run(s, { type: 'setHttpsNoMatch', value: 'Inspect' }),
+    },
+    4: {
+      goal: 'On the Management PC page, download the Proxy Authority certificate from the Certificate Portal, then install it as a trusted root. Try an HTTPS site first if you want to see the warning it fixes.',
+      page: 'bench',
+      check: s => s.pc.trustsProxyCa,
+      solve: s => run(s, { type: 'downloadProxyCa' }, { type: 'installProxyCa' }),
+    },
+    5: {
+      goal: 'Open https://search.lab.test/search?q=example and confirm the proxy blocks the search: it can only see "example" because it is inspecting inside the encrypted session.',
+      page: 'bench',
+      check: s => s.events.some(e => e.kind === 'browse' && e.host === 'search.lab.test' && e.blockedBy === 'proxy'),
+      solve: s => run(s, { type: 'browse', url: 'https://search.lab.test/search?q=example' }),
+    },
+  },
+};
+
+handsOnLabs[14] = {
+  initial: () => afterLab(11),
+  briefing: 'This Firebox has Lab 11 applied: the HTTP-proxy blocks *example* and HTTPS is inspected, and the management PC trusts the Proxy Authority. Web access still comes from Any-Trusted.',
+  tasks: {
+    1: {
+      goal: 'In Authentication > Servers, on Firebox-DB, add a user with a passphrase. Then add a group with that user as a member.',
+      page: 'authServers',
+      check: s => s.auth.groups.some(g => s.auth.users.some(u => u.groups.includes(g))),
+      solve: s => run(s, { type: 'addAuthUser', name: 'jsmith', passphrase: 'jsmith-pass' }, { type: 'addAuthGroup', name: 'Web-Users', members: ['jsmith'] }),
+    },
+    2: {
+      goal: 'Edit the HTTP-proxy and HTTPS-proxy policies: remove Any-Trusted and Any-Optional from From, and add your Firebox-DB group instead.',
+      page: 'policies',
+      check: s => ['HTTP-proxy', 'HTTPS-proxy'].every(name => {
+        const from = policyNamed(s, name)?.from ?? [];
+        return from.some(f => s.auth.groups.includes(f)) && !from.includes('Any-Trusted') && !from.includes('Any-Optional');
+      }),
+      solve: s => {
+        const group = s.auth.groups.find(g => s.auth.users.some(u => u.groups.includes(g)))!;
+        return run(s, ...['HTTP-proxy', 'HTTPS-proxy'].map(name => ({ type: 'setPolicy', id: policyNamed(s, name)!.id, patch: { from: [group] } }) as SimAction));
+      },
+    },
+    3: {
+      goal: 'In Authentication > Settings, enable automatic redirect to the authentication page. Then open a website from the Management PC and confirm you are sent to the login page.',
+      page: 'authSettings',
+      check: s => s.auth.autoRedirect && s.events.some(e => e.kind === 'browse' && e.redirected),
+      solve: s => run(s, { type: 'setAutoRedirect', enabled: true }, { type: 'browse', url: 'https://www.watchguard.com' }),
+    },
+    4: {
+      goal: 'Sign in to the authentication portal as your user, open a website again, and find src_user in Traffic Monitor. Then check System Status > Authentication List for your session.',
+      page: 'bench',
+      check: s => afterIndex(s, e => e.kind === 'authLogin', e => e.kind === 'browse' && e.allowed) && s.events.some(e => e.kind === 'view' && e.page === 'authList'),
+      solve: s => run(s, { type: 'authLogin', user: s.auth.users[0].name, passphrase: 'jsmith-pass' }, { type: 'browse', url: 'https://www.watchguard.com' }, { type: 'view', page: 'authList' }),
     },
   },
 };
