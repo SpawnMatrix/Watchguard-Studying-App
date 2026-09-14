@@ -16,6 +16,7 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 - **"Explain like I'm an L1"**: on a missed answer, a beginner-level breakdown citing the Fireware Web UI menu path and the underlying Network+ concept. Works with AI disabled.
 - **300 flashcards**, resumable quizzes and mock exams, and a weakness deck that requires three correct answers to clear a concept.
 - **Username + six-digit PIN**, recovery codes, account-specific server saves, conflict handling, and optional import of existing browser progress.
+- **Interactive NSE labs**: all 20 Lab Book exercises, each step paired with a checkpoint question (81 in total) that must be answered correctly to complete it. Progress is saved per step and syncs with your account, so a lab can be finished across sessions, with or without a Firebox in front of you.
 - Study Home with observed topic accuracy, recent practice comparisons, activity, and a saved-quiz resume action; all six existing study sections remain available.
 - Persistent learning-track selection, filtered Q&A and flashcards, and explicit track changes for saved quizzes.
 - Dedicated **Topology Lab** with scenario previews, selected-diagram practice, and topology mock exams. Inline SVG diagrams have keyboard-accessible hotspots, fit/readable-size views, optional animation, and complete network details. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).

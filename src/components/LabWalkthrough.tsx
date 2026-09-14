@@ -1,22 +1,37 @@
-import { useMemo, useState } from "react";
-import { Play, Check, AlertCircle, HelpCircle, Terminal, RefreshCw, Layers, ShieldCheck, ChevronRight, CheckCircle } from "lucide-react";
-import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort, LabStep } from "../data/labs";
+import { useEffect, useMemo, useState } from "react";
+import { AlertCircle, ArrowLeft, CheckCircle, ChevronRight, HelpCircle, Layers, RotateCcw, ShieldCheck, Terminal, Trophy } from "lucide-react";
+import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort } from "../data/labs";
+import { checkpointFor } from "../data/labCheckpoints";
+import { entryFor, furthestReachable, isLabFinished, LAB_PROGRESS_KEY, markStepDone, resetLab, setResumeStep, validLabProgress, type LabProgress } from "../engine/labProgress";
+import { readJSON, writeStudyValue } from "../account/storage";
 import { motion, AnimatePresence } from "motion/react";
 import { handleError } from "../utils/errorHandler";
+import LabCheckpointCard, { type CheckpointAttempt } from "./LabCheckpointCard";
 
 interface LabWalkthroughProps {
   onLabCompleted: (labId: number, name: string) => void;
+  /** Lab names already recorded as complete in study progress, including before step tracking existed. */
+  completedLabs?: readonly string[];
 }
 
-export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) {
-  const [labs, setLabs] = useState<Lab[]>(watchguardLabs);
+function loadProgress(): LabProgress {
+  const saved = readJSON<unknown>(LAB_PROGRESS_KEY, {});
+  return validLabProgress(saved) ? saved : {};
+}
+
+export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: LabWalkthroughProps) {
+  const labs: Lab[] = watchguardLabs;
   const [selectedLabId, setSelectedLabId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<LabSort>("number");
   const [categoryFilter, setCategoryFilter] = useState<"All" | LabCategory>("All");
   const [singleFireboxOnly, setSingleFireboxOnly] = useState(false);
+  const [progress, setProgress] = useState<LabProgress>(loadProgress);
   const [activeStepIdx, setActiveStepIdx] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]); // indexes of steps completed
-  
+  // Checkpoint answers for the lab that is open. Session-only: a saved step is already "passed".
+  const [attempts, setAttempts] = useState<Record<number, CheckpointAttempt | null>>({});
+  const [missedSteps, setMissedSteps] = useState<number[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
+
   // Stuck sub-routine state
   const [isStuckMode, setIsStuckMode] = useState(false);
   const [technicianIssue, setTechnicianIssue] = useState("");
@@ -24,9 +39,11 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     analysis: string;
     suggestedCommand: string;
     simulatedLogs: string[];
-    isDemo?: boolean;
+    isDemoMode?: boolean;
   } | null>(null);
   const [isDiagnosing, setIsLoadingDiagnosis] = useState(false);
+
+  useEffect(() => { writeStudyValue(LAB_PROGRESS_KEY, JSON.stringify(progress)); }, [progress]);
 
   // Twenty labs across seven categories, eight of which need kit beyond one Firebox, so the
   // catalogue is browsed rather than just scrolled. Lab number is the default order because the
@@ -36,50 +53,83 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     [labs, sortBy, categoryFilter, singleFireboxOnly]);
 
   const activeLab = labs.find(l => l.id === selectedLabId);
+  const entry = activeLab ? entryFor(progress, activeLab) : null;
+  const activeStep = activeLab?.steps[activeStepIdx];
+  const checkpoint = activeLab && activeStep ? checkpointFor(activeLab.id, activeStep.stepNumber) : undefined;
+  const attempt = attempts[activeStepIdx] ?? null;
+  const stepDone = !!entry?.done.includes(activeStepIdx);
+  // A step with a checkpoint needs a correct answer, or a pass saved from an earlier visit.
+  const canComplete = !checkpoint || stepDone || !!attempt?.correct;
+  const isLastStep = !!activeLab && activeStepIdx + 1 === activeLab.steps.length;
+  const reachable = activeLab ? furthestReachable(progress, activeLab) : 0;
 
-  const handleSelectLab = (id: number) => {
-    setSelectedLabId(id);
-    setActiveStepIdx(0);
-    setCompletedSteps([]);
+  const clearStuck = () => {
     setIsStuckMode(false);
     setStuckDiagnosis(null);
     setTechnicianIssue("");
   };
 
-  const handleClearSelectedLab = () => {
-    setSelectedLabId(null);
+  const handleSelectLab = (id: number) => {
+    const lab = labs.find(l => l.id === id);
+    if (!lab) return;
+    setSelectedLabId(id);
+    setActiveStepIdx(entryFor(progress, lab).step);
+    setAttempts({});
+    setMissedSteps([]);
+    setShowSummary(isLabFinished(progress, lab));
+    clearStuck();
   };
 
-  const handleToggleStuckMode = () => {
-    setIsStuckMode(!isStuckMode);
+  const goToStep = (index: number) => {
+    if (!activeLab || index < 0 || index > reachable) return;
+    setActiveStepIdx(index);
+    setProgress(p => setResumeStep(p, activeLab, index));
+    setShowSummary(false);
+    clearStuck();
   };
 
-  const handleTechnicianIssueChange = (issue: string) => {
-    setTechnicianIssue(issue);
+  const handleAnswer = (choice: string) => {
+    if (!checkpoint) return;
+    const correct = choice === checkpoint.answer;
+    setAttempts(a => ({ ...a, [activeStepIdx]: { choice, correct } }));
+    if (!correct && !missedSteps.includes(activeStepIdx)) setMissedSteps(m => [...m, activeStepIdx]);
   };
 
   const handleStepComplete = () => {
-    if (!activeLab) return;
-    if (!completedSteps.includes(activeStepIdx)) {
-      setCompletedSteps(prev => [...prev, activeStepIdx]);
-    }
+    if (!activeLab || !canComplete) return;
+    const next = markStepDone(progress, activeLab, activeStepIdx);
+    setProgress(next);
 
-    if (activeStepIdx + 1 < activeLab.steps.length) {
-      setActiveStepIdx(prev => prev + 1);
-      setIsStuckMode(false);
-      setStuckDiagnosis(null);
-      setTechnicianIssue("");
-    } else {
-      // Completed last step of lab
+    if (!isLastStep) {
+      setActiveStepIdx(activeStepIdx + 1);
+      clearStuck();
+    } else if (isLabFinished(next, activeLab)) {
       onLabCompleted(activeLab.id, activeLab.name);
+      setShowSummary(true);
+      clearStuck();
+    } else {
+      // Last step passed, but an earlier one was never completed: send them back to it.
+      setActiveStepIdx(furthestReachable(next, activeLab));
     }
   };
 
-  const handleDiagnose = async () => {
-    if (!activeLab || !technicianIssue.trim() || isDiagnosing) return;
-    setIsLoadingDiagnosis(true);
+  const handleRedoLab = () => {
+    if (!activeLab) return;
+    setProgress(p => resetLab(p, activeLab));
+    setActiveStepIdx(0);
+    setAttempts({});
+    setMissedSteps([]);
+    setShowSummary(false);
+    clearStuck();
+  };
 
-    const activeStep = activeLab.steps[activeStepIdx];
+  // Retrying sets an attempt back to null but keeps its key, so this counts steps answered at least once.
+  const answeredThisVisit = Object.keys(attempts).length;
+  const nextLab = activeLab ? orderLabs(labs, { sortBy: "number", category: "All", singleFireboxOnly: false }).find(l => l.id > activeLab.id) : undefined;
+
+  const handleDiagnose = async () => {
+    if (!activeLab || !activeStep || !technicianIssue.trim() || isDiagnosing) return;
+    setIsLoadingDiagnosis(true);
 
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
@@ -114,6 +164,13 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
     }
   };
 
+  const labStatus = (lab: Lab) => {
+    const { done } = entryFor(progress, lab);
+    if (done.length >= lab.steps.length || completedLabs.includes(lab.name)) return { label: "Completed", complete: true };
+    if (done.length > 0) return { label: `${done.length}/${lab.steps.length} steps`, complete: false };
+    return null;
+  };
+
   return (
     /* Both columns are capped to the viewport on large screens. The grid row stretches to the
        tallest column, so without this the 20-lab catalogue drove the row to ~2900px and the
@@ -132,7 +189,7 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
           </span>
         </h3>
 
-        <div className="quiz-filters grid grid-cols-2 gap-2 mb-2">
+        <div className="quiz-filters lab-catalog-filters grid grid-cols-2 gap-2 mb-2">
           <select aria-label="Sort labs" value={sortBy} onChange={e => setSortBy(e.target.value as LabSort)}>
             <option value="number">By number</option>
             <option value="category">By category</option>
@@ -149,29 +206,33 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
             onChange={e => setSingleFireboxOnly(e.target.checked)} />
           <span>Only labs that need one Firebox</span>
         </label>
-        
+
         <div className="flex-1 overflow-y-auto space-y-2.5">
           {visibleLabs.map((lab) => {
             const isSelected = lab.id === selectedLabId;
+            const status = labStatus(lab);
             return (
               <button
                 key={lab.id}
                 onClick={() => handleSelectLab(lab.id)}
+                aria-current={isSelected ? "true" : undefined}
                 className={`w-full text-left p-3.5 rounded-xl border transition-all text-xs font-sans select-none flex items-start space-x-3 ${
-                  isSelected 
-                    ? "bg-watchguard-orange/10 border-watchguard-orange text-white" 
+                  isSelected
+                    ? "bg-watchguard-orange/10 border-watchguard-orange text-white"
                     : "bg-watchguard-dark/40 border-watchguard-border text-gray-400 hover:border-watchguard-border hover:bg-watchguard-lightgray/30"
                 }`}
               >
-                <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border font-mono text-[10px] ${
+                <div className={`mt-0.5 w-5 h-5 shrink-0 rounded-full flex items-center justify-center border font-mono text-[10px] ${
+                  status?.complete ? "bg-green-600 text-white border-green-600" :
                   isSelected ? "bg-watchguard-orange text-white border-watchguard-orange" : "bg-watchguard-lightgray border-watchguard-border text-gray-400"
                 }`}>
-                  {lab.id}
+                  {status?.complete ? <CheckCircle className="w-3 h-3" aria-hidden="true" /> : lab.id}
                 </div>
-                <div className="flex-1 space-y-1">
+                <div className="flex-1 space-y-1 min-w-0">
                   <h4 className={`font-semibold ${isSelected ? "text-watchguard-orange" : "text-gray-200"}`}>{lab.name}</h4>
                   <p className="text-[10px] uppercase tracking-wide text-gray-600">
                     {lab.category}{lab.requiresExtraKit ? " · needs extra kit" : ""}
+                    {status && <span className={`lab-status-tag ${status.complete ? "is-complete" : ""}`}>{status.label}</span>}
                   </p>
                   <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{lab.objectives}</p>
                 </div>
@@ -187,172 +248,234 @@ export default function LabWalkthrough({ onLabCompleted }: LabWalkthroughProps) 
       </div>
 
       {/* Lab Simulation & Guidance Engine / Right Stage */}
-      <div className="lg:col-span-8 flex flex-col h-full lg:max-h-[calc(100vh-8rem)] bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl ">
-        {!selectedLabId ? (
+      <div className="lg:col-span-8 flex flex-col h-full lg:max-h-[calc(100vh-8rem)] bg-watchguard-gray border border-watchguard-border rounded-xl overflow-hidden shadow-2xl min-w-0">
+        {!activeLab || !activeStep || !entry ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
             <div className="p-4 bg-watchguard-orange/5 border border-watchguard-orange/15 rounded-full">
               <ShieldCheck className="w-10 h-10 text-watchguard-orange animate-pulse-soft" />
             </div>
-            <div className="space-y-1 max-w-sm">
-              <h3 className="font-display font-semibold text-white">Select a Certified Lab Exercise</h3>
-              <p className="text-xs text-gray-500 leading-normal">
-                Guide your peer through standard WatchGuard system layouts step-by-step. Get troubleshooting assistance and Traffic Monitor debug checkpoints.
+            <div className="space-y-2 max-w-md">
+              <h3 className="font-display font-semibold text-white">Pick a lab to start</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Each step tells you what to do on a Firebox, then asks a checkpoint question about it. Answer it correctly to complete the step. No Firebox? The checkpoints still drill the menu paths, values and checks the exam asks about. Progress saves as you go.
               </p>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Lab Metadata Header */}
-            <div className="px-6 py-4 bg-watchguard-lightgray border-b border-watchguard-border flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h2 className="font-display font-semibold text-white text-sm sm:text-base">{activeLab?.name}</h2>
-                <p className="text-[10px] font-mono text-gray-500 mt-0.5">Objectives: {activeLab?.objectives}</p>
+            <div className="px-5 py-4 bg-watchguard-lightgray border-b border-watchguard-border space-y-3">
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-display font-semibold text-white text-sm sm:text-base">{activeLab.name}</h2>
+                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">{activeLab.objectives}</p>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed"><span className="text-gray-400 font-semibold">You need:</span> {activeLab.prerequisites}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedLabId(null)}
+                  className="text-[11px] font-mono text-watchguard-orange hover:underline bg-watchguard-dark border border-watchguard-border px-2.5 py-1 rounded shrink-0"
+                >
+                  Back to Catalog
+                </button>
               </div>
-              <button 
-                onClick={() => setSelectedLabId(null)}
-                className="text-[10px] font-mono text-watchguard-orange hover:underline bg-watchguard-dark border border-watchguard-border px-2.5 py-1 rounded"
-              >
-                Back to Catalog
-              </button>
+              {/* Step tracker: passed steps and the next one are reachable; later steps wait. */}
+              <ol className="lab-stepper" aria-label="Lab steps">
+                {activeLab.steps.map((step, index) => {
+                  const done = entry.done.includes(index);
+                  const current = !showSummary && index === activeStepIdx;
+                  return (
+                    <li key={step.stepNumber}>
+                      <button type="button" disabled={index > reachable} onClick={() => goToStep(index)}
+                        aria-current={current ? "step" : undefined}
+                        aria-label={`Step ${step.stepNumber}: ${step.title}${done ? ", completed" : index > reachable ? ", locked until earlier steps are done" : ""}`}
+                        className={`lab-stepper-dot ${done ? "is-done" : ""} ${current ? "is-current" : ""}`}>
+                        {done ? <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" /> : step.stepNumber}
+                      </button>
+                    </li>
+                  );
+                })}
+                <li className="lab-stepper-count">{entry.done.length} of {activeLab.steps.length} steps done</li>
+              </ol>
             </div>
 
-            {/* Active Walkthrough Stage */}
-            <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-              {/* Step Display Card */}
-              <div className="bg-watchguard-dark/60 border border-watchguard-border rounded-xl p-5 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-watchguard-orange"></div>
-                <div className="space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-semibold text-watchguard-orange bg-watchguard-orange/15 border border-watchguard-orange/30 px-2 py-1 rounded uppercase tracking-wider">
-                      Active Step {activeStepIdx + 1} of {activeLab?.steps.length}
-                    </span>
-                    {completedSteps.includes(activeStepIdx) && (
-                      <span className="flex items-center space-x-1 text-xs text-green-400 font-mono font-medium">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        <span>Completed</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-display font-semibold text-white text-sm sm:text-base">
-                    {activeLab?.steps[activeStepIdx].title}
-                  </h3>
-
-                  <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-sans">
-                    {activeLab?.steps[activeStepIdx].instruction}
+            {showSummary ? (
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="lab-summary" role="status">
+                  <Trophy className="w-10 h-10 text-watchguard-orange" aria-hidden="true" />
+                  <h3 className="font-display font-semibold text-white text-lg">Lab complete</h3>
+                  <p className="text-sm text-gray-300">
+                    {/* Only checkpoints answered in this visit count; steps passed in an earlier session have no attempt to judge. */}
+                    {answeredThisVisit === 0
+                      ? `All ${activeLab.steps.length} steps are complete.`
+                      : missedSteps.length === 0
+                        ? `All ${answeredThisVisit} checkpoints you answered were right first time.`
+                        : `${answeredThisVisit - missedSteps.length} of ${answeredThisVisit} checkpoints right first time. Worth revisiting: ${[...missedSteps].sort((a, b) => a - b).map(i => activeLab.steps[i].title).join(", ")}.`}
                   </p>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {nextLab && <button type="button" className="primary-button" onClick={() => handleSelectLab(nextLab.id)}>Next: {nextLab.name}<ChevronRight className="w-4 h-4" /></button>}
+                    <button type="button" className="secondary-button" onClick={() => goToStep(0)}>Review steps</button>
+                    <button type="button" className="secondary-button" onClick={handleRedoLab}><RotateCcw className="w-4 h-4" />Redo lab from scratch</button>
+                  </div>
                 </div>
               </div>
-
-              {/* Troubleshooting sub-routine */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 text-watchguard-orange" />
-                    <span className="text-xs font-semibold text-white">Stuck on this step? Diagnose now:</span>
-                  </div>
-                  <button
-                    onClick={() => setIsStuckMode(!isStuckMode)}
-                    className="text-[10px] font-mono bg-watchguard-orange/10 hover:bg-watchguard-orange/20 text-watchguard-orange border border-watchguard-orange/30 px-3 py-1.5 rounded transition-all"
-                  >
-                    {isStuckMode ? "Close Diagnostic Tool" : "🚨 I'm Stuck!"}
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {isStuckMode && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden space-y-4"
-                    >
-                      <div className="p-4 bg-watchguard-lightgray rounded-xl border border-watchguard-border space-y-3">
-                        <p className="text-xs text-gray-400 leading-normal">
-                          Describe what failed in your configuration (e.g., 'ping is still timing out after setting up static route' or 'SSL certificate warnings show up on my browser'):
-                        </p>
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="text"
-                            value={technicianIssue}
-                            onChange={(e) => setTechnicianIssue(e.target.value)}
-                            placeholder="Describe diagnostic issue..."
-                            className="flex-1 bg-watchguard-dark text-white border border-watchguard-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-watchguard-orange font-sans placeholder:text-gray-600"
-                          />
-                          <button
-                            onClick={handleDiagnose}
-                            disabled={!technicianIssue.trim() || isDiagnosing}
-                            className="bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:bg-watchguard-dark disabled:border-watchguard-border text-white text-xs px-4 py-2 rounded-lg font-semibold transition-all border border-watchguard-orange/40"
-                          >
-                            {isDiagnosing ? "Analyzing Topology..." : "Run Diagnose"}
-                          </button>
-                        </div>
+            ) : (
+              <>
+                {/* Active Walkthrough Stage */}
+                <div className="flex-1 p-5 space-y-5 overflow-y-auto">
+                  {/* Step Display Card */}
+                  <div className="bg-watchguard-dark/60 border border-watchguard-border rounded-xl p-5 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-watchguard-orange"></div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-[10px] font-mono font-semibold text-watchguard-orange bg-watchguard-orange/15 border border-watchguard-orange/30 px-2 py-1 rounded uppercase tracking-wider">
+                          Step {activeStepIdx + 1} of {activeLab.steps.length}
+                        </span>
+                        {stepDone && (
+                          <span className="flex items-center space-x-1 text-xs text-green-400 font-mono font-medium">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span>Completed</span>
+                          </span>
+                        )}
                       </div>
+                      <h3 className="font-display font-semibold text-white text-sm sm:text-base">{activeStep.title}</h3>
+                      <p className="text-gray-300 text-sm leading-relaxed font-sans">{activeStep.instruction}</p>
+                    </div>
+                  </div>
 
-                      {/* Diagnostic Outputs & Interactive Log Consoles */}
-                      {stuckDiagnosis && (
+                  {checkpoint && (
+                    <LabCheckpointCard
+                      checkpoint={checkpoint}
+                      seed={activeLab.id * 100 + activeStep.stepNumber}
+                      attempt={attempt}
+                      passedEarlier={stepDone}
+                      onAnswer={handleAnswer}
+                      onRetry={() => setAttempts(a => ({ ...a, [activeStepIdx]: null }))}
+                    />
+                  )}
+
+                  {/* Troubleshooting sub-routine */}
+                  <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsStuckMode(!isStuckMode)}
+                      aria-expanded={isStuckMode}
+                      className="flex items-center gap-2 text-xs font-semibold text-watchguard-orange bg-watchguard-orange/10 hover:bg-watchguard-orange/20 border border-watchguard-orange/30 px-3 py-2 rounded-lg transition-all"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {isStuckMode ? "Close troubleshooting help" : "Stuck on this step on a real Firebox?"}
+                    </button>
+
+                    <AnimatePresence>
+                      {isStuckMode && (
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden space-y-4"
                         >
-                          {/* Diagnostic Analysis */}
-                          <div className="bg-watchguard-lightgray border border-watchguard-border rounded-xl p-4.5 space-y-3 shadow-lg">
-                            <h4 className="font-display font-semibold text-watchguard-orange text-xs flex items-center space-x-1.5">
-                              <HelpCircle className="w-3.5 h-3.5" />
-                              <span>AUDITOR ANALYSIS</span>
-                            </h4>
-                            <div className="text-gray-300 text-xs leading-relaxed space-y-2 select-text font-sans">
-                              {stuckDiagnosis.analysis.split("\n").map((line, idx) => (
-                                <p key={idx}>{line}</p>
-                              ))}
-                            </div>
-                            <div className="pt-2 border-t border-watchguard-border">
-                              <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block">Suggested Verification:</span>
-                              <code className="text-xs text-watchguard-orange font-mono select-all block mt-1 bg-watchguard-dark px-2 py-1 rounded border border-watchguard-border/50">
-                                {stuckDiagnosis.suggestedCommand}
-                              </code>
+                          <div className="p-4 bg-watchguard-lightgray rounded-xl border border-watchguard-border space-y-3">
+                            <label htmlFor="lab-issue" className="block text-xs text-gray-400 leading-normal">
+                              Describe what failed (for example, 'ping still times out after adding the static route' or 'certificate warnings in my browser'):
+                            </label>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <input
+                                id="lab-issue"
+                                type="text"
+                                value={technicianIssue}
+                                onChange={(e) => setTechnicianIssue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleDiagnose(); }}
+                                placeholder="What went wrong?"
+                                className="flex-1 min-w-[12rem] bg-watchguard-dark text-white border border-watchguard-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-watchguard-orange font-sans placeholder:text-gray-600"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleDiagnose}
+                                disabled={!technicianIssue.trim() || isDiagnosing}
+                                className="bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:opacity-50 text-white text-xs px-4 py-2 rounded-lg font-semibold transition-all border border-watchguard-orange/40"
+                              >
+                                {isDiagnosing ? "Diagnosing…" : "Get help"}
+                              </button>
                             </div>
                           </div>
 
-                          {/* Live simulated console */}
-                          <div className="bg-watchguard-dark border border-watchguard-border rounded-xl p-4 flex flex-col font-mono text-[10px] shadow-lg relative overflow-hidden">
-                            <div className="flex items-center justify-between border-b border-watchguard-border pb-2 mb-2 text-[9px] text-gray-500">
-                              <span className="flex items-center space-x-1">
-                                <Terminal className="w-3 h-3 text-watchguard-orange" />
-                                <span>FSM TRAFFIC MONITOR CONSOLE</span>
-                              </span>
-                              <span className="animate-pulse-soft text-green-500">LIVE FEED</span>
-                            </div>
-                            <div className="flex-1 space-y-1.5 select-all overflow-y-auto max-h-[140px] pr-2">
-                              {stuckDiagnosis.simulatedLogs.map((log, idx) => (
-                                <div key={idx} className="text-gray-400 hover:text-white transition-all bg-watchguard-lightgray/10 p-1.5 rounded border border-watchguard-border/20 leading-relaxed break-all">
-                                  {log}
+                          {/* Diagnostic Outputs & Interactive Log Consoles */}
+                          {stuckDiagnosis && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.98 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                            >
+                              <div className="bg-watchguard-lightgray border border-watchguard-border rounded-xl p-4 space-y-3 shadow-lg">
+                                <h4 className="font-display font-semibold text-watchguard-orange text-xs flex items-center space-x-1.5">
+                                  <HelpCircle className="w-3.5 h-3.5" />
+                                  <span>WHAT TO CHECK</span>
+                                </h4>
+                                {stuckDiagnosis.isDemoMode && (
+                                  <p className="text-[11px] text-gray-500">General guidance matched to your description. AI diagnosis is turned off on this portal.</p>
+                                )}
+                                <div className="text-gray-300 text-xs leading-relaxed space-y-2 select-text font-sans">
+                                  {stuckDiagnosis.analysis.split("\n").map((line, idx) => (
+                                    <p key={idx}>{line.replace(/\*\*/g, "")}</p>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
+                                <div className="pt-2 border-t border-watchguard-border">
+                                  <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block">Suggested verification:</span>
+                                  <code className="text-xs text-watchguard-orange font-mono select-all block mt-1 bg-watchguard-dark px-2 py-1 rounded border border-watchguard-border/50">
+                                    {stuckDiagnosis.suggestedCommand}
+                                  </code>
+                                </div>
+                              </div>
+
+                              <div className="bg-watchguard-dark border border-watchguard-border rounded-xl p-4 flex flex-col font-mono text-[10px] shadow-lg relative overflow-hidden">
+                                <div className="flex items-center justify-between border-b border-watchguard-border pb-2 mb-2 text-[9px] text-gray-500">
+                                  <span className="flex items-center space-x-1">
+                                    <Terminal className="w-3 h-3 text-watchguard-orange" />
+                                    <span>EXAMPLE LOG LINES</span>
+                                  </span>
+                                  <span>Illustrative</span>
+                                </div>
+                                <div className="flex-1 space-y-1.5 select-all overflow-y-auto max-h-[140px] pr-2">
+                                  {stuckDiagnosis.simulatedLogs.map((log, idx) => (
+                                    <div key={idx} className="text-gray-400 bg-watchguard-lightgray/10 p-1.5 rounded border border-watchguard-border/20 leading-relaxed break-all">
+                                      {log}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
                         </motion.div>
                       )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
+                    </AnimatePresence>
+                  </div>
+                </div>
 
-            {/* Step Completion Footer */}
-            <div className="px-6 py-4 bg-watchguard-lightgray border-t border-watchguard-border flex items-center justify-between">
-              <span className="text-xs font-mono text-gray-500">
-                Step Checklist Status: {completedSteps.includes(activeStepIdx) ? "✓ Complete" : "Pending completion..."}
-              </span>
-              <button
-                onClick={handleStepComplete}
-                className="flex items-center space-x-2 bg-watchguard-orange hover:bg-watchguard-orange/95 px-4 py-2.5 rounded-lg text-white font-semibold transition-all border border-watchguard-orange/40"
-              >
-                <span>{activeStepIdx + 1 === activeLab?.steps.length ? "Complete Lab Exercise" : "Confirm Completion & Proceed"}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+                {/* Step Completion Footer: the primary action sits first so it is never pushed off the
+                    right-hand edge of a narrow or partly covered window. */}
+                <div className="px-5 py-3 bg-watchguard-lightgray border-t border-watchguard-border flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={handleStepComplete}
+                    disabled={!canComplete}
+                    title={canComplete ? undefined : "Answer the checkpoint correctly first"}
+                    className="flex items-center space-x-2 bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg text-white font-semibold transition-all border border-watchguard-orange/40"
+                  >
+                    <span>{isLastStep ? "Complete Lab Exercise" : "Confirm Completion & Proceed"}</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(activeStepIdx - 1)}
+                    disabled={activeStepIdx === 0}
+                    className="secondary-button disabled:opacity-40"
+                  >
+                    <ArrowLeft className="w-4 h-4" />Previous step
+                  </button>
+                  <span className="text-xs text-gray-400" role="status">
+                    {stepDone ? "✓ Step complete" : canComplete ? "Checkpoint passed" : "Answer the checkpoint to complete this step"}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

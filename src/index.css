@@ -312,6 +312,39 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .domain-bar{display:block;height:4px;margin-top:4px;border-radius:2px;background:var(--color-wg-border);overflow:hidden}
 .domain-bar span{display:block;height:100%;background:var(--color-watchguard-orange)}
 .domain-breakdown p{margin:12px 0 0}
+/* Lab walkthrough: step tracker, checkpoints, completion summary */
+.lab-stepper{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;padding:0;list-style:none}
+.lab-stepper-dot{width:30px;height:30px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-wg-border);background:var(--color-wg-dark);color:var(--color-wg-text-muted);font:600 .75rem var(--font-mono);cursor:pointer;transition:border-color .15s,background .15s}
+.lab-stepper-dot:hover:not(:disabled){border-color:var(--color-watchguard-orange)}
+.lab-stepper-dot:disabled{opacity:.45;cursor:not-allowed}
+.lab-stepper-dot.is-done{background:#15803d;border-color:#15803d;color:#fff}
+.lab-stepper-dot.is-current{outline:2px solid var(--color-watchguard-orange);outline-offset:2px}
+.lab-stepper-count{margin-left:4px;font-size:.75rem;color:var(--color-wg-text-muted)}
+.lab-status-tag{margin-left:6px;padding:1px 6px;border-radius:999px;border:1px solid var(--color-wg-border);color:var(--color-wg-text-muted);text-transform:none;letter-spacing:0;white-space:nowrap}
+.lab-status-tag.is-complete{border-color:#15803d;color:#4ade80}
+.lab-checkpoint{border:1px solid var(--color-wg-border);border-radius:12px;padding:16px;background:var(--color-wg-gray)}
+.lab-checkpoint-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--color-watchguard-orange)}
+.lab-checkpoint-head h4{margin:0;font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.lab-checkpoint-earlier{font-size:.72rem;color:var(--color-wg-text-muted)}
+.lab-checkpoint-question{margin:10px 0 12px;color:var(--color-wg-text);font-size:.9rem;line-height:1.5}
+.lab-checkpoint-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:8px}
+.lab-checkpoint-option{text-align:left;padding:10px 12px;border:1px solid var(--color-wg-border);border-radius:8px;background:var(--color-wg-dark);color:var(--color-wg-text);font-size:.82rem;line-height:1.4;cursor:pointer;transition:border-color .15s}
+.lab-checkpoint-option:hover:not(:disabled){border-color:var(--color-watchguard-orange)}
+.lab-checkpoint-option:disabled{cursor:default}
+.lab-checkpoint-option.is-correct{border-color:#16a34a;background:color-mix(in srgb,#16a34a 14%,var(--color-wg-dark))}
+.lab-checkpoint-option.is-incorrect{border-color:#dc2626;background:color-mix(in srgb,#dc2626 12%,var(--color-wg-dark))}
+.lab-checkpoint-result{margin-top:12px;padding:12px;border-radius:8px;border:1px solid var(--color-wg-border);font-size:.82rem;line-height:1.5;color:var(--color-wg-text-muted)}
+.lab-checkpoint-result p{margin:0 0 8px}
+.lab-checkpoint-result p:last-child{margin-bottom:0}
+.lab-checkpoint-verdict{display:flex;align-items:center;gap:6px;font-weight:600}
+.lab-checkpoint-result.is-correct .lab-checkpoint-verdict{color:#4ade80}
+.lab-checkpoint-result.is-incorrect .lab-checkpoint-verdict{color:#f87171}
+.quiz-filters.lab-catalog-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:0;border:0;background:none;margin:0 0 8px}
+.lab-catalog-filters select{width:100%;min-width:0}
+.lab-summary{max-width:560px;margin:24px auto;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+[data-theme="light"] .lab-status-tag.is-complete,[data-theme="light"] .lab-checkpoint-result.is-correct .lab-checkpoint-verdict{color:#15803d}
+[data-theme="light"] .lab-checkpoint-result.is-incorrect .lab-checkpoint-verdict{color:#b91c1c}
+[data-theme="light"] .lab-checkpoint-head{color:#a63416}
 @media(max-width:640px){.domain-breakdown{padding:12px}.domain-breakdown thead th:nth-child(2),.domain-breakdown td:nth-child(2){display:none}}
 .network-diagram{display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;padding:18px;background:var(--color-watchguard-dark);border-radius:12px;list-style:none}
 .network-diagram li{flex:1;min-width:120px;display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid var(--color-watchguard-border);border-radius:8px;font-size:.85rem;overflow-wrap:anywhere}.network-diagram strong{color:#f3a287}.network-diagram span{color:#bcc8d8}

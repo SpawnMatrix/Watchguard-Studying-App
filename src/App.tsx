@@ -162,8 +162,8 @@ export default function App() {
     if (!completedLabs.includes(name)) {
       setCompletedLabs(prev => [...prev, name]);
     }
-    // Switch to admin view automatically to see performance report
-    setActiveTab("admin");
+    // Stay on the lab: it shows its own completion summary and the next lab. This used to jump to
+    // the admin tab, which a learner without the admin role cannot use.
   };
 
   const handleProfileSave = (event: FormEvent) => {
@@ -304,7 +304,7 @@ export default function App() {
               {activeTab === "chat" && <GeneralChat />}
               {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} launch={quizLaunch} onLaunchConsumed={()=>setQuizLaunch(null)} />}
               {activeTab === "topology" && <TopologyStudio onPractice={launch=>{setQuizLaunch(launch);setActiveTab('quiz');}}/>}
-              {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} />}
+              {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} completedLabs={completedLabs} />}
               {activeTab === "flashcards" && <FlashcardStudio />}
               {activeTab === "sandbox" && <NetworkSimulator />}
               {activeTab === "admin" && (
