@@ -122,7 +122,7 @@ export const examQuestions: Question[] = [
       "Route to 192.168.10.5, Gateway 192.168.10.1",
       "Route to 10.0.20.0/24, Gateway 192.168.10.5"
     ],
-    correctAnswer: "Route to 10.0.20.0/24, Gateway 192.168.10.5 | Route to 10.0.20.80, Gateway 192.168.10.5",
+    correctAnswer: "Route to 10.0.20.0/24, Gateway 192.168.10.5 | Route to 10.0.20.80/32, Gateway 192.168.10.5",
   correctAnswers: ["Route to 10.0.20.80/32, Gateway 192.168.10.5", "Route to 10.0.20.0/24, Gateway 192.168.10.5"],
     isMultiSelect: true,
     correctAnswersCount: 2,
