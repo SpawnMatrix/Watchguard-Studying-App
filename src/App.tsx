@@ -4,7 +4,7 @@ import { LearningTrackSwitcher, useLearningTrack } from './engine/LearningTrack'
 import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
-import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { tabFromHash } from "./engine/shortcuts";
 import { loadSection } from "./engine/lazySection";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
@@ -18,7 +18,7 @@ const PerformanceDashboard = lazy(() => loadSection(() => import("./components/P
 const NetworkSimulator = lazy(() => loadSection(() => import("./components/NetworkSimulator")));
 const FlashcardStudio = lazy(() => loadSection(() => import("./components/FlashcardStudio")));
 const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, MotionConfig } from "motion/react";
 
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
 const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin"];
@@ -86,6 +86,23 @@ export default function App() {
   const {track} = useLearningTrack();
   // The open section lives in the URL (#labs, #quiz), so a reload keeps your place and Back works.
   const [activeTab, setActiveTab] = useState<Tab>(() => tabFromHash(window.location.hash, TABS) ?? "home");
+  const navigation = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = navigation.current;
+    if (!nav) return;
+    const revealCurrentSection = () => {
+      const current = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!current || nav.scrollWidth <= nav.clientWidth) return;
+      const left = current.getBoundingClientRect().left - nav.getBoundingClientRect().left;
+      if (left < 0 || left + current.offsetWidth > nav.clientWidth) {
+        nav.scrollTo({ left: nav.scrollLeft + left - 18, behavior: 'auto' });
+      }
+    };
+    revealCurrentSection();
+    const observer = new ResizeObserver(revealCurrentSection);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [activeTab]);
   useEffect(() => {
     const current = tabFromHash(window.location.hash, TABS);
     if (current !== activeTab && (current !== null || activeTab !== "home")) window.history.pushState(null, "", `#${activeTab}`);
@@ -212,70 +229,29 @@ export default function App() {
   ];
 
   return (
-    <div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
+    <MotionConfig reducedMotion="user"><div className="app-shell modern-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
       
-      {/* Top Professional Navigation Console Bar */}
       <a className="skip-link" href="#study-content">Skip to study content</a>
-      <header className="app-header bg-watchguard-gray border-b border-watchguard-border z-20">
+      <header className="app-header">
         <div className="app-header-inner">
-          
-          {/* Brand and Certification Metadata */}
-          <div className="flex items-center space-x-3.5">
-            <div className="w-10 h-10 bg-watchguard-orange rounded-xl flex items-center justify-center border border-watchguard-orange/40 shadow-lg shadow-watchguard-orange/10 relative overflow-hidden">
-              <ShieldCheck className="w-6 h-6 text-white" />
-              {/* Overlay sheen */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent"></div>
-            </div>
-            <div>
-              <h1 className="font-display font-bold text-white tracking-tight text-lg sm:text-xl">
-                WatchGuard Study Lab
-              </h1>
-              <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
-                Local Firebox · Network+ · Cloud
-              </p>
-            </div>
-          </div>
-
+          <button className="app-brand" onClick={() => setActiveTab('home')} aria-label="WatchGuard Study Lab home">
+            <span className="brand-mark"><ShieldCheck size={24}/></span>
+            <span><strong>WatchGuard<span>Study Lab</span></strong><small>LEARN. CONFIGURE. MASTER.</small></span>
+          </button>
           <LearningTrackSwitcher />
-
-          {/* Connected Session Telemetry Details & Mode Toggle */}
-          <div className="session-tools flex items-center gap-3.5 flex-wrap md:flex-nowrap">
-            <div className="session-telemetry flex items-center space-x-5 text-xs text-gray-400 bg-watchguard-dark/60 border border-watchguard-border/60 px-4 py-2 rounded-xl flex-wrap gap-2.5">
-              <div className="flex items-center space-x-1.5">
-                <Clock className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span className="font-mono" title={timeZone}>{localTime}</span>
+          <div className="shell-tools">
+            <details className="session-menu" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false; }} onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
+              <summary aria-label={'Account menu for ' + (account.username || profileName || 'learner')}><span className="account-avatar"><UserRound size={17}/></span><span className="account-summary"><strong>{account.username || profileName || "Your account"}</strong><small><i className={isOnline ? 'is-online' : ''}/>{account.status}</small></span></summary>
+              <div className="session-popover">
+                <strong>{account.username || profileName || 'Your workspace'}</strong><p>{account.status}</p>
+                <button onClick={account.open}><UserRound size={16}/>Manage study account</button>
+                <button onClick={() => { setProfileDraft(profileName); setIsProfileEditorOpen(true); }}><Pencil size={16}/>Edit display name</button>
+                <div><Clock size={14}/><span title={timeZone}>{localTime}</span></div>
+                <div><Globe size={14}/><span title={timeZone}>{isOnline ? locale + ' · ' + platform : 'Browser offline'}</span></div>
               </div>
-              <button
-                type="button"
-                onClick={account.open}
-                className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5 hover:text-white transition-colors cursor-pointer"
-                title="Your study account"
-              >
-                <UserRound className="w-3.5 h-3.5 text-watchguard-orange" />
-                <span className="font-mono">{account.username || profileName || "Your account"}</span>
-                <span className="sync-label">{account.status}</span>
-              </button>
-              <div className="flex items-center space-x-1.5 border-l border-watchguard-border pl-5">
-                <Globe className={`w-3.5 h-3.5 ${isOnline ? "text-emerald-400" : "text-red-400"}`} />
-                <span className="font-mono" title={timeZone}>
-                  {isOnline ? `${locale} • ${platform}` : "Browser offline"}
-                </span>
-              </div>
-            </div>
-
-            <button aria-label="Edit display name" title="Edit display name" className="text-gray-400" onClick={() => { setProfileDraft(profileName); setIsProfileEditorOpen(true); }}><Pencil size={16}/></button>
-            {/* SvelteKit-Style Premium Theme Toggle */}
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex items-center justify-center w-9 h-9 rounded-xl border border-watchguard-border bg-watchguard-dark/60 hover:border-watchguard-orange hover:bg-watchguard-lightgray/40 text-gray-400 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg shadow-black/25 relative overflow-hidden group active:scale-95 cursor-pointer"
-              title={theme === "dark" ? "Activate Light Theme" : "Activate Dark Theme"}
-            >
-              <div className="absolute inset-0 bg-gradient-to-tr from-watchguard-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-watchguard-orange group-hover:rotate-45 transition-transform duration-500" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-400 group-hover:-rotate-12 transition-transform duration-500" />
-              )}
+            </details>
+            <button className="theme-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Activate Light Theme' : 'Activate Dark Theme'} aria-label={theme === 'dark' ? 'Activate Light Theme' : 'Activate Dark Theme'}>
+              {theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
           </div>
         </div>
@@ -285,8 +261,8 @@ export default function App() {
       <main className="study-layout">
         
         {/* Tab Navigation Tray */}
-        <nav aria-label="Study sections" className="study-nav">
-          <p className="nav-caption">YOUR WORKSPACE</p>
+        <nav ref={navigation} aria-label="Study sections" className="study-nav">
+          <p className="nav-caption">WORKSPACE</p>
           {tabsConfig.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -299,10 +275,11 @@ export default function App() {
                 className={`study-nav-item ${isActive ? "is-active" : ""}`}
               >
                 <Icon className="w-4 h-4" />
-                <span>{t.label}</span>
+                <span>{t.label}</span><span className="nav-active-dot" aria-hidden="true"/>
               </button>
             );
           })}
+          <div className="nav-note"><ShieldCheck size={20}/><strong>Practice with purpose.</strong><p>Understand the why behind every configuration.</p></div>
         </nav>
 
         {/* Active Learning Component Panel */}
@@ -406,7 +383,6 @@ export default function App() {
                     </button>
                   ) : <span />}
                   <div className="flex gap-2">
-                    {profileName && (
                       <button
                         type="button"
                         onClick={() => {
@@ -417,7 +393,6 @@ export default function App() {
                       >
                         Cancel
                       </button>
-                    )}
                     <button
                       type="submit"
                       disabled={!profileDraft.trim()}
@@ -432,6 +407,6 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div></MotionConfig>
   );
 }

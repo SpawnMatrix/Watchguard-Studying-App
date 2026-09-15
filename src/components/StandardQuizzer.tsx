@@ -10,6 +10,7 @@ interface StandardQuizzerProps {
 }
 
 export default function StandardQuizzer({ question, selectedOptions, isSubmitted, isLoading, onOptionToggle }: StandardQuizzerProps) {
+  const correctAnswers = question.correctAnswers || [question.correctAnswer];
   return (
     <div className="flex flex-col space-y-4">
       {/* Question body */}
@@ -40,8 +41,7 @@ export default function StandardQuizzer({ question, selectedOptions, isSubmitted
           }
           if (isSubmitted) {
             // If this option is correct, highlight green
-            const qCorrect = question.correctAnswers || [question.correctAnswer];
-            const isThisCorrect = qCorrect.includes(opt);
+            const isThisCorrect = correctAnswers.includes(opt);
 
             if (isThisCorrect) {
               optionStyle = "bg-green-500/10 border-green-500 text-green-400";
@@ -56,6 +56,7 @@ export default function StandardQuizzer({ question, selectedOptions, isSubmitted
             <button
               key={idx}
               aria-pressed={isSelected}
+              data-answer-state={isSubmitted ? correctAnswers.includes(opt) ? 'correct' : isSelected ? 'incorrect' : 'other' : undefined}
               data-quiz-option=""
               disabled={isSubmitted || isLoading}
               onClick={() => onOptionToggle(opt)}

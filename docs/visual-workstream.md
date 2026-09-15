@@ -2,6 +2,8 @@
 
 Branch: `codex/visual-topology-workstream`, based on main (ccf8e43). The separate lab/content branch is reference only.
 
+Follow-through: `codex/topology-ui-validation` starts from current main `b1bcc15` (v1.15.0). The original requested diagram, global track selector, Study Home and collapsible quiz settings have already landed on main. This branch preserves those features and the v1 contract, and adds clearer answer feedback and settings navigation. The fetched `feature/expand-lab-book-and-sandbox` branch remains reference only.
+
 ## Topology contract v1 (stable)
 
 The authoritative TypeScript interfaces are in `src/engine/topology.ts`. Authors add `topology: TopologyDiagramData` to a question and use `type: 'topology'`.
@@ -36,5 +38,15 @@ Implemented review: npm ci, lint, 89 tests, and production build pass locally. B
 Visual review: the home view uses an orange-accented resume card, lifetime statistics, topic bars, and a seven-day activity strip. Topology questions expand to the full content column; diagrams retain readable SVG units and scroll within their own region on phones, with normal answer buttons below. Quiz settings collapse into one disclosure row. Progress and account/tutor settings are separate views which remain mounted while switching, preserving form state.
 
 The progress screen previously contained an older admin form rather than the existing secured AdminConsole; it now renders that component without modifying its authorization logic. ReportVisualization is wired to the existing report result. If the optional server analysis rejects a learner without an admin session, the existing local report builder still provides their own practice report.
+
+### v1.15.1 visual follow-through
+
+The same `TopologyDiagramData` contract remains authoritative, with no new required or optional content fields. Selected hotspots have a dot marker; submitted nodes and edges have check/cross markers in addition to green/red feedback. These markers are decorative: the existing keyboard controls and accessible correct/incorrect answer labels remain the source of interaction. Node pulses stop while selected or graded; packet motion still follows the pause control and reduced-motion CSS.
+
+Submitted standard and topology answer buttons retain full opacity, with darker green/red text in light mode. Accounts & tutor settings has Personal tutor and Administrator sections using the existing console button pattern; changing sections keeps both forms mounted. Mobile administrator inputs and actions stack within the card.
+
+Track behavior is unchanged: the exact three header choices plus disabled More coming soon remain persistent per browser username. Q&A, flashcards and the topology catalog filter immediately; new quizzes use the header track. A saved quiz requires the explicit Start [track] session action before its track changes. Labs and Network Sandbox retain local Firebox exercises with a coverage notice. Home totals remain across tracks; the newer exam-readiness view on Progress filters to the selected exam track. No progress schema, account data or database migration changes are involved.
+
+Validation for this follow-through: `npm ci`, `npm run lint`, all 333 tests in 39 files, `npm run build` and `npm run check:release` passed. The load-bearing generator, ordered-policy and guided-challenge tests were not edited. Browser review used `npm run dev` on port 3197 with a separate `.work/ui-review-data` database and a disposable device-only profile. Checked keyboard node selection, wrong-node/correct-edge grading, light/dark diagram and answer styles, pause/fit controls, a 390px mobile viewport without page overflow, the three track choices, persistence after reload and re-entering the device profile, saved-quiz track mismatch notice, flashcard reveal, Cloud Q&A, labs, sandbox, home progress and settings navigation. Server-authorized administrator operations are covered by the existing tests; no real account or production data was used. Reduced motion was verified in the CSS rules, not by changing the operating-system preference.
 
 Dockerfile, workflow files, production data, and the separate lab/content branch are unchanged. GitHub's existing checks cover Node 22/24 and container replacement with persisted account data. The preexisting working-tree edit in deploy/docker/update-watchguard.sh is excluded from this branch's commits.

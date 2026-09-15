@@ -13,6 +13,7 @@ interface TopologyQuizzerProps {
 
 export default function TopologyQuizzer({ question, selectedOptions, isSubmitted, isLoading, onOptionToggle }: TopologyQuizzerProps) {
   const diagram = questionTopology(question);
+  const correctAnswers = question.correctAnswers || [question.correctAnswer];
   return (
     <div className="flex flex-col space-y-4">
       {/* Question body */}
@@ -31,7 +32,7 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
         )}
       </div>
 
-      {diagram && <NetworkTopology diagram={diagram} selected={selectedOptions} correct={question.correctAnswers} submitted={isSubmitted} disabled={isLoading} onSelect={onOptionToggle}/>}
+      {diagram && <NetworkTopology diagram={diagram} selected={selectedOptions} correct={correctAnswers} submitted={isSubmitted} disabled={isLoading} onSelect={onOptionToggle}/>}
 
       {/* Fallback Options Grid (if no hotspots are provided) */}
       {(
@@ -45,8 +46,7 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
               optionStyle = "bg-watchguard-orange/15 border-watchguard-orange text-watchguard-orange shadow-lg shadow-watchguard-orange/5";
             }
             if (isSubmitted) {
-              const qCorrect = question.correctAnswers || [question.correctAnswer];
-              const isThisCorrect = qCorrect.includes(opt);
+              const isThisCorrect = correctAnswers.includes(opt);
 
               if (isThisCorrect) {
                 optionStyle = "bg-green-500/10 border-green-500 text-green-400";
@@ -61,6 +61,7 @@ export default function TopologyQuizzer({ question, selectedOptions, isSubmitted
               <button
                 key={idx}
                 aria-pressed={isSelected}
+                data-answer-state={isSubmitted ? correctAnswers.includes(opt) ? 'correct' : isSelected ? 'incorrect' : 'other' : undefined}
                 disabled={isSubmitted || isLoading}
                 onClick={() => onOptionToggle(opt)}
                 className={`w-full text-left px-5 py-3.5 rounded-xl border transition-all text-xs sm:text-sm flex items-start space-x-3 cursor-pointer ${optionStyle}`}
