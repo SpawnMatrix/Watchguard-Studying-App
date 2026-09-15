@@ -1,7 +1,7 @@
-import { useId, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { Cloud, Monitor, Network, Router, Server, ShieldCheck, Waypoints, Maximize2, Scan, Pause, Play } from 'lucide-react';
 import type { TopologyDiagramData, TopologyHotspot } from '../engine/topology';
-import { topologyEdgeGeometry } from '../engine/topologyGeometry';
+import { diagramOverflowsPanel, topologyEdgeGeometry } from '../engine/topologyGeometry';
 
 interface Props {
   diagram: TopologyDiagramData;
@@ -27,6 +27,19 @@ function lines(text: string, limit = 21) {
 export default function NetworkTopology({ diagram, selected = [], correct = [], submitted = false, disabled = false, onSelect, defaultFit=false }: Props) {
   const id = useId();
   const [fit,setFit]=useState(defaultFit),[paused,setPaused]=useState(false);
+  const scrollRef=useRef<HTMLDivElement>(null),[panelWidth,setPanelWidth]=useState<number|null>(null);
+  // Measured before paint, so a wide panel never flashes a toggle that cannot change anything.
+  useLayoutEffect(()=>{
+    const panel=scrollRef.current;
+    if(!panel)return;
+    const measure=()=>setPanelWidth(panel.clientWidth);
+    measure();
+    if(typeof ResizeObserver==='undefined')return;
+    const observer=new ResizeObserver(measure);
+    observer.observe(panel);
+    return()=>observer.disconnect();
+  },[]);
+  const resizable=diagramOverflowsPanel(panelWidth,diagram.width);
   const hasMotion=diagram.edges.some(e=>e.flow)||diagram.nodes.some(n=>n.active);
   const state = (spot?: TopologyHotspot) => !spot ? '' : submitted && correct.includes(spot.answer) ? 'is-correct' : submitted && selected.includes(spot.answer) ? 'is-incorrect' : selected.includes(spot.answer) ? 'is-selected' : '';
   const controls = (spot?: TopologyHotspot) => spot && onSelect ? {
@@ -38,12 +51,12 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
   } : {};
   return <figure className={`topology-figure ${paused?'motion-paused':''}`}>
     <figcaption><strong>{diagram.title}</strong><span>Network topology · schematic</span></figcaption>
-    <div className="topology-toolbar" role="group" aria-label="Diagram view controls">
-      <button type="button" aria-pressed={fit} onClick={()=>setFit(!fit)}>{fit?<Scan size={15}/>:<Maximize2 size={15}/>} {fit?'Readable size':'Fit diagram'}</button>
+    {(resizable||hasMotion)&&<div className="topology-toolbar" role="group" aria-label="Diagram view controls">
+      {resizable&&<button type="button" aria-pressed={fit} onClick={()=>setFit(!fit)}>{fit?<Scan size={15}/>:<Maximize2 size={15}/>} {fit?'Readable size':'Fit diagram'}</button>}
       {hasMotion&&<button type="button" aria-pressed={paused} onClick={()=>setPaused(!paused)}>{paused?<Play size={15}/>:<Pause size={15}/>} {paused?'Resume packet animation':'Pause packet animation'}</button>}
-      <span>{fit?'Overview · choose Readable size for details':'Scroll to explore wider diagrams'}</span>
-    </div>
-    <div className="topology-scroll" tabIndex={0} role="region" aria-label="Network diagram; scroll horizontally on small screens">
+      {resizable&&<span>{fit?'Overview · choose Readable size for details':'Scroll to explore wider diagrams'}</span>}
+    </div>}
+    <div ref={scrollRef} className="topology-scroll" tabIndex={0} role="region" aria-label="Network diagram; scroll horizontally on small screens">
       <svg className="topology-svg" viewBox={`0 0 ${diagram.width} ${diagram.height}`} style={{ minWidth: fit?0:diagram.width }} role="group" aria-labelledby={`${id}-title ${id}-desc`}>
         <title id={`${id}-title`}>{diagram.title}</title><desc id={`${id}-desc`}>{diagram.description || 'Links show connections, not policy permissions. Use the labeled controls to select an answer.'}</desc>
         {diagram.edges.map(edge => {

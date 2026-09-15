@@ -6,6 +6,7 @@ import { homeMetrics } from './homeMetrics';
 import { parseTrack } from './LearningTrack';
 import NetworkTopology from '../components/NetworkTopology';
 import type { TopologyDiagramData } from './topology';
+import { diagramOverflowsPanel } from './topologyGeometry';
 
 describe('topology compatibility and interactions',()=>{
   it('renders every current topology question without losing its answer keys',()=>{
@@ -33,6 +34,16 @@ describe('topology compatibility and interactions',()=>{
     expect(before).toContain('aria-pressed="true"');expect(before).not.toContain('is-correct');expect(before).not.toContain('is-incorrect');
     const after=renderToStaticMarkup(<NetworkTopology {...props} submitted/>);
     expect(after).toContain('is-correct');expect(after).toContain('is-incorrect');expect(after).toContain('Link — correct answer');expect(after).toContain('Client — incorrect answer');expect(after).toContain('aria-disabled="true"');
+  });
+  it('offers fit and readable size only when the diagram is wider than its panel',()=>{
+    // A 1070-wide scene in a 1127px desktop panel renders identically either way, so no toggle.
+    expect(diagramOverflowsPanel(1127,1070)).toBe(false);
+    expect(diagramOverflowsPanel(1070,1070)).toBe(false);
+    expect(diagramOverflowsPanel(810,1070)).toBe(true);
+    expect(diagramOverflowsPanel(null,1070)).toBe(true);
+    // Before the panel is measured the control is present, not withheld.
+    const diagram:TopologyDiagramData={version:1,title:'Still diagram',width:1070,height:460,nodes:[{id:'a',kind:'client',label:'Client',x:130,y:230}],edges:[]};
+    expect(renderToStaticMarkup(<NetworkTopology diagram={diagram} defaultFit/>)).toContain('Readable size');
   });
 });
 describe('observed progress and track defaults',()=>{

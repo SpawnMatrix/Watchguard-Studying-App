@@ -1,5 +1,14 @@
 import type { TopologyNode } from './topology';
 
+/**
+ * Fit and readable size only differ when the diagram is wider than the panel it is drawn in; on a
+ * wider panel both scale the SVG to the same width and the toggle looks broken. An unmeasured panel
+ * (first render, server markup) counts as too narrow so the control is never withheld by default.
+ */
+export function diagramOverflowsPanel(panelWidth:number|null,diagramWidth:number) {
+  return panelWidth===null||panelWidth<diagramWidth;
+}
+
 /** Keep link labels outside device cards, especially the narrow gaps in stacked layouts. */
 export function topologyEdgeGeometry(from:TopologyNode,to:TopologyNode,label='') {
   const dx=to.x-from.x,dy=to.y-from.y;
