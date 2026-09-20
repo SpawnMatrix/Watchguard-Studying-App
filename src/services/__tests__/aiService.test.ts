@@ -31,7 +31,7 @@ describe('aiService', () => {
       const selectedAnswer = "Option A";
       const correctAnswer = "Option A";
 
-      // Keep console.warn quiet during test
+      // Keep the failure report out of the test output.
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
@@ -48,11 +48,10 @@ describe('aiService', () => {
       expect(result.isCorrect).toBe(true);
       expect(result.weaknessCategory).toBe("Policies");
 
-      expect(errorSpy).toHaveBeenCalledWith(
-        "AI Service evaluateQuizAnswer failed, using local fallback:",
-        expect.any(String)
-      );
-      expect(errorSpy.mock.calls[0][1]).toBe("Simulated API failure");
+      // The fallback is reported, but the upstream failure's own message is
+      // not: it can quote the request that produced it. See docs/privacy.md.
+      expect(errorSpy).toHaveBeenCalledWith("[ai-quiz] failed: Error");
+      expect(errorSpy.mock.calls.flat().join(' ')).not.toContain("Simulated API failure");
 
       errorSpy.mockRestore();
     });
@@ -65,7 +64,7 @@ describe('aiService', () => {
       const selectedAnswer = "Option B";
       const correctAnswer = "Option A";
 
-      // Keep console.warn quiet during test
+      // Keep the failure report out of the test output.
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(function() {});
 
       const result = await evaluateQuizAnswer(
@@ -82,11 +81,10 @@ describe('aiService', () => {
       expect(result.isCorrect).toBe(false);
       expect(result.weaknessCategory).toBe("Policies");
 
-      expect(errorSpy).toHaveBeenCalledWith(
-        "AI Service evaluateQuizAnswer failed, using local fallback:",
-        expect.any(String)
-      );
-      expect(errorSpy.mock.calls[0][1]).toBe("Simulated API failure");
+      // The fallback is reported, but the upstream failure's own message is
+      // not: it can quote the request that produced it. See docs/privacy.md.
+      expect(errorSpy).toHaveBeenCalledWith("[ai-quiz] failed: Error");
+      expect(errorSpy.mock.calls.flat().join(' ')).not.toContain("Simulated API failure");
 
       errorSpy.mockRestore();
     });
