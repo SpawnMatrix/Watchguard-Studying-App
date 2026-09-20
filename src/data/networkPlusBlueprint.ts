@@ -33,6 +33,7 @@ export const N10_009_WEIGHTS: Record<NetworkPlusDomain, { name: string; weight: 
  * though it produces many variants.
  */
 export const NETWORK_PLUS_DOMAIN: Record<number, NetworkPlusDomain> = {
+  2100: 1, 2101: 1, 2102: 1, 2103: 1, 2104: 1, 2110: 3, 2111: 3,
   // 1.0 Networking Concepts -- OSI (1.1), ports and protocols (1.4), IPv4 addressing (1.7), IPv6 (1.8)
   1: 1, 5: 1, 110: 1, 112: 1, 119: 1, 123: 1, 124: 1,
   1300: 1, 1301: 1, 1302: 1, 1303: 1, 1304: 1, 1305: 1, 1306: 1, 1307: 1, 1308: 1,
