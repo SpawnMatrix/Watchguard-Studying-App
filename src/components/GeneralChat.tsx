@@ -90,7 +90,10 @@ export default function GeneralChat() {
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        // Marks this as a request from the study app itself; the server
+        // refuses tutor calls without it. See server/security.ts.
+        "X-Study-Request": "1"
       };
       if (customKey) {
         headers["X-Gemini-API-Key"] = customKey;

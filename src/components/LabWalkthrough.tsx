@@ -154,7 +154,8 @@ export default function LabWalkthrough({ onLabCompleted, completedLabs = [] }: L
     try {
       const customKey = localStorage.getItem("watchguard_custom_gemini_api_key") || "";
       const headers: Record<string, string> = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Study-Request": "1"
       };
       if (customKey) {
         headers["X-Gemini-API-Key"] = customKey;
