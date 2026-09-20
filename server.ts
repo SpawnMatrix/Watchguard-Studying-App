@@ -7,9 +7,9 @@ import dotenv from "dotenv";
 import { AccountStore } from './server/accounts';
 import { accountRoutes } from './server/accountRoutes';
 import { adminRoutes, requireAdmin, assertAdminPasswordSafe, AI_SETTING_KEY } from './server/adminRoutes';
-import { proxyTrustSetting, securityHeaders } from './server/security';
+import { proxyTrustSetting, requireSameSiteWrite, securityHeaders } from './server/security';
 import { logServerError, logServerNotice, logServerWarning } from './server/log';
-import { tutorInputProblem } from './server/tutorInput';
+import { labDiagnosticProblem, quizEvaluationProblem, tutorInputProblem } from './server/tutorInput';
 import { studyQuestions, questionById } from './src/engine/catalog';
 import { generateQuestion, questionTemplates } from './src/engine/templates';
 import { gradeQuestion } from './src/engine/grading';
@@ -102,6 +102,20 @@ const aiLimit = rateLimit({
   message: { message: "Too many tutor requests. Please wait a moment." },
 });
 
+/**
+ * The tutor routes are the app's only path to a third party, and they were the
+ * only writing routes without the cross-site guard every other route carries.
+ * `requireSameSiteWrite` costs a learner nothing — the study app already sends
+ * the header on its account calls — and it stops a page on another origin
+ * driving this deployment's upstream budget with a form post or an image tag.
+ *
+ * It does not make these routes authenticated. See docs/privacy.md: the app
+ * supports studying without an account, so requiring a session here would take
+ * the tutor away from learners who chose that, and that is a product decision
+ * rather than a fix.
+ */
+const tutorGate = [aiLimit, requireSameSiteWrite];
+
 function cleanIdentityHeader(value: string | undefined) {
   return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80) || "";
 }
@@ -165,7 +179,7 @@ app.get("/api/features", (req, res) => {
 
 // Admin Configuration Toggle — now behind a real administrator session
 // rather than a password replayed on every request.
-app.post("/api/admin/toggle-ai", adminOnly, (req, res) => {
+app.post("/api/admin/toggle-ai", requireSameSiteWrite, adminOnly, (req, res) => {
   const enabled = !!req.body?.globalAIEnabled;
   setGlobalAIEnabled(enabled);
   accountStore.setSetting(AI_SETTING_KEY, enabled ? 'true' : 'false');
@@ -173,7 +187,7 @@ app.post("/api/admin/toggle-ai", adminOnly, (req, res) => {
 });
 
 // API Endpoints
-app.post("/api/chat", aiLimit, async (req, res) => {
+app.post("/api/chat", tutorGate, async (req, res) => {
   const { prompt, history } = req.body ?? {};
   const problem = tutorInputProblem(prompt, history);
   if (problem) return res.status(400).json({ message: problem });
@@ -194,8 +208,8 @@ app.post("/api/chat", aiLimit, async (req, res) => {
   }
 });
 
-app.post("/api/quiz/evaluate", aiLimit, async (req, res) => {
-  const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body;
+app.post("/api/quiz/evaluate", tutorGate, async (req, res) => {
+  const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body ?? {};
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   let canonical = questionById.get(questionId);
   if (req.body.variant !== undefined || canonical?.variant) {
@@ -217,6 +231,10 @@ app.post("/api/quiz/evaluate", aiLimit, async (req, res) => {
     }
     return res.json({ isCorrect, detailedExplanation: explanation, weaknessCategory: canonical.topic, correctAnswers: canonical.correctAnswers, isDemoMode: !isAIFeaturesEnabled(customApiKey) });
   }
+  // Everything above answered from the catalogue. Only a question this server
+  // does not know reaches the model, and only within these ceilings.
+  const problem = quizEvaluationProblem(question, options, selectedAnswer, correctAnswer);
+  if (problem) return res.status(400).json({ message: problem });
   try {
     const data = await evaluateQuizAnswer(question, options, selectedAnswer, correctAnswer, questionId, selectedOptions, customApiKey);
     res.json({
@@ -233,8 +251,10 @@ app.post("/api/quiz/evaluate", aiLimit, async (req, res) => {
   }
 });
 
-app.post("/api/lab/diagnostic", aiLimit, async (req, res) => {
-  const { labName, stepTitle, stepInstruction, technicianIssue } = req.body;
+app.post("/api/lab/diagnostic", tutorGate, async (req, res) => {
+  const { labName, stepTitle, stepInstruction, technicianIssue } = req.body ?? {};
+  const problem = labDiagnosticProblem(labName, stepTitle, stepInstruction, technicianIssue);
+  if (problem) return res.status(400).json({ message: problem });
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
     const data = await diagnoseLabFailure(labName, stepTitle, stepInstruction, technicianIssue, customApiKey);
@@ -257,7 +277,7 @@ app.post("/api/lab/diagnostic", aiLimit, async (req, res) => {
  * could reach the port and forwarded it to the model. It is administrative
  * and is now gated accordingly.
  */
-app.post("/api/admin/analyze", adminOnly, async (req, res) => {
+app.post("/api/admin/analyze", requireSameSiteWrite, adminOnly, async (req, res) => {
   const { sessionHistory } = req.body;
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   try {
