@@ -15,7 +15,7 @@ The rule it is measured against:
    account is the goal; an administrator acting alone should not be able to
    take one over.
 
-Line references are against v1.16.0. Sections marked **Open** are things this
+Line references are against v1.17.0. Sections marked **Open** are things this
 inventory found and did not change; each says why.
 
 ---
@@ -101,7 +101,7 @@ code are scrypt-derived, and session tokens are stored only as digests
 This is not optional: rate limiting has to count something per source, and
 counting per source means holding the source for the length of the window.
 
-What changed in v1.16.0 is how long. `throttle()` prunes the buckets it
+What changed in v1.17.0 is how long. `throttle()` prunes the buckets it
 touches, but only when somebody tries to sign in, so an address from a burst
 of traffic sat in the table until the next sign-in attempt — which on a quiet
 portal could be weeks. `pruneExpiredRecords()` (`accounts.ts:248`) now runs at
@@ -266,7 +266,7 @@ a response.
 
 ## 6. Summary
 
-After v1.16.0, in plain language:
+After v1.17.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
