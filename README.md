@@ -62,6 +62,39 @@ Administrator sessions are separate from study sessions, live in an
 account revokes its administrator sessions immediately, and the last
 remaining administrator cannot be removed.
 
+### What an administrator can and cannot do
+
+Deliberately very little. The full reasoning, including what this design does
+*not* protect against, is in [what the portal records](docs/privacy.md).
+
+| Can | Cannot |
+| --- | --- |
+| Approve one recovery request, by a code the learner reads out | List accounts — the route and the query behind it are gone |
+| Promote or demote an administrator by typed username | See any learner's username, sign-up date, progress or last activity |
+| Turn the global AI tutor on or off | Sign another learner out of their devices |
+| See two counts: administrators, and completed recoveries | Read or change anyone's study progress |
+|  | Reset a PIN alone — approval is only half of one |
+
+### Getting back into an account
+
+Three paths, in the order they should be tried:
+
+1. **Still signed in, forgotten the PIN.** Account panel → *Change my PIN*.
+   Nobody else is involved. Every other device signed in as that account is
+   signed out.
+2. **Signed out, still has the recovery code** printed at sign-up. Sign-in
+   screen → *Forgot your PIN?*. Nobody else is involved.
+3. **Signed out and the recovery code is gone.** Sign-in screen → *Lost your
+   recovery code too?*. The learner's own device produces an eight-character
+   code, good for fifteen minutes. They read it to an administrator, who
+   approves that one code and is told nothing about whose account it is. The
+   new PIN is then set **on the device that asked** — an approval is useless
+   anywhere else, including to the administrator who granted it.
+
+   A completed recovery signs out every device on the account, issues a fresh
+   recovery code, and increments a counter visible in the admin console. Who
+   asked, and from where, is not recorded.
+
 ### Authentication protections
 
 - **Layered throttling.** Three persisted buckets — per username, per source

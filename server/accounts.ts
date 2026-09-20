@@ -108,6 +108,48 @@ type UserRow = {
 };
 
 /**
+ * Assisted recovery.
+ *
+ * A request is short-lived by design: it is the window in which an
+ * administrator can be reached and asked to approve one specific code, and
+ * nothing more. Fifteen minutes is long enough for a phone call.
+ */
+const RECOVERY_REQUEST_TTL_MS = 15 * 60_000;
+
+/** Counts recoveries, and deliberately nothing about who or from where. */
+export const RECOVERY_COUNT_KEY = 'recoveriesCompleted';
+
+/**
+ * Alphabet for a code somebody has to read aloud: no 0/O, 1/I/L, 5/S or 8/B.
+ * Eight characters is about 38 bits, which against a 15-minute window and an
+ * administrator-only, rate-limited approval endpoint is not guessable.
+ */
+const CODE_ALPHABET = 'ACDEFGHJKMNPQRTUVWXY2346789';
+
+function newRequestCode(): string {
+  let out = '';
+  while (out.length < 8) {
+    // Rejection sampling, so no character is more likely than another.
+    for (const byte of randomBytes(16)) {
+      if (byte >= 256 - (256 % CODE_ALPHABET.length)) continue;
+      out += CODE_ALPHABET[byte % CODE_ALPHABET.length];
+      if (out.length === 8) break;
+    }
+  }
+  return out;
+}
+
+/** Accepts what a person typed: any case, any spacing, dashes optional. */
+export function canonicalRequestCode(value: unknown): string {
+  if (typeof value !== 'string' || value.length > 40) return '';
+  const stripped = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return stripped.length === 8 && [...stripped].every(c => CODE_ALPHABET.includes(c)) ? stripped : '';
+}
+
+/** `ABCD-EFGH` is easier to read back than `ABCDEFGH`. */
+export const displayRequestCode = (code: string) => `${code.slice(0, 4)}-${code.slice(4)}`;
+
+/**
  * Stand-in salt for a username that does not exist. Sign-in and recovery both
  * derive against it so that the work they do — and therefore how long they
  * take to answer — says nothing about whether the account is real.
@@ -168,7 +210,13 @@ export class AccountStore {
       CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY, account_id INTEGER,
         created_at INTEGER NOT NULL, last_seen INTEGER NOT NULL, expires_at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL);
-      PRAGMA user_version=3;`);
+      -- Assisted recovery. Holds no username, no address and no timestamp of
+      -- when it was asked for: an account id while the request is live, two
+      -- digests, and when it stops being live.
+      CREATE TABLE IF NOT EXISTS recovery_requests (code_hash TEXT PRIMARY KEY,
+        account_id INTEGER NOT NULL REFERENCES accounts(id), device_hash TEXT NOT NULL UNIQUE,
+        approved INTEGER NOT NULL DEFAULT 0, expires_at INTEGER NOT NULL);
+      PRAGMA user_version=4;`);
     // auth_attempts is the pre-hardening throttle table, replaced by
     // auth_failures. Nothing has written to it for several releases, but rows
     // from that era still name accounts that failed to sign in, with no window
@@ -184,8 +232,13 @@ export class AccountStore {
   private credentials(username: unknown, pin: unknown) {
     const name = normalizeUsername(username);
     if (!/^[a-z0-9_]{3,24}$/.test(name)) throw new AccountError(400, 'Use 3–24 letters, numbers, or underscores for your username.');
+    return { name, pin: this.shapedPin(pin) };
+  }
+
+  /** The shape every PIN must have, whether it is being set or checked. */
+  private shapedPin(pin: unknown): string {
     if (typeof pin !== 'string' || !/^\d{6}$/.test(pin)) throw new AccountError(400, 'Use a six-digit PIN.');
-    return { name, pin };
+    return pin;
   }
 
   /** Strength is enforced when a PIN is *set*, never when one is checked. */
@@ -267,6 +320,7 @@ export class AccountStore {
     // their owner out mid-upgrade, and this sweep must not disagree with it.
     removed += run('DELETE FROM sessions WHERE expires_at < ? OR (last_seen > 0 AND last_seen < ?)', now, now - SESSION_IDLE_MS);
     removed += run('DELETE FROM admin_sessions WHERE expires_at < ? OR (last_seen > 0 AND last_seen < ?)', now, now - ADMIN_SESSION_IDLE_MS);
+    removed += run('DELETE FROM recovery_requests WHERE expires_at < ?', now);
     return removed;
   }
 
@@ -421,6 +475,128 @@ export class AccountStore {
     return { ...this.session(user), recoveryCode };
   }
 
+  /**
+   * Changes the PIN of an account that is already signed in.
+   *
+   * This exists so that the commonest reason to need help — "I am still signed
+   * in on this device but I cannot remember my PIN" — never involves an
+   * administrator at all. The recovery code is deliberately left alone: the
+   * learner may already have written it down.
+   *
+   * Every session is retired and a fresh one issued, so changing a PIN also
+   * evicts anyone else signed in as this account.
+   */
+  async changePin(id: number, currentPin: unknown, nextPin: unknown) {
+    const current = this.shapedPin(currentPin);
+    const next = this.shapedPin(nextPin);
+    this.assertStrongPin(next);
+    const user = this.db.prepare('SELECT * FROM accounts WHERE id=?').get(id) as UserRow | undefined;
+    if (!user) throw new AccountError(401, 'Sign in again.');
+    const hash = await deriveSecret(current, user.salt, user.kdf || CURRENT_KDF);
+    if (!same(hash, user.pin_hash)) throw new AccountError(401, 'That is not your current PIN.');
+    const salt = randomBytes(24).toString('hex');
+    const pinHash = await deriveSecret(next, salt);
+    const result = this.db.prepare('UPDATE accounts SET salt=?, pin_hash=?, kdf=? WHERE id=? AND pin_hash=?')
+      .run(salt, pinHash, CURRENT_KDF, id, user.pin_hash);
+    if (!result.changes) throw new AccountError(409, 'Your PIN changed somewhere else. Sign in again.');
+    this.db.prepare('DELETE FROM sessions WHERE account_id=?').run(id);
+    return this.session(user);
+  }
+
+  /* ---------------- assisted recovery ---------------- */
+
+  /**
+   * Step one, on the learner's own device: open a request and return the code
+   * they will read to an administrator.
+   *
+   * A request for a username that does not exist still returns a code. That
+   * code simply has no record behind it, so no approval can match it and no
+   * completion can succeed, which means this endpoint cannot be asked which
+   * usernames are real. It does the same digest work either way.
+   *
+   * One live request per account: asking again replaces the previous code
+   * rather than leaving two in circulation.
+   */
+  openRecoveryRequest(username: unknown, now = Date.now()): { code: string; device: string } {
+    this.db.prepare('DELETE FROM recovery_requests WHERE expires_at < ?').run(now);
+    const code = newRequestCode();
+    const device = randomBytes(32).toString('base64url');
+    const codeHash = digest(code), deviceHash = digest(device);
+    const user = this.db.prepare('SELECT id FROM accounts WHERE username=?').get(normalizeUsername(username)) as
+      { id: number } | undefined;
+    if (user) {
+      this.db.prepare('DELETE FROM recovery_requests WHERE account_id=?').run(user.id);
+      this.db.prepare('INSERT INTO recovery_requests (code_hash,account_id,device_hash,approved,expires_at) VALUES (?,?,?,0,?)')
+        .run(codeHash, user.id, deviceHash, now + RECOVERY_REQUEST_TTL_MS);
+    }
+    return { code, device };
+  }
+
+  /**
+   * Step two, by an administrator: approve one specific code.
+   *
+   * The administrator learns nothing here — not the username, not when the
+   * request was made, not whether the account has ever been used. Only whether
+   * the code they were read is a live one. Satisfying themselves about who
+   * they are talking to happens away from this screen, and the design assumes
+   * it happened.
+   */
+  approveRecoveryRequest(code: unknown, now = Date.now()): void {
+    this.db.prepare('DELETE FROM recovery_requests WHERE expires_at < ?').run(now);
+    const canonical = canonicalRequestCode(code);
+    const changed = canonical
+      ? Number(this.db.prepare('UPDATE recovery_requests SET approved=1 WHERE code_hash=? AND expires_at>?')
+        .run(digest(canonical), now).changes)
+      : 0;
+    if (!changed) throw new AccountError(404, 'No recovery request is waiting for that code.');
+  }
+
+  /**
+   * Step three, back on the device that opened the request: set the new PIN.
+   *
+   * The device credential is what stops an approval being useful to anybody
+   * else, including the administrator who granted it. It is held only by the
+   * browser that asked, and it is spent here.
+   */
+  async completeRecovery(device: string | undefined, pin: unknown, now = Date.now()) {
+    const next = this.shapedPin(pin);
+    this.assertStrongPin(next);
+    if (!device || device.length > 100) throw new AccountError(400, 'Start the recovery again from this device.');
+    const request = this.db.prepare('SELECT code_hash, account_id, approved FROM recovery_requests WHERE device_hash=? AND expires_at>?')
+      .get(digest(device), now) as { code_hash: string; account_id: number; approved: number } | undefined;
+    if (!request) throw new AccountError(400, 'That recovery request has expired. Start again.');
+    if (!request.approved) throw new AccountError(409, 'An administrator has not approved that code yet.');
+    const user = this.db.prepare('SELECT * FROM accounts WHERE id=?').get(request.account_id) as UserRow | undefined;
+    if (!user) throw new AccountError(400, 'That recovery request has expired. Start again.');
+
+    const salt = randomBytes(24).toString('hex');
+    const recoverySalt = randomBytes(24).toString('hex');
+    const pinHash = await deriveSecret(next, salt);
+    const recoveryCode = randomBytes(18).toString('base64url');
+    const recoveryHash = await deriveSecret(recoveryCode, recoverySalt);
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      // Guarded on the request row, so one approval cannot be spent twice.
+      const spent = this.db.prepare('DELETE FROM recovery_requests WHERE code_hash=? AND approved=1').run(request.code_hash);
+      if (!spent.changes) throw new AccountError(409, 'That recovery request has already been used.');
+      this.db.prepare('UPDATE accounts SET salt=?,pin_hash=?,kdf=?,recovery_hash=?,recovery_salt=?,recovery_kdf=? WHERE id=?')
+        .run(salt, pinHash, CURRENT_KDF, recoveryHash, recoverySalt, CURRENT_KDF, user.id);
+      this.db.prepare('DELETE FROM sessions WHERE account_id=?').run(user.id);
+      this.db.prepare('DELETE FROM admin_sessions WHERE account_id=?').run(user.id);
+      this.db.exec('COMMIT');
+    } catch (err) { this.db.exec('ROLLBACK'); throw err; }
+    // The only record kept of a recovery is that one happened.
+    this.setSetting(RECOVERY_COUNT_KEY, String(this.recoveryCount() + 1));
+    this.clearThrottle(user.username);
+    return { ...this.session(user), recoveryCode };
+  }
+
+  /** How many assisted recoveries have completed, ever. Not who, not when. */
+  recoveryCount(): number {
+    const value = Number(this.getSetting(RECOVERY_COUNT_KEY) ?? 0);
+    return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+  }
+
   /* ---------------- administration ---------------- */
 
   adminCount(): number {
@@ -439,16 +615,6 @@ export class AccountStore {
     // Revoking admin must drop any admin session that account already holds.
     if (!isAdmin) this.db.prepare('DELETE FROM admin_sessions WHERE account_id=?').run(user.id);
     return { id: user.id, username: user.username, isAdmin };
-  }
-
-  listAccounts() {
-    return this.db.prepare(`SELECT accounts.id, accounts.username, accounts.is_admin, accounts.created_at,
-        progress.revision, progress.updated_at
-      FROM accounts LEFT JOIN progress ON progress.account_id=accounts.id
-      ORDER BY accounts.created_at ASC`).all() as {
-        id: number; username: string; is_admin: number; created_at: number;
-        revision: number | null; updated_at: number | null;
-      }[];
   }
 
   /** Admin authority is a separate, short-lived credential from the study
