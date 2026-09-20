@@ -18,7 +18,7 @@ if(process.env.SMOKE_EXPECT_BUILD_TIME==='true'){
  assert.equal(release.buildDate,compiled.buildDate,'API and frontend must identify the same build');
  assert.equal(release.version,compiled.version);
 }
-const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,630);assert.equal(catalog.templateCount,62);
+const catalog=(await call('/api/questions')).data;assert.equal(catalog.count,658);assert.equal(catalog.templateCount,62);
 const page=await fetch(base);assert.match(await page.text(),/<div id="root">/);
 if(process.env.SMOKE_VERIFY==='true'){
  const {data}=await call('/api/account/login',{username,pin});assert.equal(data.snapshot.weakness_deck,'{"10001":1}');
