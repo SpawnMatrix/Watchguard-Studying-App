@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Settings, Key, Eye, EyeOff, Lock, Users, ShieldCheck, LogOut } from 'lucide-react';
+import { Settings, Key, Eye, EyeOff, Lock, LifeBuoy, ShieldCheck, LogOut } from 'lucide-react';
 import { handleError } from '../../utils/errorHandler';
 
 interface AdminConsoleProps {
@@ -12,20 +12,13 @@ interface AdminState {
   accountIsAdmin: boolean;
   breakGlassAvailable: boolean;
   adminCount: number;
+  recoveriesCompleted: number;
   globalAIEnabled: boolean;
-}
-
-interface ManagedUser {
-  username: string;
-  isAdmin: boolean;
-  createdAt: number;
-  revision: number;
-  updatedAt: number;
 }
 
 const EMPTY: AdminState = {
   isAdmin: false, username: null, accountIsAdmin: false,
-  breakGlassAvailable: false, adminCount: 0, globalAIEnabled: false,
+  breakGlassAvailable: false, adminCount: 0, recoveriesCompleted: 0, globalAIEnabled: false,
 };
 
 /**
@@ -50,21 +43,15 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
   const [showKey, setShowKey] = useState(false);
   const [password, setPassword] = useState('');
   const [state, setState] = useState<AdminState>(EMPTY);
-  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [roleName, setRoleName] = useState('');
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const data = await adminRequest('/me', undefined, 'GET');
-      setState(data);
-      if (data.isAdmin) {
-        const list = await adminRequest('/users', undefined, 'GET').catch(() => ({ users: [] }));
-        setUsers(list.users ?? []);
-      } else {
-        setUsers([]);
-      }
+      setState(await adminRequest('/me', undefined, 'GET'));
     } catch (err) {
       handleError('Failed to query administrator status', err);
     }
@@ -119,24 +106,34 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
     } finally { setBusy(false); }
   };
 
-  const handleRole = async (username: string, isAdmin: boolean) => {
+  /**
+   * There is no list of accounts to pick from any more, so a role change is
+   * typed. That is the point: the console should not be a roster.
+   */
+  const handleRole = async (isAdmin: boolean) => {
+    const username = roleName.trim().toLowerCase();
+    if (!username) { report('Type the username first.', false); return; }
     setBusy(true); report('', false);
     try {
       await adminRequest('/users/role', { username, isAdmin });
       report(`${username} is ${isAdmin ? 'now an administrator' : 'no longer an administrator'}.`, true);
+      setRoleName('');
       await refresh();
     } catch (err: any) {
       report(err.message || 'Could not change that role.', false);
     } finally { setBusy(false); }
   };
 
-  const handleSignOutUser = async (username: string) => {
+  const handleApproveRecovery = async (event: React.FormEvent) => {
+    event.preventDefault();
     setBusy(true); report('', false);
     try {
-      await adminRequest('/users/sign-out', { username });
-      report(`Signed ${username} out of every device.`, true);
+      await adminRequest('/recovery/approve', { code: recoveryCode });
+      setRecoveryCode('');
+      report('Approved. They can now set a new PIN on the device they started from.', true);
+      await refresh();
     } catch (err: any) {
-      report(err.message || 'Could not sign that account out.', false);
+      report(err.message || 'Could not approve that code.', false);
     } finally { setBusy(false); }
   };
 
@@ -275,41 +272,75 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
                 </button>
               </div>
 
-              {users.length > 0 && (
-                <div className="bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5 space-y-2">
-                  <span className="text-xs text-white font-mono flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-watchguard-orange" />
-                    Learner accounts ({users.length})
-                  </span>
-                  <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
-                    {users.map(user => (
-                      <div key={user.username} className="flex items-center justify-between gap-2 text-[10px] font-mono border-b border-watchguard-border/40 pb-1.5 last:border-0">
-                        <span className="text-gray-200 truncate flex items-center gap-1">
-                          {user.isAdmin && <ShieldCheck className="w-3 h-3 text-watchguard-orange flex-shrink-0" />}
-                          {user.username}
-                        </span>
-                        <span className="text-gray-500 flex-shrink-0">rev {user.revision}</span>
-                        <div className="flex gap-1.5 flex-shrink-0">
-                          <button
-                            onClick={() => handleRole(user.username, !user.isAdmin)}
-                            disabled={busy}
-                            className="text-watchguard-orange hover:text-watchguard-orange/80 underline bg-transparent border-0 cursor-pointer disabled:opacity-50"
-                          >
-                            {user.isAdmin ? 'Demote' : 'Promote'}
-                          </button>
-                          <button
-                            onClick={() => handleSignOutUser(user.username)}
-                            disabled={busy}
-                            className="text-gray-400 hover:text-white underline bg-transparent border-0 cursor-pointer disabled:opacity-50"
-                          >
-                            Sign out
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <form onSubmit={handleApproveRecovery} className="bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5 space-y-2">
+                <span className="text-xs text-white font-mono flex items-center gap-1.5">
+                  <LifeBuoy className="w-3.5 h-3.5 text-watchguard-orange" />
+                  Approve a recovery code
+                </span>
+                <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
+                  Someone who cannot sign in starts recovery on their own device and reads you an
+                  eight-character code. Check who you are talking to first — approving is all you
+                  can do, and you will not be told whose account it is. They choose the new PIN
+                  themselves, on the device they started from.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={recoveryCode}
+                    onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
+                    placeholder="ABCD-EFGH"
+                    aria-label="Recovery request code"
+                    maxLength={20}
+                    className="flex-1 bg-watchguard-gray border border-watchguard-border text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono tracking-widest"
+                  />
+                  <button
+                    type="submit"
+                    disabled={busy || !recoveryCode.trim()}
+                    className="bg-watchguard-orange hover:bg-watchguard-orange/95 disabled:opacity-60 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all border border-watchguard-orange/40 cursor-pointer"
+                  >
+                    Approve
+                  </button>
                 </div>
-              )}
+                <span className="text-[10px] text-gray-500 font-mono block">
+                  {state.recoveriesCompleted} recover{state.recoveriesCompleted === 1 ? 'y has' : 'ies have'} completed on this server.
+                </span>
+              </form>
+
+              <div className="bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5 space-y-2">
+                <span className="text-xs text-white font-mono flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-watchguard-orange" />
+                  Administrator role ({state.adminCount} active)
+                </span>
+                <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
+                  Type a username. There is no list of accounts here, and the last administrator
+                  cannot be removed.
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  <input
+                    value={roleName}
+                    onChange={(e) => setRoleName(e.target.value)}
+                    placeholder="username"
+                    aria-label="Username to promote or demote"
+                    maxLength={24}
+                    className="flex-1 min-w-[8rem] bg-watchguard-gray border border-watchguard-border text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-watchguard-orange/50 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRole(true)}
+                    disabled={busy}
+                    className="text-xs font-semibold px-3 py-2 rounded-lg transition-all border cursor-pointer disabled:opacity-60 bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
+                  >
+                    Promote
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRole(false)}
+                    disabled={busy}
+                    className="text-xs font-semibold px-3 py-2 rounded-lg transition-all border cursor-pointer disabled:opacity-60 bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                  >
+                    Demote
+                  </button>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[10px] text-green-400 font-mono">✓ Authorized Admin Access Active</span>
