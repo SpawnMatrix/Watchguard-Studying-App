@@ -3,6 +3,7 @@ import { rateLimit } from 'express-rate-limit';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { AccountStore, AccountError, deriveSecret } from './accounts';
 import { cookieOptions, readCookie, requireSameSiteWrite } from './security';
+import { logServerWarning } from './log';
 
 export const ADMIN_COOKIE = 'wg_admin_session';
 const STUDY_COOKIE = 'wg_study_session';
@@ -36,7 +37,7 @@ async function adminPasswordMatches(provided: unknown): Promise<boolean> {
 export function assertAdminPasswordSafe() {
   const value = process.env.ADMIN_PASSWORD;
   if (!value) {
-    console.warn('[security] ADMIN_PASSWORD is not set. Break-glass admin access is disabled; ' +
+    logServerWarning('security', 'ADMIN_PASSWORD is not set. Break-glass admin access is disabled; ' +
       'use ADMIN_BOOTSTRAP_USER to grant the first administrator.');
     return;
   }

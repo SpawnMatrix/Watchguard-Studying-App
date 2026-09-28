@@ -127,9 +127,11 @@ export class AccountStore {
       CREATE TABLE IF NOT EXISTS progress (account_id INTEGER PRIMARY KEY REFERENCES accounts(id), revision INTEGER NOT NULL,
         snapshot TEXT NOT NULL, updated_at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS progress_backups (account_id INTEGER NOT NULL REFERENCES accounts(id), revision INTEGER NOT NULL,
-        snapshot TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY(account_id,revision));
-      CREATE TABLE IF NOT EXISTS auth_attempts (username TEXT PRIMARY KEY, failures INTEGER NOT NULL, window_start INTEGER NOT NULL);`);
+        snapshot TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY(account_id,revision));`);
     this.migrate();
+    // A deployment that is never signed into again would otherwise keep the
+    // last attacker's addresses forever; the sweep does not wait for traffic.
+    this.pruneExpiredRecords();
   }
 
   /**
@@ -159,7 +161,13 @@ export class AccountStore {
       CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY, account_id INTEGER,
         created_at INTEGER NOT NULL, last_seen INTEGER NOT NULL, expires_at INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL);
-      PRAGMA user_version=2;`);
+      PRAGMA user_version=3;`);
+    // auth_attempts is the pre-hardening throttle table, replaced by
+    // auth_failures. Nothing has written to it for several releases, but rows
+    // from that era still name accounts that failed to sign in, with no window
+    // that ever closes. It is dropped rather than left to age: it holds
+    // usernames and no code reads it.
+    this.db.exec('DROP TABLE IF EXISTS auth_attempts');
   }
 
   close() { this.db.close(); }
@@ -222,7 +230,37 @@ export class AccountStore {
     this.db.prepare('DELETE FROM auth_failures WHERE scope=? AND key=?').run('user', name);
     if (ip) this.db.prepare('DELETE FROM auth_failures WHERE scope=? AND key=?').run('ip', ip);
     this.db.prepare("UPDATE auth_failures SET failures=MAX(failures-1,0) WHERE scope='global'").run();
-    this.db.prepare('DELETE FROM auth_attempts WHERE username=?').run(name);
+  }
+
+  /**
+   * Retention sweep.
+   *
+   * Throttling is the one place this app holds an IP address, and it holds it
+   * only for as long as the bucket it belongs to is open. `throttle()` already
+   * prunes the scopes it touches, but only when someone tries to sign in, so a
+   * quiet portal kept addresses from the last burst of traffic indefinitely.
+   * Expired sessions had the same shape of problem: they stop working the
+   * moment they expire but the row lingered until the next sign-in.
+   *
+   * Returns the number of rows removed, which is the only thing worth
+   * reporting about a sweep.
+   */
+  pruneExpiredRecords(now = Date.now()): number {
+    const run = (sql: string, ...params: (string | number)[]) =>
+      Number(this.db.prepare(sql).run(...params).changes);
+    let removed = 0;
+    for (const [scope, config] of Object.entries(THROTTLE)) {
+      removed += run('DELETE FROM auth_failures WHERE scope=? AND window_start < ?', scope, now - config.windowMs);
+    }
+    // A scope written by an older or newer build still ages out.
+    removed += run(`DELETE FROM auth_failures WHERE scope NOT IN (${Object.keys(THROTTLE).map(() => '?').join(',')}) AND window_start < ?`,
+      ...Object.keys(THROTTLE), now - WINDOW_MS);
+    // `last_seen = 0` marks a session written before the column existed.
+    // `identify()` lets those run to their absolute expiry rather than signing
+    // their owner out mid-upgrade, and this sweep must not disagree with it.
+    removed += run('DELETE FROM sessions WHERE expires_at < ? OR (last_seen > 0 AND last_seen < ?)', now, now - SESSION_IDLE_MS);
+    removed += run('DELETE FROM admin_sessions WHERE expires_at < ? OR (last_seen > 0 AND last_seen < ?)', now, now - ADMIN_SESSION_IDLE_MS);
+    return removed;
   }
 
   /* ---------------- sessions ---------------- */

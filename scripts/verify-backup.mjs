@@ -14,7 +14,7 @@ import path from 'node:path';
 
 /** Tables the application creates on startup. A backup without them cannot restore a working app. */
 export const REQUIRED_TABLES = [
-  'accounts', 'admin_sessions', 'auth_attempts', 'auth_failures',
+  'accounts', 'admin_sessions', 'auth_failures',
   'progress', 'progress_backups', 'sessions', 'settings',
 ];
 

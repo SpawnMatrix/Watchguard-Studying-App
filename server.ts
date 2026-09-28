@@ -8,6 +8,7 @@ import { AccountStore } from './server/accounts';
 import { accountRoutes } from './server/accountRoutes';
 import { adminRoutes, requireAdmin, assertAdminPasswordSafe, AI_SETTING_KEY } from './server/adminRoutes';
 import { proxyTrustSetting, securityHeaders } from './server/security';
+import { logServerError, logServerNotice, logServerWarning } from './server/log';
 import { tutorInputProblem } from './server/tutorInput';
 import { studyQuestions, questionById } from './src/engine/catalog';
 import { generateQuestion, questionTemplates } from './src/engine/templates';
@@ -65,6 +66,20 @@ app.use(securityHeaders(isProduction));
 
 const accountStore = new AccountStore(path.resolve(process.env.DATA_DIR || 'data', 'study.sqlite'));
 
+/**
+ * Throttling records hold an IP address, and nothing else in this app does.
+ * `AccountStore` prunes the buckets it touches on every sign-in attempt, which
+ * leaves the records of a quiet night sitting until the next morning. Sweeping
+ * on a timer bounds how long an address can exist here to its own 15-minute
+ * window plus this interval, whether or not anyone signs in. Expired sessions
+ * go the same way. `unref` so the sweep never holds the process open.
+ */
+const RETENTION_SWEEP_MS = 5 * 60_000;
+setInterval(() => {
+  try { accountStore.pruneExpiredRecords(); }
+  catch (error) { logServerError('retention', error); }
+}, RETENTION_SWEEP_MS).unref();
+
 // The AI toggle is durable state, not process memory: a restart used to
 // silently revert it, and it could never be consistent across replicas.
 setGlobalAIEnabled(accountStore.getSetting(AI_SETTING_KEY) === 'true');
@@ -116,9 +131,9 @@ app.use((req, _res, next) => {
     const forwarded = Boolean(req.headers["x-forwarded-for"]);
     if (forwarded !== behindProxy) {
       proxyWarningIssued = true;
-      console.warn(forwarded
-        ? "[security] X-Forwarded-For received but TRUSTED_PROXY_HOPS=0, so every client shares one rate-limit bucket. Set TRUSTED_PROXY_HOPS to the number of proxies in front of this process."
-        : "[security] TRUSTED_PROXY_HOPS is set but requests arrive without X-Forwarded-For, so this port is reachable without passing the proxy and a client can choose its own address. Bind the published port to loopback.");
+      logServerWarning('security', forwarded
+        ? "X-Forwarded-For received but TRUSTED_PROXY_HOPS=0, so every client shares one rate-limit bucket. Set TRUSTED_PROXY_HOPS to the number of proxies in front of this process."
+        : "TRUSTED_PROXY_HOPS is set but requests arrive without X-Forwarded-For, so this port is reachable without passing the proxy and a client can choose its own address. Bind the published port to loopback.");
     }
   }
   next();
@@ -170,7 +185,7 @@ app.post("/api/chat", aiLimit, async (req, res) => {
       isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
-    console.error("Chat API failed:", error);
+    logServerError('chat', error);
     res.status(500).json({
       message: "An error occurred while generating tutor feedback.",
       requiresExternalLookup: true,
@@ -209,7 +224,7 @@ app.post("/api/quiz/evaluate", aiLimit, async (req, res) => {
       isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
-    console.error("Quiz Evaluate API failed:", error);
+    logServerError('quiz', error);
     res.status(500).json({
       isCorrect: selectedAnswer === correctAnswer,
       detailedExplanation: "Auditor evaluation server timeout. Please verify with local syllabus rules.",
@@ -228,7 +243,7 @@ app.post("/api/lab/diagnostic", aiLimit, async (req, res) => {
       isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
-    console.error("Lab Diagnostic API failed:", error);
+    logServerError('lab', error);
     res.status(500).json({
       analysis: "Audit daemon communication interrupted. Run Policy Checker locally.",
       suggestedCommand: "Ping failed local router",
@@ -252,7 +267,7 @@ app.post("/api/admin/analyze", adminOnly, async (req, res) => {
       isDemoMode: !isAIFeaturesEnabled(customApiKey)
     });
   } catch (error: any) {
-    console.error("Admin Analyze API failed:", error);
+    logServerError('analysis', error);
     res.status(500).json({
       readinessScore: "0%",
       strengths: [],
@@ -314,7 +329,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`WatchGuard Training Server running on http://localhost:${PORT}`);
+    logServerNotice('startup', `WatchGuard Training Server listening on port ${PORT}`);
   });
 }
 
