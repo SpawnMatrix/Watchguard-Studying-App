@@ -58,6 +58,25 @@ export const changelog: ChangelogEntry[] = [
     ],
   },
   {
+    version: '1.20.0',
+    date: '2026-09-28',
+    headline: 'Get back into your account without handing it to anyone',
+    changes: [
+      { kind: 'new', text: 'Forgotten your PIN while still signed in? **Change my PIN** on your account panel. Nobody else is involved.' },
+      { kind: 'new', text: 'Lost your recovery code as well? Ask for a short code on your own device, read it to an administrator, then set the new PIN back on that same device — an approval is useless anywhere else.' },
+      { kind: 'improved', text: 'Administrators can no longer list accounts, see anyone’s progress or activity, or sign another device out. Approving a recovery does not tell them whose account it was.' },
+    ],
+  },
+  {
+    version: '1.19.0',
+    date: '2026-09-28',
+    headline: 'The sign-in pages stopped hinting at which usernames exist',
+    changes: [
+      { kind: 'fixed', text: 'Account recovery answered noticeably faster for a username that did not exist, so the portal could be asked which names had accounts. Every attempt now costs the same.' },
+      { kind: 'improved', text: 'The tutor now has a firm limit on how much text it will forward, and only accepts requests coming from the study app itself.' },
+    ],
+  },
+  {
     version: '1.18.1',
     date: '2026-09-28',
     headline: 'A BOVPN question described the wrong traffic as unencrypted',
