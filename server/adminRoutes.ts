@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { rateLimit } from 'express-rate-limit';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { AccountStore, AccountError, deriveSecret } from './accounts';
+import type { SuggestionStore } from './suggestions';
 import { cookieOptions, readCookie, requireSameSiteWrite } from './security';
 import { logServerWarning } from './log';
 
@@ -62,7 +63,7 @@ export function requireAdmin(store: AccountStore) {
   };
 }
 
-export function adminRoutes(store: AccountStore) {
+export function adminRoutes(store: AccountStore, suggestions?: SuggestionStore) {
   const router = Router();
 
   router.use((req, res, next) => {
@@ -137,9 +138,11 @@ export function adminRoutes(store: AccountStore) {
       accountIsAdmin: Boolean(user?.isAdmin),
       breakGlassAvailable: adminPasswordConfigured(),
       adminCount: store.adminCount(),
-      // A count, never a list. It is here so an operator can notice assisted
-      // recoveries happening more often than they remember helping with.
+      // Counts, never lists. The first lets an operator notice assisted
+      // recoveries happening more often than they remember helping with; the
+      // second says how much is waiting to be read, not who is waiting.
       recoveriesCompleted: store.recoveryCount(),
+      pendingSuggestions: suggestions?.pendingCount() ?? 0,
       globalAIEnabled: store.getSetting(AI_SETTING_KEY) === 'true',
     });
   });
@@ -170,6 +173,31 @@ export function adminRoutes(store: AccountStore) {
     } catch (err) {
       const known = err instanceof AccountError;
       res.status(known ? err.status : 500).json({ success: false, message: known ? err.message : 'Could not approve that code.' });
+    }
+  });
+
+  /**
+   * The moderation queue.
+   *
+   * This is a second administrative capability, and it is worth naming as one:
+   * until now the only thing an administrator could do about another person
+   * was help them back into their account. Reading a queue of things people
+   * wrote is a different kind of power, so what it shows is bounded — the text
+   * of the post and, only when the author chose to sign it, their name. There
+   * is nothing else to show: the rows carry no account id.
+   */
+  router.get('/suggestions', gate, actionLimit, (_req, res) => {
+    res.json({ suggestions: suggestions?.all() ?? [] });
+  });
+
+  /** Publish, decline or re-file one post, optionally with a reply. */
+  router.post('/suggestions/decide', gate, actionLimit, (req, res) => {
+    if (!suggestions) return res.status(503).json({ success: false, message: 'The board is not configured.' });
+    try {
+      res.json({ success: true, suggestion: suggestions.decide(req.body?.id, req.body?.status, req.body?.reply) });
+    } catch (err) {
+      const known = err instanceof AccountError;
+      res.status(known ? err.status : 500).json({ success: false, message: known ? err.message : 'That could not be saved.' });
     }
   });
 

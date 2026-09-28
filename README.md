@@ -73,6 +73,7 @@ Deliberately very little. The full reasoning, including what this design does
 | Promote or demote an administrator by typed username | See any learner's username, sign-up date, progress or last activity |
 | Turn the global AI tutor on or off | Sign another learner out of their devices |
 | See two counts: administrators, and completed recoveries | Read or change anyone's study progress |
+| Publish, decline or reply to a posted idea | Learn who wrote an anonymous idea |
 |  | Reset a PIN alone — approval is only half of one |
 
 ### Getting back into an account
@@ -94,6 +95,20 @@ Three paths, in the order they should be tried:
    A completed recovery signs out every device on the account, issues a fresh
    recovery code, and increments a counter visible in the admin console. Who
    asked, and from where, is not recorded.
+
+### Ideas & Feedback
+
+Learners can post an idea, anonymously or with their username, and an
+administrator publishes, re-files or declines it with an optional reply. The
+result is the public board, which doubles as a roadmap.
+
+**Anonymous means anonymous to the operator, not only to other learners.** The
+`suggestions` table has no account id and no column that could hold one.
+Posting returns a random claim kept only in the author's browser; the server
+stores its digest and can answer "what happened to this" only when that browser
+asks. Clearing site data loses the thread permanently, and the posting form
+says so. Posting needs a signed-in learner as a spam control; which learner is
+never written down. Full reasoning in [what the portal records](docs/privacy.md).
 
 ### Authentication protections
 
