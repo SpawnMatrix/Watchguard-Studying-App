@@ -107,6 +107,13 @@ type UserRow = {
   recovery_hash: string; recovery_salt: string; recovery_kdf: string; is_admin: number;
 };
 
+/**
+ * Stand-in salt for a username that does not exist. Sign-in and recovery both
+ * derive against it so that the work they do — and therefore how long they
+ * take to answer — says nothing about whether the account is real.
+ */
+const ABSENT_ACCOUNT_SALT = 'unknown-account-dummy-salt';
+
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60_000;
 const SESSION_IDLE_MS = 7 * 24 * 60 * 60_000;
 const SESSIONS_PER_ACCOUNT = 10;
@@ -349,7 +356,7 @@ export class AccountStore {
     // Unknown accounts still pay the full derivation cost so response time
     // does not distinguish "no such user" from "wrong PIN".
     const spec = user?.kdf ?? CURRENT_KDF;
-    const hash = await deriveSecret(c.pin, user?.salt ?? 'unknown-account-dummy-salt', spec);
+    const hash = await deriveSecret(c.pin, user?.salt ?? ABSENT_ACCOUNT_SALT, spec);
     if (!user || !same(hash, user.pin_hash)) throw new AccountError(401, 'Username or PIN did not match.');
     // A recovery completed while this request was hashing must invalidate
     // the credential read taken before it.
@@ -374,11 +381,25 @@ export class AccountStore {
     this.assertStrongPin(c.pin);
     this.throttle(c.name, ip);
     const user = this.db.prepare('SELECT * FROM accounts WHERE username=?').get(c.name) as UserRow | undefined;
-    const trimmed = typeof code === 'string' ? code.trim() : '';
-    const attempted = typeof code === 'string' && code.length <= 100 && user
-      ? await deriveSecret(trimmed, user.recovery_salt ?? '', user.recovery_kdf || LEGACY_DIGEST_KDF)
+    const supplied = typeof code === 'string' && code.length <= 100 ? code.trim() : '';
+    /**
+     * Recovery used to derive a key only when the account existed, so an
+     * invented username came back in about a millisecond and a real one cost a
+     * full scrypt. That is an unlimited account-existence oracle for anyone
+     * willing to time the response, and it does not need a valid recovery code
+     * to work.
+     *
+     * Every path now pays one current-scheme derivation. An account still
+     * carrying the unsalted legacy scheme verifies cheaply, so it pays the
+     * floor as well; an absent account pays only the floor. All three land
+     * within the noise of each other, which is the property that matters.
+     */
+    const scheme = user ? (user.recovery_kdf || LEGACY_DIGEST_KDF) : CURRENT_KDF;
+    const attempted = user
+      ? await deriveSecret(supplied, user.recovery_salt ?? '', scheme)
       : '';
-    if (!user || !attempted || !same(attempted, user.recovery_hash)) {
+    if (scheme !== CURRENT_KDF || !user) await deriveSecret(supplied, ABSENT_ACCOUNT_SALT, CURRENT_KDF);
+    if (!user || !supplied || !same(attempted, user.recovery_hash)) {
       throw new AccountError(401, 'Username or recovery code did not match.');
     }
     const salt = randomBytes(24).toString('hex');

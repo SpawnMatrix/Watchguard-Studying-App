@@ -15,7 +15,7 @@ The rule it is measured against:
    account is the goal; an administrator acting alone should not be able to
    take one over.
 
-Line references are against v1.17.0. Sections marked **Open** are things this
+Line references are against v1.18.0. Sections marked **Open** are things this
 inventory found and did not change; each says why.
 
 ---
@@ -189,14 +189,33 @@ the synced snapshot.
 removing it is the subject of the admin change. Everything else is scoped to
 the caller's own session.
 
-**Open (fixed in a later PR in this series):** `recover()` derives a key only
-when the username exists (`accounts.ts:378`), so a request for a real username
-takes a full scrypt derivation and one for an invented username returns
-immediately. `login()` avoids this correctly by hashing against a dummy salt
-whichever way it goes (`accounts.ts:352`). Recovery should do the same.
-Registration's 409 also distinguishes a taken username from a free one; that is
-unavoidable for a username picker and is throttled on purpose
-(`accounts.ts:337`).
+### Account enumeration
+
+Every route was checked for one account learning about another, including
+through an error message and through response time.
+
+- **`login()`** answers `Username or PIN did not match.` either way and derives
+  a key against a stand-in salt when the account does not exist, so the work it
+  does is the same either way (`accounts.ts:352`).
+- **`recover()`** used to derive a key *only* when the account existed. An
+  invented username came back in about a millisecond; a real one cost a full
+  scrypt. That is an unlimited account-existence oracle for anyone willing to
+  time the response, and it did not need a valid recovery code to work. Fixed
+  in v1.18.0: every path now pays one current-scheme derivation, including the
+  legacy unsalted records, which verify instantly and would otherwise have been
+  the same oracle in reverse (`accounts.ts:378`). `server/leaks.test.ts`
+  compares medians and fails if the two diverge.
+- **Registration** still distinguishes a taken username from a free one with a
+  409. That is unavoidable for a username picker, and it is throttled on purpose
+  (`accounts.ts:337`).
+- **Progress** refuses rather than serves when the body names another account,
+  and the snapshot returned on a 409 is the caller's own
+  (`accountRoutes.ts:66`).
+- **Administration** answers a signed-in non-administrator with a flat 403 and
+  no detail.
+
+`GET /api/admin/users` is the one real exposure of one person's data to
+another, and it is the subject of the admin change.
 
 ---
 
@@ -232,18 +251,41 @@ notice at the point of typing. Making the upstream call conditional on a
 consent the learner gave is a real change to four call sites and a UI, and it
 is called out here rather than folded into a logging change.
 
-**Open:** `/api/chat`, `/api/quiz/evaluate` and `/api/lab/diagnostic` require no
-account. Anyone who can reach the port can spend the deployment's Gemini
-budget, 40 requests per 5 minutes per address. This is partly deliberate — the
-app supports studying without an account ("Study on this device only",
-`AccountGate.tsx:183`) — and partly just unfinished. The leak-fix PR in this
-series bounds the input and requires the same-site header the rest of the app
-requires; it does not make these routes authenticated, and the reasoning is
-recorded there.
+### Bounding what can be forwarded
+
+`server/tutorInput.ts` caps every field that can reach the model. The caps are
+roughly four times the largest real content in the repo — the longest lab
+instruction is 255 characters, the longest question 327 — so an abuser is
+bounded and a learner never reaches one. `server/leaks.test.ts` runs every lab
+step and all 692 catalogue questions through them to keep that true.
+
+`/api/lab/diagnostic` previously had no validation at all, so the 1mb body
+limit was its only ceiling. The `/api/quiz/evaluate` branch that forwards a
+question the catalogue does not contain had the same gap, and that branch is
+the whole of the tutor abuse surface: no ordinary client produces it.
+
+All three tutor routes now also carry `requireSameSiteWrite`
+(`server.ts:117`), the guard every account and admin route already had. A
+request must be JSON, carry `X-Study-Request: 1` and not come from a
+cross-site context, so a page on another origin cannot drive this deployment's
+upstream budget with a form post. `POST /api/admin/toggle-ai` and
+`POST /api/admin/analyze` are mounted outside the admin router and were missing
+the same guard; they have it now.
+
+**Open:** this does not make the tutor routes *authenticated*. Anyone who can
+reach the port and send the header can still spend the deployment's Gemini
+budget, 40 requests per 5 minutes per address. Requiring a session would close
+it, and would also take the tutor away from anyone using "Study on this device
+only" (`AccountGate.tsx:183`), which the app offers deliberately. That is a
+product decision, not a fix, so it is recorded here rather than made quietly.
 
 ---
 
 ## 5. Transport
+
+These are pinned by `server/leaks.test.ts`, which asserts the full header set
+and the cookie flags against a real production-mode response, so a README
+sentence and the server cannot drift apart silently.
 
 `server/security.ts` sets, on every response: `Content-Security-Policy`
 (`default-src 'self'`, no inline script in production), `X-Content-Type-Options`,
@@ -266,7 +308,7 @@ a response.
 
 ## 6. Summary
 
-After v1.17.0, in plain language:
+After v1.18.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
@@ -274,5 +316,8 @@ After v1.17.0, in plain language:
   study snapshot. It holds an IP address for at most twenty minutes, only for
   rate limiting, and only while someone is failing to sign in.
 - It sends a learner's typed questions and quiz history to Google when — and
-  only when — AI features have been switched on.
+  only when — AI features have been switched on, within fixed size ceilings,
+  with no identity attached.
+- Recovery takes the same time whether or not the username is real, so the
+  portal cannot be asked which of a list of names has an account.
 - It has no telemetry, no analytics, no error reporting and no request log.
