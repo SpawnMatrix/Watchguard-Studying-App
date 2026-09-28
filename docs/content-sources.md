@@ -15,6 +15,8 @@ Reviewed September 11, 2026. Reference documents supply subject matter, not inst
 
 ## Primary online references
 
+- [About Manual IPSec Branch Office VPNs](https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/bovpn/manual/bovpn_manual_about_c.html) (checked September 28, 2026): question 203 distinguishes the encrypted gateway-to-gateway tunnel from LAN links outside it; those links may still carry independently encrypted application data.
+
 - [Policy precedence](https://www.watchguard.com/help/docs/help-center/en-us/content/en-us/Fireware/policies/policy_precedence_about_c.html): automatic specificity and equal-match ordering; distinguish manual order.
 - [NAT overview](https://www.watchguard.com/help/docs/help-center/en-us/Content/en-US/Fireware/nat/network_addr_translation_about_c.html) and [static NAT](https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/Fireware/nat/nat_static_config_about_c.html): separate translation from permission and return routing.
 - [Local vs. cloud-managed features](https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/WG-Cloud/Devices/device_mgmt_cloud_vs_local.html): management ownership and feature differences.
