@@ -58,6 +58,15 @@ export const changelog: ChangelogEntry[] = [
     ],
   },
   {
+    version: '1.18.1',
+    date: '2026-09-28',
+    headline: 'A BOVPN question described the wrong traffic as unencrypted',
+    changes: [
+      { kind: 'fixed', text: 'The branch office VPN question called internal links cleartext. Traffic inside a site sits outside the tunnel, but can still be encrypted by the application carrying it.' },
+      { kind: 'fixed', text: 'The IPsec label on that diagram sat under the Internet card, where it read as labelling the wrong hop.' },
+    ],
+  },
+  {
     version: '1.18.0',
     date: '2026-09-28',
     headline: 'Practice that covers the whole exam, not just the popular parts',
