@@ -9,7 +9,7 @@ import { tabFromHash } from "./engine/shortcuts";
 import { loadSection } from "./engine/lazySection";
 import { markChangelogSeen, unseenChangelogCount } from "./engine/changelogSeen";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
-import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil, History } from "lucide-react";
+import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil, History, Lightbulb } from "lucide-react";
 // Study Home loads with the app; every other section is fetched the first time it is opened, so the
 // first visit does not download the lab simulator, the sandbox and the whole question bank at once.
 const GeneralChat = lazy(() => loadSection(() => import("./components/GeneralChat")));
@@ -19,11 +19,12 @@ const PerformanceDashboard = lazy(() => loadSection(() => import("./components/P
 const NetworkSimulator = lazy(() => loadSection(() => import("./components/NetworkSimulator")));
 const FlashcardStudio = lazy(() => loadSection(() => import("./components/FlashcardStudio")));
 const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
+const Suggestions = lazy(() => loadSection(() => import("./components/Suggestions")));
 const WhatsNew = lazy(() => loadSection(() => import("./components/WhatsNew")));
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news";
-const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news"];
+type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news" | "ideas";
+const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news", "ideas"];
 
 interface QuizHistoryItem {
   questionId: number;
@@ -218,7 +219,8 @@ export default function App() {
     { id: "flashcards", label: "Flashcards", icon: BookMarked },
     { id: "sandbox", label: "Network Sandbox", icon: Terminal },
     { id: "admin", label: "Progress & Admin", icon: BarChart3 },
-    { id: "news", label: "What's New", icon: History }
+    { id: "news", label: "What's New", icon: History },
+    { id: "ideas", label: "Ideas & Feedback", icon: Lightbulb }
   ];
 
   return (
@@ -351,6 +353,7 @@ export default function App() {
                 />
               )}
               {activeTab === "news" && <WhatsNew />}
+              {activeTab === "ideas" && <Suggestions />}
               </Suspense>
               </SectionErrorBoundary>
             </motion.div>

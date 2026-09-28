@@ -48,6 +48,16 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.22.0',
+    date: '2026-09-28',
+    headline: 'Share an idea and follow its progress',
+    changes: [
+      { kind: 'new', text: 'The **Ideas & Feedback** board lets signed-in learners suggest improvements, anonymously or with their username.' },
+      { kind: 'new', text: 'Published ideas show their status and an administrator’s reply. **My ideas** also shows your submissions while they await review.' },
+      { kind: 'improved', text: 'Your browser keeps the link to your submissions. Clearing its storage loses access to those submissions in My ideas, so keep personal details out of your posts.' },
+    ],
+  },
+  {
     version: '1.21.0',
     date: '2026-09-28',
     headline: 'See what changed while you were away',

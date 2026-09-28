@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Settings, Key, Eye, EyeOff, Lock, LifeBuoy, ShieldCheck, LogOut } from 'lucide-react';
+import { Settings, Key, Eye, EyeOff, Lock, LifeBuoy, ShieldCheck, LogOut, Lightbulb, UserRound } from 'lucide-react';
 import { handleError } from '../../utils/errorHandler';
 
 interface AdminConsoleProps {
@@ -13,12 +13,29 @@ interface AdminState {
   breakGlassAvailable: boolean;
   adminCount: number;
   recoveriesCompleted: number;
+  pendingSuggestions: number;
   globalAIEnabled: boolean;
 }
 
+interface QueuedSuggestion {
+  id: number;
+  body: string;
+  displayName: string | null;
+  status: 'pending' | 'declined' | 'open' | 'planned' | 'shipped';
+  adminReply: string | null;
+  createdAt: number;
+}
+
+const DECISIONS: { status: QueuedSuggestion['status']; label: string; className: string }[] = [
+  { status: 'open', label: 'Considering', className: 'bg-sky-500/10 text-sky-400 border-sky-500/30 hover:bg-sky-500/20' },
+  { status: 'planned', label: 'Planned', className: 'bg-watchguard-orange/10 text-watchguard-orange border-watchguard-orange/30 hover:bg-watchguard-orange/20' },
+  { status: 'shipped', label: 'Shipped', className: 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20' },
+  { status: 'declined', label: 'Decline', className: 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20' },
+];
+
 const EMPTY: AdminState = {
   isAdmin: false, username: null, accountIsAdmin: false,
-  breakGlassAvailable: false, adminCount: 0, recoveriesCompleted: 0, globalAIEnabled: false,
+  breakGlassAvailable: false, adminCount: 0, recoveriesCompleted: 0, pendingSuggestions: 0, globalAIEnabled: false,
 };
 
 /**
@@ -45,13 +62,24 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
   const [state, setState] = useState<AdminState>(EMPTY);
   const [recoveryCode, setRecoveryCode] = useState('');
   const [roleName, setRoleName] = useState('');
+  const [queue, setQueue] = useState<QueuedSuggestion[]>([]);
+  const [replies, setReplies] = useState<Record<number, string>>({});
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      setState(await adminRequest('/me', undefined, 'GET'));
+      const data = await adminRequest('/me', undefined, 'GET');
+      setState(data);
+      // The queue is the only list this console still fetches, and it is a
+      // list of things people wrote rather than of the people who wrote them.
+      if (data.isAdmin) {
+        const board = await adminRequest('/suggestions', undefined, 'GET').catch(() => ({ suggestions: [] }));
+        setQueue(board.suggestions ?? []);
+      } else {
+        setQueue([]);
+      }
     } catch (err) {
       handleError('Failed to query administrator status', err);
     }
@@ -121,6 +149,25 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
       await refresh();
     } catch (err: any) {
       report(err.message || 'Could not change that role.', false);
+    } finally { setBusy(false); }
+  };
+
+  /**
+   * Publish, re-file or decline one idea, with an optional reply.
+   *
+   * There is nothing here to identify the author with: the rows carry no
+   * account id, and a name appears only when its author chose to attach one.
+   */
+  const handleDecide = async (id: number, status: QueuedSuggestion['status']) => {
+    setBusy(true); report('', false);
+    try {
+      const reply = replies[id];
+      await adminRequest('/suggestions/decide', { id, status, ...(reply === undefined ? {} : { reply }) });
+      setReplies(previous => { const next = { ...previous }; delete next[id]; return next; });
+      report(`Marked as ${status}.`, true);
+      await refresh();
+    } catch (err: any) {
+      report(err.message || 'Could not save that decision.', false);
     } finally { setBusy(false); }
   };
 
@@ -340,6 +387,59 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
                     Demote
                   </button>
                 </div>
+              </div>
+
+              <div className="bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5 space-y-2.5">
+                <span className="text-xs text-white font-mono flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-watchguard-orange" />
+                  Ideas &amp; feedback
+                  {state.pendingSuggestions > 0 && (
+                    <span className="text-[10px] bg-watchguard-orange text-white px-1.5 rounded-full">
+                      {state.pendingSuggestions} waiting
+                    </span>
+                  )}
+                </span>
+                {queue.length === 0 ? (
+                  <p className="text-[10px] text-gray-500 font-mono">Nothing posted yet.</p>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto space-y-2.5 pr-1">
+                    {queue.map(item => (
+                      <div key={item.id} className="border border-watchguard-border/60 rounded-lg p-2.5 space-y-2">
+                        <div className="flex items-center justify-between gap-2 text-[10px] font-mono">
+                          <span className="text-gray-500 flex items-center gap-1">
+                            {item.displayName
+                              ? <><UserRound className="w-3 h-3" />{item.displayName}</>
+                              : <><EyeOff className="w-3 h-3" />Anonymous</>}
+                          </span>
+                          <span className={item.status === 'pending' ? 'text-watchguard-orange' : 'text-gray-500'}>
+                            {item.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-200 leading-relaxed whitespace-pre-wrap">{item.body}</p>
+                        <textarea
+                          value={replies[item.id] ?? item.adminReply ?? ''}
+                          onChange={e => setReplies(previous => ({ ...previous, [item.id]: e.target.value }))}
+                          rows={2}
+                          placeholder="Reply (optional)"
+                          aria-label={`Reply to suggestion ${item.id}`}
+                          className="w-full bg-watchguard-gray border border-watchguard-border text-[11px] text-white rounded px-2 py-1.5 outline-none focus:border-watchguard-orange/50 resize-y"
+                        />
+                        <div className="flex gap-1.5 flex-wrap">
+                          {DECISIONS.map(decision => (
+                            <button
+                              key={decision.status}
+                              onClick={() => handleDecide(item.id, decision.status)}
+                              disabled={busy}
+                              className={`text-[10px] font-semibold px-2 py-1 rounded border cursor-pointer disabled:opacity-50 transition-all ${decision.className}`}
+                            >
+                              {decision.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-1">

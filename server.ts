@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 import { AccountStore } from './server/accounts';
 import { accountRoutes } from './server/accountRoutes';
 import { adminRoutes, requireAdmin, assertAdminPasswordSafe, AI_SETTING_KEY } from './server/adminRoutes';
+import { SuggestionStore } from './server/suggestions';
+import { suggestionRoutes } from './server/suggestionRoutes';
 import { proxyTrustSetting, requireSameSiteWrite, securityHeaders } from './server/security';
 import { logServerError, logServerNotice, logServerWarning } from './server/log';
 import { labDiagnosticProblem, quizEvaluationProblem, tutorInputProblem } from './server/tutorInput';
@@ -65,6 +67,9 @@ app.disable("x-powered-by");
 app.use(securityHeaders(isProduction));
 
 const accountStore = new AccountStore(path.resolve(process.env.DATA_DIR || 'data', 'study.sqlite'));
+// Shares the one database file; keeps its own table, which deliberately
+// has no column that could hold an account id. See server/suggestions.ts.
+const suggestionStore = new SuggestionStore(accountStore.db);
 
 /**
  * Throttling records hold an IP address, and nothing else in this app does.
@@ -89,7 +94,8 @@ setGlobalAIEnabled(accountStore.getSetting(AI_SETTING_KEY) === 'true');
 // 3mb ceiling applied that allowance to every unauthenticated endpoint.
 app.use('/api/account', express.json({ limit: '3mb' }), accountRoutes(accountStore));
 app.use(express.json({ limit: '1mb' }));
-app.use('/api/admin', adminRoutes(accountStore));
+app.use('/api/suggestions', suggestionRoutes(accountStore, suggestionStore));
+app.use('/api/admin', adminRoutes(accountStore, suggestionStore));
 
 const adminOnly = requireAdmin(accountStore);
 

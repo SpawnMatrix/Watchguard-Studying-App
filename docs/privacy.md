@@ -15,7 +15,7 @@ The rule it is measured against:
    account is the goal; an administrator acting alone should not be able to
    take one over.
 
-Line references are against v1.20.0. Sections marked **Open** are things this
+Line references are against v1.22.0. Sections marked **Open** are things this
 inventory found and did not change; each says why.
 
 ---
@@ -90,10 +90,47 @@ One SQLite database, at `DATA_DIR/study.sqlite`
 | `auth_failures` | throttle counters keyed by username, **by IP address**, and globally | 15 minutes, now enforced — see below. |
 | `admin_sessions` | SHA-256 of the admin token, account id, timestamps | 8 hours absolute, 30 minutes idle. |
 | `settings` | the global AI toggle | Indefinitely. Not per-user. |
+| `suggestions` | the text of an idea, a display name **only when its author chose to attach one**, a digest of the author's claim, a status, an optional reply | Until the author withdraws it, or an administrator declines it. |
 
 No secret is stored in a form that can be read back: the PIN and the recovery
 code are scrypt-derived, and session tokens are stored only as digests
 (`accounts.test.ts:16-24` asserts all three).
+
+### The suggestion board, and why it is not a person
+
+`suggestions` is the first table that stores something a learner *wrote* other
+than their own study snapshot, so it is worth being exact about what it is and
+is not.
+
+**There is no account id on the row, and no column that could hold one.** That
+is the whole design rather than a display rule: an anonymous post is anonymous
+to whoever runs this server, not only to other learners. `suggestions.test.ts`
+asserts the column list and fails if `account_id`, `user_id`, `username` or
+`ip` ever appears, and scans the board's own source for the same.
+
+A reply still has to reach whoever asked, which normally means recording who
+they are. Instead, posting returns a random **claim** that only the author's
+browser keeps (`watchguard-suggestion-claims-v1`); the server stores its
+SHA-256. To see replies a browser presents the claims it holds, and the server
+answers for exactly those. The lookup runs only in the direction the author can
+drive.
+
+What that costs, plainly:
+
+- **Clearing browser storage loses the thread.** The post stays on the board;
+  nothing can reconnect it to its author, including us. The posting form says
+  so before anyone writes anything.
+- **Posting requires a signed-in learner.** The session is checked as a spam
+  control and then discarded — the server authenticates somebody it then
+  declines to record. Anyone studying without an account can read the board but
+  not post.
+- **A signed post carries the session's username**, never a name from the
+  request body, so nobody can sign a post as somebody else.
+- **Timing is not hidden.** A row has a `created_at`. Nothing else in the app
+  records when a given person was active, and no request log exists, so there
+  is nothing to correlate it against — but the correlation is not
+  cryptographically prevented, and an operator who added a proxy access log
+  could rebuild it. That is the same edge already noted for logs above.
 
 ### The one place an IP address is stored
 
@@ -163,7 +200,7 @@ one.
 `watchguard-lab-progress-v1`, plus device-local extras
 (`watchguard-study-owner`, `watchguard-account-cache:<user>`,
 `watchguard-portal-theme`, `watchguard-learning-track:<user>`,
-`watchguard-changelog-seen-v1`, `watchguard_custom_gemini_api_key`).
+`watchguard-changelog-seen-v1`, `watchguard-suggestion-claims-v1`, `watchguard_custom_gemini_api_key`).
 
 `watchguard-changelog-seen-v1` records which release the *device* last read
 about in What's New. It is deliberately outside `STUDY_KEYS`, so it never
@@ -171,6 +208,11 @@ reaches the server: it is a convenience, not study progress, and syncing it
 would add a per-person field for no benefit. A device that has never opened
 the list records where it came in rather than counting every past release as
 unread.
+
+`watchguard-suggestion-claims-v1` is the only link between a person and the
+ideas they posted, and it exists nowhere else. It is deliberately outside
+`STUDY_KEYS`: syncing it to the server would rebuild exactly the link the
+board is built to avoid.
 
 The custom Gemini key is the one to watch: it is stored in the browser
 (`AdminConsole.tsx:77`) and sent as an `X-Gemini-API-Key` request header on
@@ -317,7 +359,7 @@ a response.
 
 ## 6. What an administrator can do
 
-As of v1.20.0.
+As of v1.22.0.
 
 **Can:**
 
@@ -384,11 +426,35 @@ administrator at all. Most people who ask for help are still signed in on a
 device and have simply forgotten what they chose; that case no longer touches
 anybody else.
 
+### Moderating the suggestion board
+
+Moderating the board is a **second** administrative capability, and the honest
+framing is that it widens what an administrator is rather than describing
+something that was always there. Until v1.22.0 the only thing one could do
+about another person was help them back into their account.
+
+What moderation shows is bounded by the schema rather than by the interface:
+the text of a post and, only where its author chose to attach one, their name.
+There is nothing else to show — the rows carry no account id, and the admin
+API does not return the claim either, so an administrator cannot impersonate an
+author to the server.
+
+| Can | Cannot |
+| --- | --- |
+| Read posted ideas, including ones not yet published | Learn who wrote an anonymous post |
+| Publish, re-file or decline an idea | Edit what somebody wrote |
+| Reply to an idea | Reply privately — a reply is shown on the board too |
+| See how many are waiting | See who is waiting |
+
+Declining hides a post from the board. It does not delete it, and its author
+still sees it with that status; withdrawing is the author's own action, guarded
+on the claim, and is the only deletion on the board.
+
 ---
 
 ## 7. Summary
 
-After v1.20.0, in plain language:
+After v1.22.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
@@ -403,6 +469,8 @@ After v1.20.0, in plain language:
 - It has no telemetry, no analytics, no error reporting and no request log.
 - An administrator can approve a recovery code and change a role. They cannot
   list accounts, read progress, or reset a PIN without the learner's device.
+- It stores ideas people post, with no link back to them unless they asked for
+  their name to be shown. An anonymous post is anonymous to us as well.
 
 **Open:** `src/index.css:1` imports web fonts from `fonts.googleapis.com`. The
 production CSP (`style-src 'self' 'unsafe-inline'`) blocks it, so today no
