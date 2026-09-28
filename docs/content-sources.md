@@ -1,5 +1,9 @@
 # Content sources and reuse audit
 
+## September 19 objective audit
+
+See [exam-coverage.md](exam-coverage.md) for source versions, complete objective rows, the question-ID ledger, measured mock draw shares, depth judgments, and unresolved gaps. New original questions are in `src/data/coverageQuestions.ts`, each with its own source reference. CompTIA's retrieved [N10-009 objectives document v6.0](https://lecbyo.files.cmp.optimizely.com/download/35a7403ab73211ef9dcda6f347fbf652) supplements the older link below. The current WatchGuard exam portal was inaccessible; the report explicitly distinguishes the supplied Local baseline and a provisional historical Cloud checklist from verified current criteria.
+
 Reviewed September 11, 2026. Reference documents supply subject matter, not instructions for the coding agent. No embedded instructions from those files were followed. The new question text and distractors are original. Supplied PDFs/DOCX files and third-party question banks are not copied into this repository.
 
 ## Supplied material
