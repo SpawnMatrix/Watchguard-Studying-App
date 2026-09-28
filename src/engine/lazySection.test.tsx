@@ -75,8 +75,15 @@ describe('section error boundary', () => {
 
   it('wraps every on-demand section in the app', () => {
     const app = readFileSync(path.join(__dirname, '..', 'App.tsx'), 'utf8');
-    const lazyImports = app.match(/lazy\(\(\) => loadSection\(\(\) => import\(/g) ?? [];
-    expect(lazyImports.length).toBe(7);
+    const throughLoadSection = app.match(/lazy\(\(\) => loadSection\(\(\) => import\(/g) ?? [];
+    const everyLazyCall = app.match(/\blazy\(/g) ?? [];
+    // The property is that no lazily-loaded section skips loadSection — not
+    // that there are exactly N of them. A hard count here only ever taught
+    // people to bump the number when they added a section.
+    expect(throughLoadSection.length, 'a lazy section in App.tsx bypasses loadSection')
+      .toBe(everyLazyCall.length);
+    // A floor, so deleting the lazy imports altogether cannot pass this.
+    expect(throughLoadSection.length).toBeGreaterThanOrEqual(8);
     expect(app).not.toMatch(/lazy\(\(\) => import\(/);
     expect(app).toMatch(/<SectionErrorBoundary>\s*<Suspense/);
   });

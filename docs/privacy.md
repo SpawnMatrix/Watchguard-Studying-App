@@ -163,7 +163,14 @@ one.
 `watchguard-lab-progress-v1`, plus device-local extras
 (`watchguard-study-owner`, `watchguard-account-cache:<user>`,
 `watchguard-portal-theme`, `watchguard-learning-track:<user>`,
-`watchguard_custom_gemini_api_key`).
+`watchguard-changelog-seen-v1`, `watchguard_custom_gemini_api_key`).
+
+`watchguard-changelog-seen-v1` records which release the *device* last read
+about in What's New. It is deliberately outside `STUDY_KEYS`, so it never
+reaches the server: it is a convenience, not study progress, and syncing it
+would add a per-person field for no benefit. A device that has never opened
+the list records where it came in rather than counting every past release as
+unread.
 
 The custom Gemini key is the one to watch: it is stored in the browser
 (`AdminConsole.tsx:77`) and sent as an `X-Gemini-API-Key` request header on
