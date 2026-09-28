@@ -7,8 +7,9 @@ import { writeStudyValue } from "./account/storage";
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
 import { tabFromHash } from "./engine/shortcuts";
 import { loadSection } from "./engine/lazySection";
+import { markChangelogSeen, unseenChangelogCount } from "./engine/changelogSeen";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
-import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil } from "lucide-react";
+import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil, History } from "lucide-react";
 // Study Home loads with the app; every other section is fetched the first time it is opened, so the
 // first visit does not download the lab simulator, the sandbox and the whole question bank at once.
 const GeneralChat = lazy(() => loadSection(() => import("./components/GeneralChat")));
@@ -18,10 +19,11 @@ const PerformanceDashboard = lazy(() => loadSection(() => import("./components/P
 const NetworkSimulator = lazy(() => loadSection(() => import("./components/NetworkSimulator")));
 const FlashcardStudio = lazy(() => loadSection(() => import("./components/FlashcardStudio")));
 const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
+const WhatsNew = lazy(() => loadSection(() => import("./components/WhatsNew")));
 import { motion, AnimatePresence } from "motion/react";
 
-type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin";
-const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin"];
+type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news";
+const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news"];
 
 interface QuizHistoryItem {
   questionId: number;
@@ -86,6 +88,13 @@ export default function App() {
   const {track} = useLearningTrack();
   // The open section lives in the URL (#labs, #quiz), so a reload keeps your place and Back works.
   const [activeTab, setActiveTab] = useState<Tab>(() => tabFromHash(window.location.hash, TABS) ?? "home");
+  // Opening What's New is what marks it read; the badge clears on the way in
+  // rather than on the way out, so it does not sit there while you read it.
+  const [unseenNews, setUnseenNews] = useState(() => unseenChangelogCount());
+  useEffect(() => {
+    if (activeTab === "news") { markChangelogSeen(); setUnseenNews(0); }
+    else setUnseenNews(unseenChangelogCount());
+  }, [activeTab]);
   useEffect(() => {
     const current = tabFromHash(window.location.hash, TABS);
     if (current !== activeTab && (current !== null || activeTab !== "home")) window.history.pushState(null, "", `#${activeTab}`);
@@ -208,7 +217,8 @@ export default function App() {
     { id: "labs", label: "Lab Exercises", icon: Layers },
     { id: "flashcards", label: "Flashcards", icon: BookMarked },
     { id: "sandbox", label: "Network Sandbox", icon: Terminal },
-    { id: "admin", label: "Progress & Admin", icon: BarChart3 }
+    { id: "admin", label: "Progress & Admin", icon: BarChart3 },
+    { id: "news", label: "What's New", icon: History }
   ];
 
   return (
@@ -300,6 +310,11 @@ export default function App() {
               >
                 <Icon className="w-4 h-4" />
                 <span>{t.label}</span>
+                {t.id === "news" && unseenNews > 0 && (
+                  <span className="study-nav-badge" aria-label={`${unseenNews} unread update${unseenNews === 1 ? "" : "s"}`}>
+                    {unseenNews}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -335,6 +350,7 @@ export default function App() {
                   displayName={profileName || "Local learner"}
                 />
               )}
+              {activeTab === "news" && <WhatsNew />}
               </Suspense>
               </SectionErrorBoundary>
             </motion.div>
