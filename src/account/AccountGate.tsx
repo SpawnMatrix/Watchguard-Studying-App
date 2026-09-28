@@ -1,12 +1,19 @@
 import ReleaseFooter from '../components/ReleaseFooter';
 import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ShieldCheck, Shuffle, KeyRound, Download, UserRound, LogOut, X } from 'lucide-react';
+import { ShieldCheck, Shuffle, KeyRound, Download, UserRound, LogOut, LifeBuoy, X } from 'lucide-react';
 import { PROGRESS_EVENT, readJSON, restoreBrowser, snapshotBrowser } from './storage';
 import type { StudySnapshot } from './schema';
 
 type Saved={username:string;revision:number;snapshot:StudySnapshot;updatedAt:number};
 type Cache={revision:number;snapshot:StudySnapshot;pending:boolean};
 type Status='Saved'|'Saving…'|'Saved on this device'|'Choose a save'|'Sign in to sync';
+/**
+ * `assist` is recovery without a recovery code: this device asks for help, an
+ * administrator approves the code it is given, and the new PIN is chosen back
+ * here. `change-pin` is for someone still signed in who simply forgot theirs,
+ * which needs nobody's help at all.
+ */
+type Mode='register'|'login'|'recover'|'assist'|'change-pin';
 const OWNER='watchguard-study-owner';
 const cacheKey=(username:string)=>`watchguard-account-cache:${username}`;
 const AccountContext=createContext<{username:string|null;status:Status;open:()=>void}>({username:null,status:'Saved on this device',open:()=>{}});
@@ -25,8 +32,20 @@ function download(filename:string,text:string) {
 
 export default function AccountGate({children}:{children:ReactNode}) {
   const [ready,setReady]=useState(false),[username,setUsername]=useState<string|null>(null),[modal,setModal]=useState(false);
-  const [mode,setMode]=useState<'register'|'login'|'recover'>('register'),[name,setName]=useState(''),[pin,setPin]=useState(''),[confirmation,setConfirmation]=useState(''),[code,setCode]=useState('');
+  const [mode,setMode]=useState<Mode>('register'),[name,setName]=useState(''),[pin,setPin]=useState(''),[confirmation,setConfirmation]=useState(''),[code,setCode]=useState('');
   const [recovery,setRecovery]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState<Status>('Saved on this device');
+  // Assisted recovery: the code this device was given to read to an administrator,
+  // and the current PIN when changing one from inside a signed-in session.
+  const [requestCode,setRequestCode]=useState(''),[currentPin,setCurrentPin]=useState('');
+  /**
+   * Which half of assisted recovery this device is on. Separate from
+   * `requestCode`, because the code lives in React state and the request lives
+   * in a cookie: someone who reloads while waiting for an administrator still
+   * has a usable request, and asking again would invalidate the approval they
+   * are waiting for. `waiting` lets them come back to the second step.
+   */
+  const [assistStep,setAssistStep]=useState<'asking'|'waiting'>('asking');
+  const startAssist=()=>{setMode('assist');setAssistStep('asking');setRequestCode('');setError('');};
   const [generation,setGeneration]=useState(0),[conflict,setConflict]=useState<Saved|null>(null);
   const active=useRef<string|null>(null),revision=useRef(0),pending=useRef(false),sending=useRef(false),conflicted=useRef(false);
   const dialogRef=useRef<HTMLDivElement>(null);
@@ -116,9 +135,24 @@ export default function AccountGate({children}:{children:ReactNode}) {
     if(mode!=='login'&&pin!==confirmation){setError('Those PINs do not match.');return;}
     setBusy(true);
     try {
-      const saved=await request(mode,{username:name,pin,recoveryCode:code});
-      enter(saved,mode==='register'&&bringLocal);setPin('');setConfirmation('');setCode('');
+      const endpoint=mode==='assist'?'recovery/complete':mode==='change-pin'?'pin':mode;
+      const saved=await request(endpoint,{username:name,pin,recoveryCode:code,currentPin});
+      enter(saved,mode==='register'&&bringLocal);setPin('');setConfirmation('');setCode('');setCurrentPin('');setRequestCode('');
+      // Leave the one-off modes behind, so reopening the panel shows the account.
+      if(mode==='change-pin'||mode==='assist')setMode('login');
       if(saved.recoveryCode){setRecovery(saved.recoveryCode);setModal(true);}
+    }catch(err:any){setError(err.message);}finally{setBusy(false);}
+  }
+  /**
+   * Asks for a code to read to an administrator. The reply also sets a
+   * short-lived cookie that only this browser holds, so an approval is useless
+   * to anyone else — including the administrator who granted it.
+   */
+  async function askForHelp() {
+    setError('');setBusy(true);
+    try {
+      const {requestCode:issued}=await request('recovery/request',{username:name});
+      setRequestCode(issued);setAssistStep('waiting');
     }catch(err:any){setError(err.message);}finally{setBusy(false);}
   }
   function localOnly() {
@@ -151,36 +185,50 @@ export default function AccountGate({children}:{children:ReactNode}) {
     const words=['packet','cipher','router','falcon','subnet','copper','signal','firebox'];
     const n=crypto.getRandomValues(new Uint32Array(1))[0];setName(`${words[n%words.length]}_${1000+n%9000}`);
   };
-  return <AccountContext.Provider value={{username,status,open:()=>{setError('');setName(username||owner||'');setModal(true);}}}>
+  return <AccountContext.Provider value={{username,status,open:()=>{setError('');setName(username||owner||'');setRequestCode('');setMode(username||owner?'login':'register');setModal(true);}}}>
     <div inert={modal?true:undefined} key={generation}>{ready?children:<div className="account-welcome"><ShieldCheck size={44}/><h1>WatchGuard Study Lab</h1><p>Your next level starts here.</p></div>}</div>
     {conflict&&<aside className="save-conflict" role="alert"><strong>Two devices have different progress.</strong><p>Choose which copy to use. Both copies are kept as recovery backups.</p><div className="flex gap-3 flex-wrap"><button className="secondary-button" onClick={()=>resolveConflict(true)}>Use saved copy</button><button className="primary-button" onClick={()=>resolveConflict(false)}>Save this device’s copy</button></div></aside>}
     {modal&&<div className="account-overlay"><div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="account-title" className="account-card">
       {ready&&!recovery&&<button className="account-close" aria-label="Close account" onClick={()=>setModal(false)}><X size={20}/></button>}
       <div className="account-emblem"><ShieldCheck size={30}/></div>
       <p className="eyebrow">WATCHGUARD STUDY LAB</p>
-      <h1 id="account-title">{recovery?'Keep your recovery code':username?'Your study account':mode==='register'?'Claim your callsign':mode==='recover'?'Get back to your progress':'Welcome back'}</h1>
+      <h1 id="account-title">{recovery?'Keep your recovery code':username&&mode!=='change-pin'?'Your study account':mode==='register'?'Claim your callsign':mode==='change-pin'?'Choose a new PIN':mode==='assist'?'Ask for help getting back in':mode==='recover'?'Get back to your progress':'Welcome back'}</h1>
       {recovery?<>
         <p>This code gets you back in if you forget your PIN. Save it somewhere private; we only show it once.</p>
         <code className="recovery-code">{recovery}</code>
         <button className="secondary-button" onClick={()=>download('study-recovery-code.txt',`WatchGuard Study Lab\nUsername: ${username}\nRecovery code: ${recovery}\nKeep this code private.\n`)}><Download size={16}/> Download recovery code</button>
         <button className="primary-button w-full" onClick={()=>{setRecovery('');setModal(false);}}>I saved it — start studying</button>
-      </>:username?<>
+      </>:username&&mode!=='change-pin'?<>
         <p className="account-username"><UserRound size={20}/>{username}</p><p>Your quizzes, lab completions, and flashcard progress follow this username. Current status: <strong>{status}</strong>.</p>
         <button className="secondary-button" onClick={()=>download(`study-progress-${username}.json`,JSON.stringify({username,exportedAt:new Date().toISOString(),snapshot:snapshotBrowser()},null,2))}><Download size={16}/> Download my progress</button>
+        <button className="secondary-button" onClick={()=>{setMode('change-pin');setError('');setPin('');setConfirmation('');setCurrentPin('');}}><KeyRound size={16}/> Change my PIN</button>
         <button disabled={busy} className="secondary-button" onClick={logout}><LogOut size={16}/> Sign out</button>
       </>:<>
-        <p>{mode==='register'?'Choose a username and a six-digit PIN. Your progress will be ready when you come back, even on another device.':mode==='recover'?'Enter your username, recovery code, and a new PIN.':'Your username and PIN bring back your saved progress.'}</p>
-        <div className="account-tabs"><button aria-pressed={mode==='register'} onClick={()=>{setMode('register');setError('');}}>New learner</button><button aria-pressed={mode==='login'} onClick={()=>{setMode('login');setError('');}}>Sign in</button></div>
-        <form onSubmit={submit} className="account-form">
-          <label>Username<div className="username-input"><input required autoComplete="username" value={name} maxLength={24} minLength={3} pattern="[a-zA-Z0-9_]{3,24}" onChange={e=>setName(e.target.value)} placeholder="e.g. packet_pilot"/>{mode==='register'&&<button type="button" aria-label="Suggest a callsign" title="Suggest a callsign" onClick={suggest}><Shuffle size={18}/></button>}</div></label>
+        <p>{mode==='register'?'Choose a username and a six-digit PIN. Your progress will be ready when you come back, even on another device.':mode==='change-pin'?'You are signed in, so nobody else needs to be involved. Every other device signed in as you will be signed out.':mode==='assist'?'No recovery code? Ask for a code here, read it to an administrator, and then choose your new PIN on this device. Finish on this device — an approval will not work anywhere else.':mode==='recover'?'Enter your username, recovery code, and a new PIN.':'Your username and PIN bring back your saved progress.'}</p>
+        {mode!=='change-pin'&&mode!=='assist'&&<div className="account-tabs"><button aria-pressed={mode==='register'} onClick={()=>{setMode('register');setError('');}}>New learner</button><button aria-pressed={mode==='login'} onClick={()=>{setMode('login');setError('');}}>Sign in</button></div>}
+        {mode==='assist'&&assistStep==='asking'&&<div className="account-form">
+          <label>Username<div className="username-input"><input required autoComplete="username" value={name} maxLength={24} minLength={3} pattern="[a-zA-Z0-9_]{3,24}" onChange={e=>setName(e.target.value)} placeholder="e.g. packet_pilot"/></div></label>
+          <button disabled={busy||!name.trim()} className="primary-button w-full" type="button" onClick={askForHelp}><LifeBuoy size={17}/>{busy?'One moment…':'Give me a code'}</button>
+          <button className="text-button" type="button" onClick={()=>{setAssistStep('waiting');setError('');}}>I already have a code that was approved</button>
+        </div>}
+        {mode==='assist'&&assistStep==='waiting'&&(requestCode
+          ?<><p>Read this to an administrator. It is good for fifteen minutes, and it tells them nothing about you.</p>
+            <code className="recovery-code">{requestCode}</code></>
+          :<p>Once an administrator has approved the code you were given, set your new PIN here. It has to be this device.</p>)}
+        {(mode!=='assist'||assistStep==='waiting')&&<form onSubmit={submit} className="account-form">
+          {mode!=='change-pin'&&mode!=='assist'&&<label>Username<div className="username-input"><input required autoComplete="username" value={name} maxLength={24} minLength={3} pattern="[a-zA-Z0-9_]{3,24}" onChange={e=>setName(e.target.value)} placeholder="e.g. packet_pilot"/>{mode==='register'&&<button type="button" aria-label="Suggest a callsign" title="Suggest a callsign" onClick={suggest}><Shuffle size={18}/></button>}</div></label>}
           {mode==='recover'&&<label>Recovery code<input required autoComplete="off" value={code} onChange={e=>setCode(e.target.value)}/></label>}
-          <label>{mode==='recover'?'New six-digit PIN':'Six-digit PIN'}<input required type="password" inputMode="numeric" autoComplete={mode==='login'?'current-password':'new-password'} pattern="[0-9]{6}" minLength={6} maxLength={6} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,''))}/></label>
+          {mode==='change-pin'&&<label>Current PIN<input required type="password" inputMode="numeric" autoComplete="current-password" pattern="[0-9]{6}" minLength={6} maxLength={6} value={currentPin} onChange={e=>setCurrentPin(e.target.value.replace(/\D/g,''))}/></label>}
+          <label>{mode==='login'||mode==='register'?'Six-digit PIN':'New six-digit PIN'}<input required type="password" inputMode="numeric" autoComplete={mode==='login'?'current-password':'new-password'} pattern="[0-9]{6}" minLength={6} maxLength={6} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,''))}/></label>
           {mode!=='login'&&<label>Confirm PIN<input required type="password" inputMode="numeric" autoComplete="new-password" pattern="[0-9]{6}" minLength={6} maxLength={6} value={confirmation} onChange={e=>setConfirmation(e.target.value.replace(/\D/g,''))}/></label>}
           {mode==='register'&&hasLegacy&&<label className="checkbox-label"><input type="checkbox" checked={bringLocal} onChange={e=>setBringLocal(e.target.checked)}/> Bring my existing browser progress into this account</label>}
-          <button disabled={busy} className="primary-button w-full" type="submit"><KeyRound size={17}/>{busy?'One moment…':mode==='register'?'Create my account':mode==='recover'?'Reset PIN':'Sign in'}</button>
-        </form>
-        <button className="text-button" onClick={()=>{setMode(mode==='recover'?'login':'recover');setError('');}}>{mode==='recover'?'Back to sign in':'Forgot your PIN?'}</button>
-        <button className="text-button" onClick={localOnly}>Study on this device only</button>
+          <button disabled={busy} className="primary-button w-full" type="submit"><KeyRound size={17}/>{busy?'One moment…':mode==='register'?'Create my account':mode==='change-pin'?'Change my PIN':mode==='assist'?'It is approved — set my PIN':mode==='recover'?'Reset PIN':'Sign in'}</button>
+        </form>}
+        {mode==='change-pin'?<button className="text-button" onClick={()=>{setMode('login');setError('');}}>Back to my account</button>:<>
+          <button className="text-button" onClick={()=>{setMode(mode==='login'||mode==='register'?'recover':'login');setRequestCode('');setError('');}}>{mode==='login'||mode==='register'?'Forgot your PIN?':'Back to sign in'}</button>
+          {mode!=='assist'&&<button className="text-button" onClick={startAssist}>Lost your recovery code too?</button>}
+          {mode!=='assist'&&<button className="text-button" onClick={localOnly}>Study on this device only</button>}
+        </>}
       </>}
       {error&&<p role="alert" className="account-error">{error}</p>}
       <ReleaseFooter compact/>

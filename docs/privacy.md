@@ -15,7 +15,7 @@ The rule it is measured against:
    account is the goal; an administrator acting alone should not be able to
    take one over.
 
-Line references are against v1.18.0. Sections marked **Open** are things this
+Line references are against v1.19.0. Sections marked **Open** are things this
 inventory found and did not change; each says why.
 
 ---
@@ -180,14 +180,15 @@ the synced snapshot.
 | `GET /api/account/me` | username, admin flag, own snapshot + revision | Caller's own, keyed by the session cookie (`accountRoutes.ts:43`). |
 | `POST /api/account/{register,login,recover}` | username, admin flag, own snapshot; recovery code on register/recover | Caller's own. The session token is stripped from the body and set as a cookie (`accountRoutes.ts:38`). |
 | `PUT /api/account/progress` | new revision, and on a 409 the stored snapshot | Caller's own; the route refuses when the body's username is not the session's (`accountRoutes.ts:66`). |
-| `GET /api/admin/me` | whether an admin session exists, the caller's username, whether break-glass is configured, **the number of administrators** | Caller's own, plus one aggregate. |
-| `GET /api/admin/users` | **every account**: username, admin flag, creation time, progress revision and last-update time | Everyone's. Admin-gated. |
+| `GET /api/admin/me` | whether an admin session exists, the caller's username, whether break-glass is configured, the number of administrators, the number of completed recoveries | Caller's own, plus two counts. |
+| `GET /api/admin/users` | **Removed in v1.19.0.** Answers 410 with no data. | Nobody's. |
+| `POST /api/admin/recovery/approve` | whether the code was live | Nobody's: it names no account. |
 | `GET /api/session` | whether a proxy forwarded an identity | Caller's own; the identity itself stays server-side (`server.ts:142`). |
 | `GET /api/stats`, `GET /api/questions`, `GET /api/version`, `/healthz` | catalogue counts and build metadata | Nobody's. |
 
-`GET /api/admin/users` is the one route that exposes the whole population, and
-removing it is the subject of the admin change. Everything else is scoped to
-the caller's own session.
+Every response is now scoped to the caller's own session or to an aggregate
+count. Until v1.19.0 `GET /api/admin/users` returned the entire population to
+any administrator on every console load; see section 7.
 
 ### Account enumeration
 
@@ -214,8 +215,9 @@ through an error message and through response time.
 - **Administration** answers a signed-in non-administrator with a flat 403 and
   no detail.
 
-`GET /api/admin/users` is the one real exposure of one person's data to
-another, and it is the subject of the admin change.
+- **Assisted recovery** returns a request code whether or not the username
+  exists, so it cannot be asked which accounts are real either
+  (`accounts.ts`, `openRecoveryRequest`).
 
 ---
 
@@ -306,9 +308,80 @@ a response.
 
 ---
 
-## 6. Summary
+## 6. What an administrator can do
 
-After v1.18.0, in plain language:
+As of v1.19.0.
+
+**Can:**
+
+- Approve one recovery request by the code a learner reads out. They are not
+  told whose account it is, and approving does not reset anything: the new PIN
+  is set back on the device that opened the request.
+- Grant or revoke the administrator role on a username they type.
+- Turn the global AI tutor on or off.
+- Run the readiness analysis on data their own browser supplies.
+- See two counts: how many administrators exist, and how many assisted
+  recoveries have ever completed.
+
+**Cannot:**
+
+- List accounts. The route is gone and so is `AccountStore.listAccounts()`;
+  nothing on the server can produce a roster.
+- See anyone's username, creation time, progress revision or last activity.
+- Sign another learner out of their devices.
+- Read, export or alter anyone's study progress.
+- Reset a PIN on their own. Approval is half of a reset; the other half needs
+  the learner's device.
+
+### Why recovery is split, and what the split does not do
+
+The learner opens a request on their own device, which returns an
+eight-character code and sets a short-lived credential in that browser. They
+read the code to an administrator, who approves that one code. The reset is
+then completed back on the device that asked.
+
+This means an approval is not a reset. An administrator who holds a code — or
+who intercepts one — cannot use it, because completing needs a credential only
+the requesting browser has. A recovery also cannot be done remotely to somebody
+without their knowledge: their device has to be the one that starts and
+finishes it.
+
+**What it does not prevent** is an administrator willing to impersonate a
+learner outright: open a request for that username on their own machine,
+approve it with their own session, finish it there. The split stops an approval
+being useful to a *third* party; it does not stop one person playing both
+parts. `server/recovery.test.ts` states that as a test rather than only as
+prose, so nobody later reads the flow as a guarantee it does not make.
+
+Preventing it would mean binding recovery to something only the real owner
+holds. There are two candidates and neither is free:
+
+- the self-service recovery code, which is already the no-administrator path
+  and is exactly what this flow is for people who have lost;
+- a durable per-device identifier stored against the account, which is the kind
+  of per-person record rule 1 says not to keep.
+
+Requiring two administrators to approve would also work, and would stop working
+entirely on the many deployments that have one. That trade is available if the
+threat is judged to be worth it.
+
+What the design does leave is evidence. A completed recovery destroys every
+session on the account, rotates the recovery code, and moves the counter shown
+in the console — so a learner finds out, and an operator can see recoveries
+happening more often than they remember helping with.
+
+### Reducing how often it is needed
+
+`POST /api/account/pin` changes a PIN from inside a signed-in session, with no
+administrator at all. Most people who ask for help are still signed in on a
+device and have simply forgotten what they chose; that case no longer touches
+anybody else.
+
+---
+
+## 7. Summary
+
+After v1.19.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
@@ -321,3 +394,14 @@ After v1.18.0, in plain language:
 - Recovery takes the same time whether or not the username is real, so the
   portal cannot be asked which of a list of names has an account.
 - It has no telemetry, no analytics, no error reporting and no request log.
+- An administrator can approve a recovery code and change a role. They cannot
+  list accounts, read progress, or reset a PIN without the learner's device.
+
+**Open:** `src/index.css:1` imports web fonts from `fonts.googleapis.com`. The
+production CSP (`style-src 'self' 'unsafe-inline'`) blocks it, so today no
+request reaches Google and the portal renders in system fonts — but the intent
+in the source is to fetch from Google on every page load, which would hand
+Google every visitor's address and referer, and relaxing `style-src` later
+would switch that on silently. The fix is to self-host the fonts or drop the
+import. It is not done here because `src/index.css` is the file the theming
+work is in.
