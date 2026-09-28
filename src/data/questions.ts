@@ -3,6 +3,7 @@ import { authoredQuestions } from './authoredQuestions';
 import { legacyRevisions } from './legacyExplanations';
 import { topologyQuestions } from './topologyQuestions';
 import { legacyTopologyScenes } from './legacyTopologyScenes';
+import { coverageQuestions } from './coverageQuestions';
 
 export interface Question extends QuestionMetadata {
   id: number;
@@ -1906,3 +1907,4 @@ for (const question of examQuestions) {
 examQuestions.push(...authoredQuestions);
 // Diagram-driven section, authored against topology contract v1 (src/engine/topology.ts).
 examQuestions.push(...topologyQuestions);
+examQuestions.push(...coverageQuestions);
