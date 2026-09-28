@@ -72,7 +72,7 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
       request.current=new AbortController();const timeout=setTimeout(()=>request.current?.abort(),8000);
       try {
         const customKey=localStorage.getItem('watchguard_custom_gemini_api_key')||localStorage.getItem('gemini_api_key')||'';
-        const response=await fetch('/api/quiz/evaluate',{method:'POST',headers:{'Content-Type':'application/json',...(customKey?{'X-Gemini-API-Key':customKey}:{})},signal:request.current.signal,
+        const response=await fetch('/api/quiz/evaluate',{method:'POST',headers:{'Content-Type':'application/json','X-Study-Request':'1',...(customKey?{'X-Gemini-API-Key':customKey}:{})},signal:request.current.signal,
           body:JSON.stringify({questionId:q.id,question:q.question,options:q.options,selectedOptions:session.selected,selectedAnswer:session.selected.join(' | '),correctAnswer:q.correctAnswer,variant:q.variant})});
         if(!response.ok)throw new Error('Feedback unavailable');
         const data=await response.json();if(typeof data.detailedExplanation==='string'&&data.detailedExplanation)explanation=data.detailedExplanation;

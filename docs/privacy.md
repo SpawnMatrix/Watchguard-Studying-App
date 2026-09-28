@@ -15,7 +15,7 @@ The rule it is measured against:
    account is the goal; an administrator acting alone should not be able to
    take one over.
 
-Line references are against v1.17.0. Sections marked **Open** are things this
+Line references are against v1.20.0. Sections marked **Open** are things this
 inventory found and did not change; each says why.
 
 ---
@@ -180,23 +180,44 @@ the synced snapshot.
 | `GET /api/account/me` | username, admin flag, own snapshot + revision | Caller's own, keyed by the session cookie (`accountRoutes.ts:43`). |
 | `POST /api/account/{register,login,recover}` | username, admin flag, own snapshot; recovery code on register/recover | Caller's own. The session token is stripped from the body and set as a cookie (`accountRoutes.ts:38`). |
 | `PUT /api/account/progress` | new revision, and on a 409 the stored snapshot | Caller's own; the route refuses when the body's username is not the session's (`accountRoutes.ts:66`). |
-| `GET /api/admin/me` | whether an admin session exists, the caller's username, whether break-glass is configured, **the number of administrators** | Caller's own, plus one aggregate. |
-| `GET /api/admin/users` | **every account**: username, admin flag, creation time, progress revision and last-update time | Everyone's. Admin-gated. |
+| `GET /api/admin/me` | whether an admin session exists, the caller's username, whether break-glass is configured, the number of administrators, the number of completed recoveries | Caller's own, plus two counts. |
+| `GET /api/admin/users` | **Removed in v1.20.0.** Answers 410 with no data. | Nobody's. |
+| `POST /api/admin/recovery/approve` | whether the code was live | Nobody's: it names no account. |
 | `GET /api/session` | whether a proxy forwarded an identity | Caller's own; the identity itself stays server-side (`server.ts:142`). |
 | `GET /api/stats`, `GET /api/questions`, `GET /api/version`, `/healthz` | catalogue counts and build metadata | Nobody's. |
 
-`GET /api/admin/users` is the one route that exposes the whole population, and
-removing it is the subject of the admin change. Everything else is scoped to
-the caller's own session.
+Every response is now scoped to the caller's own session or to an aggregate
+count. Until v1.20.0 `GET /api/admin/users` returned the entire population to
+any administrator on every console load; see section 7.
 
-**Open (fixed in a later PR in this series):** `recover()` derives a key only
-when the username exists (`accounts.ts:378`), so a request for a real username
-takes a full scrypt derivation and one for an invented username returns
-immediately. `login()` avoids this correctly by hashing against a dummy salt
-whichever way it goes (`accounts.ts:352`). Recovery should do the same.
-Registration's 409 also distinguishes a taken username from a free one; that is
-unavoidable for a username picker and is throttled on purpose
-(`accounts.ts:337`).
+### Account enumeration
+
+Every route was checked for one account learning about another, including
+through an error message and through response time.
+
+- **`login()`** answers `Username or PIN did not match.` either way and derives
+  a key against a stand-in salt when the account does not exist, so the work it
+  does is the same either way (`accounts.ts:352`).
+- **`recover()`** used to derive a key *only* when the account existed. An
+  invented username came back in about a millisecond; a real one cost a full
+  scrypt. That is an unlimited account-existence oracle for anyone willing to
+  time the response, and it did not need a valid recovery code to work. Fixed
+  in v1.19.0: every path now pays one current-scheme derivation, including the
+  legacy unsalted records, which verify instantly and would otherwise have been
+  the same oracle in reverse (`accounts.ts:378`). `server/leaks.test.ts`
+  compares medians and fails if the two diverge.
+- **Registration** still distinguishes a taken username from a free one with a
+  409. That is unavoidable for a username picker, and it is throttled on purpose
+  (`accounts.ts:337`).
+- **Progress** refuses rather than serves when the body names another account,
+  and the snapshot returned on a 409 is the caller's own
+  (`accountRoutes.ts:66`).
+- **Administration** answers a signed-in non-administrator with a flat 403 and
+  no detail.
+
+- **Assisted recovery** returns a request code whether or not the username
+  exists, so it cannot be asked which accounts are real either
+  (`accounts.ts`, `openRecoveryRequest`).
 
 ---
 
@@ -232,18 +253,41 @@ notice at the point of typing. Making the upstream call conditional on a
 consent the learner gave is a real change to four call sites and a UI, and it
 is called out here rather than folded into a logging change.
 
-**Open:** `/api/chat`, `/api/quiz/evaluate` and `/api/lab/diagnostic` require no
-account. Anyone who can reach the port can spend the deployment's Gemini
-budget, 40 requests per 5 minutes per address. This is partly deliberate — the
-app supports studying without an account ("Study on this device only",
-`AccountGate.tsx:183`) — and partly just unfinished. The leak-fix PR in this
-series bounds the input and requires the same-site header the rest of the app
-requires; it does not make these routes authenticated, and the reasoning is
-recorded there.
+### Bounding what can be forwarded
+
+`server/tutorInput.ts` caps every field that can reach the model. The caps are
+roughly four times the largest real content in the repo — the longest lab
+instruction is 255 characters, the longest question 327 — so an abuser is
+bounded and a learner never reaches one. `server/leaks.test.ts` runs every lab
+step and all 692 catalogue questions through them to keep that true.
+
+`/api/lab/diagnostic` previously had no validation at all, so the 1mb body
+limit was its only ceiling. The `/api/quiz/evaluate` branch that forwards a
+question the catalogue does not contain had the same gap, and that branch is
+the whole of the tutor abuse surface: no ordinary client produces it.
+
+All three tutor routes now also carry `requireSameSiteWrite`
+(`server.ts:117`), the guard every account and admin route already had. A
+request must be JSON, carry `X-Study-Request: 1` and not come from a
+cross-site context, so a page on another origin cannot drive this deployment's
+upstream budget with a form post. `POST /api/admin/toggle-ai` and
+`POST /api/admin/analyze` are mounted outside the admin router and were missing
+the same guard; they have it now.
+
+**Open:** this does not make the tutor routes *authenticated*. Anyone who can
+reach the port and send the header can still spend the deployment's Gemini
+budget, 40 requests per 5 minutes per address. Requiring a session would close
+it, and would also take the tutor away from anyone using "Study on this device
+only" (`AccountGate.tsx:183`), which the app offers deliberately. That is a
+product decision, not a fix, so it is recorded here rather than made quietly.
 
 ---
 
 ## 5. Transport
+
+These are pinned by `server/leaks.test.ts`, which asserts the full header set
+and the cookie flags against a real production-mode response, so a README
+sentence and the server cannot drift apart silently.
 
 `server/security.ts` sets, on every response: `Content-Security-Policy`
 (`default-src 'self'`, no inline script in production), `X-Content-Type-Options`,
@@ -264,9 +308,80 @@ a response.
 
 ---
 
-## 6. Summary
+## 6. What an administrator can do
 
-After v1.17.0, in plain language:
+As of v1.20.0.
+
+**Can:**
+
+- Approve one recovery request by the code a learner reads out. They are not
+  told whose account it is, and approving does not reset anything: the new PIN
+  is set back on the device that opened the request.
+- Grant or revoke the administrator role on a username they type.
+- Turn the global AI tutor on or off.
+- Run the readiness analysis on data their own browser supplies.
+- See two counts: how many administrators exist, and how many assisted
+  recoveries have ever completed.
+
+**Cannot:**
+
+- List accounts. The route is gone and so is `AccountStore.listAccounts()`;
+  nothing on the server can produce a roster.
+- See anyone's username, creation time, progress revision or last activity.
+- Sign another learner out of their devices.
+- Read, export or alter anyone's study progress.
+- Reset a PIN on their own. Approval is half of a reset; the other half needs
+  the learner's device.
+
+### Why recovery is split, and what the split does not do
+
+The learner opens a request on their own device, which returns an
+eight-character code and sets a short-lived credential in that browser. They
+read the code to an administrator, who approves that one code. The reset is
+then completed back on the device that asked.
+
+This means an approval is not a reset. An administrator who holds a code — or
+who intercepts one — cannot use it, because completing needs a credential only
+the requesting browser has. A recovery also cannot be done remotely to somebody
+without their knowledge: their device has to be the one that starts and
+finishes it.
+
+**What it does not prevent** is an administrator willing to impersonate a
+learner outright: open a request for that username on their own machine,
+approve it with their own session, finish it there. The split stops an approval
+being useful to a *third* party; it does not stop one person playing both
+parts. `server/recovery.test.ts` states that as a test rather than only as
+prose, so nobody later reads the flow as a guarantee it does not make.
+
+Preventing it would mean binding recovery to something only the real owner
+holds. There are two candidates and neither is free:
+
+- the self-service recovery code, which is already the no-administrator path
+  and is exactly what this flow is for people who have lost;
+- a durable per-device identifier stored against the account, which is the kind
+  of per-person record rule 1 says not to keep.
+
+Requiring two administrators to approve would also work, and would stop working
+entirely on the many deployments that have one. That trade is available if the
+threat is judged to be worth it.
+
+What the design does leave is evidence. A completed recovery destroys every
+session on the account, rotates the recovery code, and moves the counter shown
+in the console — so a learner finds out, and an operator can see recoveries
+happening more often than they remember helping with.
+
+### Reducing how often it is needed
+
+`POST /api/account/pin` changes a PIN from inside a signed-in session, with no
+administrator at all. Most people who ask for help are still signed in on a
+device and have simply forgotten what they chose; that case no longer touches
+anybody else.
+
+---
+
+## 7. Summary
+
+After v1.20.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
@@ -274,5 +389,19 @@ After v1.17.0, in plain language:
   study snapshot. It holds an IP address for at most twenty minutes, only for
   rate limiting, and only while someone is failing to sign in.
 - It sends a learner's typed questions and quiz history to Google when — and
-  only when — AI features have been switched on.
+  only when — AI features have been switched on, within fixed size ceilings,
+  with no identity attached.
+- Recovery takes the same time whether or not the username is real, so the
+  portal cannot be asked which of a list of names has an account.
 - It has no telemetry, no analytics, no error reporting and no request log.
+- An administrator can approve a recovery code and change a role. They cannot
+  list accounts, read progress, or reset a PIN without the learner's device.
+
+**Open:** `src/index.css:1` imports web fonts from `fonts.googleapis.com`. The
+production CSP (`style-src 'self' 'unsafe-inline'`) blocks it, so today no
+request reaches Google and the portal renders in system fonts — but the intent
+in the source is to fetch from Google on every page load, which would hand
+Google every visitor's address and referer, and relaxing `style-src` later
+would switch that on silently. The fix is to self-host the fonts or drop the
+import. It is not done here because `src/index.css` is the file the theming
+work is in.
