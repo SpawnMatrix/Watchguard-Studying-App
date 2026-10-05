@@ -1,7 +1,7 @@
 {
   "name": "watchguard-study-portal",
   "private": true,
-  "version": "1.27.1",
+  "version": "1.27.2",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -13,6 +13,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "check:release": "node scripts/check-release.mjs",
+    "a11y": "node scripts/a11y.mjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -32,11 +33,13 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@vitest/coverage-v8": "^4.1.11",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

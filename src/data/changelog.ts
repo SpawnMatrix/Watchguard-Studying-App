@@ -48,6 +48,15 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.27.2',
+    date: '2026-10-05',
+    headline: 'Easier to read everywhere, in both themes',
+    changes: [
+      { kind: 'fixed', text: 'Small grey labels in dark mode, and orange and green text in light mode, were too faint to read comfortably. Every screen now meets the WCAG AA contrast standard.' },
+      { kind: 'improved', text: 'Each update is checked automatically for readability and accessibility problems before it reaches you.' },
+    ],
+  },
+  {
     version: '1.27.1',
     date: '2026-10-05',
     headline: 'A faster first load',

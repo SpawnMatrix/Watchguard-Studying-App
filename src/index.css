@@ -779,3 +779,15 @@ button:disabled{cursor:default}
 .section-enter{animation:section-enter .15s ease-out both}
 .dialog-enter{animation:dialog-enter .18s ease-out both}
 .dialog-backdrop-enter{animation:fade-enter .15s ease-out both}
+/* Contrast tokens, chosen by measurement against every surface they sit on (scripts/a11y.mjs checks
+   them in CI). Dark: Tailwind's gray-500/600 were 3.45:1 and 2.3:1 on the panels, and white on the
+   brand orange 3.25:1. Light: orange text on white was 3.25:1. */
+:root:not([data-theme="light"]) { --color-gray-500: #8f99aa; --color-gray-600: #8a94a6; --color-watchguard-orange: #f27a57; }
+:root:not([data-theme="light"]) .bg-watchguard-orange { background-color: #c94826; }
+/* Tailwind's 300/400 status shades are made for dark backgrounds; green-400 is 1.77:1 on white. */
+:root[data-theme="light"] {
+  --color-watchguard-orange: #a63416;
+  --color-green-300: #047857; --color-green-400: #047857; --color-emerald-400: #047857;
+  --color-red-300: #b91c1c; --color-red-400: #b91c1c;
+  --color-sky-400: #0369a1; --color-blue-400: #1d4ed8; --color-indigo-400: #4338ca;
+}
