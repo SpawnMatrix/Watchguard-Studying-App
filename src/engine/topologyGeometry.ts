@@ -21,5 +21,9 @@ export function topologyEdgeGeometry(from:TopologyNode,to:TopologyNode,label='')
     labelX:(from.x+to.x)/2+(vertical?14:0),
     labelY:(from.y+to.y)/2+(vertical?4:crowdedHorizontal?-76:-13),
     anchor:vertical?'start' as const:'middle' as const,
+    // The label is above a horizontal/diagonal link, or right of a vertical one.
+    // Put the 12px-radius verdict on the opposite side, with a clear gap.
+    markerX:(from.x+to.x)/2+(vertical?-20:0),
+    markerY:(from.y+to.y)/2+(vertical?0:22),
   };
 }

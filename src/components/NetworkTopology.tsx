@@ -24,10 +24,10 @@ function lines(text: string, limit = 21) {
 }
 
 /** A shape as well as a colour, so a selection and its verdict read without colour vision. */
-function HotspotMarker({ state }: { state: string }) {
+function HotspotMarker({ state, x = 83, y = -35 }: { state: string; x?: number; y?: number }) {
   if (!state) return null;
   const Icon = state === 'is-correct' ? Check : state === 'is-incorrect' ? X : CircleDot;
-  return <g className={`hotspot-marker ${state}`} transform="translate(83 -35)" aria-hidden="true">
+  return <g className={`hotspot-marker ${state}`} transform={`translate(${x} ${y})`} aria-hidden="true">
     <circle r={12}/><Icon x={-8} y={-8} width={16} height={16}/>
   </g>;
 }
@@ -72,12 +72,13 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
           const from = diagram.nodes.find(n => n.id === edge.from), to = diagram.nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const spot = diagram.hotspots?.find(s => s.target === 'edge' && s.targetId === edge.id);
-          const {d,labelX,labelY,anchor}=topologyEdgeGeometry(from,to,edge.label);
+          const {d,labelX,labelY,anchor,markerX,markerY}=topologyEdgeGeometry(from,to,edge.label);
           return <g key={edge.id} className={`topology-edge zone-${edge.zone || 'neutral'} ${state(spot)} ${spot&&onSelect ? 'is-hotspot' : ''}`} {...controls(spot)}>
             <title>{edge.label || `${from.label} to ${to.label}`}</title>
             <path className="link-hit" d={d}/><path className={`link-line link-${edge.kind || 'ethernet'}`} d={d}/>
             {edge.flow && <path className="packet-flow" d={d}/>}
             {edge.label && <text className="link-label" x={labelX} y={labelY} textAnchor={anchor}>{edge.label}</text>}
+            <HotspotMarker state={state(spot)} x={markerX} y={markerY}/>
           </g>;
         })}
         {diagram.nodes.map(node => {
