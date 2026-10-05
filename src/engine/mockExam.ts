@@ -2,7 +2,7 @@ import type { Question } from '../data/questions';
 import { N10_009_WEIGHTS, NETWORK_PLUS_DOMAIN } from '../data/networkPlusBlueprint';
 import { NSE_WEIGHTS, nseCategory } from '../data/nseBlueprint';
 import { twinGroup } from '../data/questionTwins';
-import { createExam, questionById, studyQuestions } from './catalog';
+import { createExam, questionMetaById, studyQuestions } from './catalog';
 import { seededRandom, shuffle } from './random';
 
 /**
@@ -146,7 +146,7 @@ export interface ExamResults {
  */
 export function examResults(history: readonly { questionId: number; isCorrect: boolean }[]): ExamResults | null {
   if (!history.length) return null;
-  const questions = history.map(h => questionById.get(h.questionId));
+  const questions = history.map(h => questionMetaById.get(h.questionId));
   if (questions.some(q => !q)) return null;
   const b = BLUEPRINTS.find(x => questions.every(q => x.classify(q!) !== undefined));
   if (!b) return null;
@@ -204,7 +204,7 @@ export function examReadiness(
   const rows = categoriesOf(b).map(domain => {
     let answered = 0, correct = 0;
     for (const [id, isCorrect] of latest) {
-      const q = questionById.get(id);
+      const q = questionMetaById.get(id);
       if (!q || b.classify(q) !== domain) continue;
       answered++;
       if (isCorrect) correct++;

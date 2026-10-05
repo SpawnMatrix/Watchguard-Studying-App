@@ -21,6 +21,8 @@ const TopologyStudio = lazy(() => loadSection(() => import("./components/Topolog
 const Suggestions = lazy(() => loadSection(() => import("./components/Suggestions")));
 const WhatsNew = lazy(() => loadSection(() => import("./components/WhatsNew")));
 
+const CatalogBoundary = lazy(() => loadSection(() => import('./components/CatalogBoundary')));
+
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news" | "ideas";
 const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news", "ideas"];
 
@@ -336,20 +338,20 @@ export default function App() {
               <Suspense fallback={<p className="section-loading" role="status">Loading section…</p>}>
               {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
               {(activeTab === 'labs' || activeTab === 'sandbox') && track !== 'local' && <p className="track-notice" role="status">Shared local Firebox practice · apply networking concepts here. These exercises use locally-managed Fireboxes; cloud management workflows are covered in the Cloud Q&A, quizzes and flashcards.</p>}
-              {activeTab === "chat" && <GeneralChat />}
-              {activeTab === "quiz" && <PracticeQuiz onScoreUpdated={handleScoreUpdated} launch={quizLaunch} onLaunchConsumed={()=>setQuizLaunch(null)} />}
-              {activeTab === "topology" && <TopologyStudio onPractice={launch=>{setQuizLaunch(launch);setActiveTab('quiz');}}/>}
+              {activeTab === "chat" && <CatalogBoundary section="chat"><GeneralChat /></CatalogBoundary>}
+              {activeTab === "quiz" && <CatalogBoundary section="quiz"><PracticeQuiz onScoreUpdated={handleScoreUpdated} launch={quizLaunch} onLaunchConsumed={()=>setQuizLaunch(null)} /></CatalogBoundary>}
+              {activeTab === "topology" && <CatalogBoundary section="topology"><TopologyStudio onPractice={launch=>{setQuizLaunch(launch);setActiveTab('quiz');}}/></CatalogBoundary>}
               {activeTab === "labs" && <LabWalkthrough onLabCompleted={handleLabCompleted} completedLabs={completedLabs} />}
               {activeTab === "flashcards" && <FlashcardStudio />}
               {activeTab === "sandbox" && <NetworkSimulator />}
               {activeTab === "admin" && (
-                <PerformanceDashboard 
+                <CatalogBoundary section="admin"><PerformanceDashboard
                   score={quizStats.score} 
                   topicWeaknesses={quizStats.topicWeaknesses} 
                   history={quizStats.history}
                   completedLabs={completedLabs}
                   displayName={profileName || "Local learner"}
-                />
+                /></CatalogBoundary>
               )}
               {activeTab === "news" && <WhatsNew />}
               {activeTab === "ideas" && <Suggestions />}
