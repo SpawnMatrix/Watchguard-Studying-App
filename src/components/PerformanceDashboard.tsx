@@ -2,7 +2,7 @@ import AdminConsole from './dashboard/AdminConsole';
 import { buildStudyReport } from '../engine/progress';
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "./motion";
 import OverviewStats from "./dashboard/OverviewStats";
 import WeaknessTracker from "./dashboard/WeaknessTracker";
 import AuditReportBuilder from "./dashboard/AuditReportBuilder";

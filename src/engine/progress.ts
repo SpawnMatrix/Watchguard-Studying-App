@@ -1,4 +1,4 @@
-import { watchguardLabs } from '../data/labs';
+import { LAB_NAMES } from '../data/labIndex';
 
 /** A practice report describes observed work; it never invents exam readiness. */
 export function buildStudyReport(input:any={}) {
@@ -18,7 +18,7 @@ export function buildStudyReport(input:any={}) {
     readinessScore:attempts?`${Math.round(correct/attempts*100)}%`:'0%',
     strengths:strengths.length?strengths:['Answer at least three questions in a topic to begin identifying consistent strengths.'],
     criticalVulnerabilities:weaknesses.length?weaknesses.map((topic:string)=>`Review ${topic}`):['No missed topics in the submitted practice history. Expand topic coverage before judging readiness.'],
-    recommendedLabs:ids.map(id=>watchguardLabs.find(lab=>lab.id===id)).filter((lab):lab is (typeof watchguardLabs)[number]=>!!lab).map(lab=>lab.name),
+    recommendedLabs:ids.map(id=>LAB_NAMES[id]).filter((name):name is string=>!!name),
     summary:`Observed quiz accuracy: ${correct} of ${attempts} answers correct. ${topics.size} topics sampled. This is a practice result, not an official exam score or pass prediction. Review missed concepts, practice fresh scenarios, and verify skills in the lab.`,
   };
 }

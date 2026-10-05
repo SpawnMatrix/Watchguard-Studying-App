@@ -1,4 +1,4 @@
-import { watchguardLabs } from '../../data/labs';
+import { LAB_COUNT } from '../../data/labIndex';
 import React from 'react';
 import { Award, CheckCircle2, BookOpen } from 'lucide-react';
 
@@ -28,7 +28,7 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between gap-3">
         <div className="space-y-1">
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Labs completed</span>
-          <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / {watchguardLabs.length}</div>
+          <div className="text-3xl font-display font-bold text-white">{completedLabs.length} / {LAB_COUNT}</div>
         </div>
         <div className="hidden xl:block p-3 bg-green-500/10 rounded-full">
           <CheckCircle2 className="w-6 h-6 text-green-400" />

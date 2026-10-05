@@ -4,7 +4,7 @@ import { watchguardLabs, labCategories, orderLabs, Lab, LabCategory, LabSort } f
 import { checkpointFor } from "../data/labCheckpoints";
 import { entryFor, furthestReachable, isLabFinished, LAB_PROGRESS_KEY, markStepDone, resetLab, setResumeStep, validLabProgress, type LabProgress } from "../engine/labProgress";
 import { readJSON, writeStudyValue } from "../account/storage";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "./motion";
 import { handleError } from "../utils/errorHandler";
 import LabCheckpointCard, { type CheckpointAttempt } from "./LabCheckpointCard";
 import { handsOnLabs, simForStep } from "../data/labTasks";

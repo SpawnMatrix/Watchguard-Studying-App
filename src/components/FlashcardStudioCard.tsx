@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from './motion';
 import { RefreshCw, CheckCircle2 } from 'lucide-react';
 
 interface Flashcard {

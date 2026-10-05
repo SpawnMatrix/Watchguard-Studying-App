@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { motion } from "./motion";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 export interface EvaluationData {

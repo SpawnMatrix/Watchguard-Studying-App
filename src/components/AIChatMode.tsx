@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, RefObject } from "react";
 import { Send, Search, Compass, User, Bot, AlertTriangle, ExternalLink } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "./motion";
 import { Message } from "../types/chat";
 import { parseBold } from "../utils/textFormatting";
 
