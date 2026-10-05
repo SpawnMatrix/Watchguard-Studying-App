@@ -37,6 +37,7 @@ export interface ChangelogEntry {
  * the gap between two versions in the list is always explained.
  */
 export const INTERNAL_ONLY: Record<string, string> = {
+  '1.28.2': 'Vite and its plugins are development-only dependencies.',
   '1.27.7': 'Missing build assets return a non-cacheable 404.',
   '1.3.1': 'Dependency and container hardening.',
   '1.3.2': 'Deployment fix for reaching the portal behind a proxy.',
