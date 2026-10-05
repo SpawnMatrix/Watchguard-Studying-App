@@ -472,11 +472,9 @@ After v1.22.0, in plain language:
 - It stores ideas people post, with no link back to them unless they asked for
   their name to be shown. An anonymous post is anonymous to us as well.
 
-**Open:** `src/index.css:1` imports web fonts from `fonts.googleapis.com`. The
-production CSP (`style-src 'self' 'unsafe-inline'`) blocks it, so today no
-request reaches Google and the portal renders in system fonts — but the intent
-in the source is to fetch from Google on every page load, which would hand
-Google every visitor's address and referer, and relaxing `style-src` later
-would switch that on silently. The fix is to self-host the fonts or drop the
-import. It is not done here because `src/index.css` is the file the theming
-work is in.
+**Resolved in 1.22.1:** `src/index.css` used to import web fonts from
+`fonts.googleapis.com`. The CSP blocked it, so no request ever reached Google, but
+relaxing `style-src` would have switched it on silently. The fonts are now bundled
+from `@fontsource-variable/*` and served from the portal's own origin, and
+`src/selfHostedAssets.test.ts` fails if any stylesheet or `index.html` references
+another origin again.

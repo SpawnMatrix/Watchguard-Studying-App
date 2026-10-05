@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from 'react';
-import { Cloud, Monitor, Network, Router, Server, ShieldCheck, Waypoints, Maximize2, Scan, Pause, Play } from 'lucide-react';
+import { Cloud, Monitor, Network, Router, Server, ShieldCheck, Waypoints, Maximize2, Scan, Pause, Play, Check, X, CircleDot } from 'lucide-react';
 import type { TopologyDiagramData, TopologyHotspot } from '../engine/topology';
 import { diagramOverflowsPanel, topologyEdgeGeometry } from '../engine/topologyGeometry';
 
@@ -21,6 +21,15 @@ function lines(text: string, limit = 21) {
     else result.push(word);
   }
   return result;
+}
+
+/** A shape as well as a colour, so a selection and its verdict read without colour vision. */
+function HotspotMarker({ state }: { state: string }) {
+  if (!state) return null;
+  const Icon = state === 'is-correct' ? Check : state === 'is-incorrect' ? X : CircleDot;
+  return <g className={`hotspot-marker ${state}`} transform="translate(83 -35)" aria-hidden="true">
+    <circle r={12}/><Icon x={-8} y={-8} width={16} height={16}/>
+  </g>;
 }
 
 /** Diagram is presentation only: answer evaluation is owned by the quiz engine. */
@@ -79,6 +88,7 @@ export default function NetworkTopology({ diagram, selected = [], correct = [], 
             <rect className="node-card" x={-105} y={-60} width={210} height={120} rx={12}/>
             <Icon x={-90} y={-45} width={26} height={26} aria-hidden="true"/>
             <text className="node-zone" x={-58} y={-27}>{node.zone || node.kind}</text>
+            <HotspotMarker state={state(spot)}/>
             <text className="node-label" x={-88} y={2}>{node.label}</text>
             {detail.slice(0,3).map((line,i)=><text className="node-detail" key={i} x={-88} y={22+i*16}>{line}</text>)}
           </g>;

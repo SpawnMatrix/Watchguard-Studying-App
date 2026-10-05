@@ -3,6 +3,10 @@ import {createRoot} from 'react-dom/client';
 import { LearningTrackProvider } from './engine/LearningTrack';
 import App from './App.tsx';
 import AccountGate from './account/AccountGate';
+// Fonts ship with the app: the CSP allows no third-party styles, and a font CDN would see every visitor.
+import '@fontsource-variable/inter';
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/jetbrains-mono';
 import './index.css';
 
 // Apply the saved preference before onboarding; new browsers start in dark mode.
