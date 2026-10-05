@@ -105,4 +105,10 @@ describe('overview stats', () => {
     expect(html).toContain('1 answered correctly');
     expect(html).not.toContain('Correct</div>');
   });
+
+  it('shows no accuracy before the first answer, as Study Home does, rather than 0%', () => {
+    const html = renderToStaticMarkup(<OverviewStats score="0%" completedLabs={[]} history={[]} />);
+    expect(html).toContain('—');
+    expect(html).not.toContain('0%');
+  });
 });

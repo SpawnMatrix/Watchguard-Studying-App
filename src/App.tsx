@@ -4,7 +4,7 @@ import { LearningTrackSwitcher, useLearningTrack } from './engine/LearningTrack'
 import ReleaseFooter from './components/ReleaseFooter';
 import { useAccount } from "./account/AccountGate";
 import { writeStudyValue } from "./account/storage";
-import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { tabFromHash } from "./engine/shortcuts";
 import { loadSection } from "./engine/lazySection";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
@@ -102,6 +102,13 @@ export default function App() {
       else setUnseenNews(unseenChangelogCount());
     }).catch(() => { /* The badge is a nicety; a failed chunk load must not break navigation. */ });
     return () => { current = false; };
+  }, [activeTab]);
+  // On narrow screens the nav is one scrolling row; keep the open section in view without moving the page.
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = navRef.current;
+    const item = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (nav && item && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = item.offsetLeft - (nav.clientWidth - item.offsetWidth) / 2;
   }, [activeTab]);
   useEffect(() => {
     const current = tabFromHash(window.location.hash, TABS);
@@ -304,7 +311,7 @@ export default function App() {
       <main className="study-layout">
         
         {/* Tab Navigation Tray */}
-        <nav aria-label="Study sections" className="study-nav">
+        <nav ref={navRef} aria-label="Study sections" className="study-nav">
           <p className="nav-caption">YOUR WORKSPACE</p>
           {tabsConfig.map((t) => {
             const Icon = t.icon;

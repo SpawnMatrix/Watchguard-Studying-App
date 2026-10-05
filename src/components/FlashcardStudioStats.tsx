@@ -72,7 +72,7 @@ export default function FlashcardStudioStats({
         <div className="min-w-0">
           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest font-bold block mb-1">How to study a card</span>
           <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
-            Answer it in your own words before you reveal it, then mark it mastered only if you were right. Use the arrow keys to move through the deck.
+            Answer it in your own words before you reveal it, then grade yourself honestly: Knew it only if you were right, Again if not. Use the arrow keys to move through the deck.
           </p>
         </div>
       </div>

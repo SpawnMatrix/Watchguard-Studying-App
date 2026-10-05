@@ -17,7 +17,8 @@ export default function OverviewStats({ score, completedLabs, history }: Overvie
       <div className="bg-watchguard-gray border border-watchguard-border rounded-xl p-5 shadow-xl flex items-center justify-between gap-3">
         <div className="space-y-1">
           <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block">Quiz accuracy</span>
-          <div className="text-3xl font-display font-bold text-watchguard-orange">{score}</div>
+          {/* No answers is no score, not 0%; Study Home and Progress show the same thing. */}
+          <div className="text-3xl font-display font-bold text-watchguard-orange">{history.length ? score : "—"}</div>
         </div>
         <div className="hidden xl:block p-3 bg-watchguard-orange/10 rounded-full">
           <Award className="w-6 h-6 text-watchguard-orange" />
