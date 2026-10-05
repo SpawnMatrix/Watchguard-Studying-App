@@ -65,6 +65,10 @@ jobs:
         env:
           A11Y_URL: http://127.0.0.1:3000
         run: npm run a11y
+      - name: Verify per-track downloads and saved quizzes
+        env:
+          A11Y_URL: http://127.0.0.1:3000
+        run: node scripts/check-track-chunks.mjs
   container:
     needs: test
     runs-on: ubuntu-latest

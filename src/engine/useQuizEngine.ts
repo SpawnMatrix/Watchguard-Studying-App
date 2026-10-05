@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Question } from '../data/questions';
 import type { QuizHistoryItem } from '../components/QuizAnalyticsPanel';
 import type { EvaluationData } from '../components/QuizEvaluation';
-import { filterQuestions, materialize, questionById, type QuestionFilters } from './catalog';
+import { filterQuestions, materialize, questionById, ensureCatalog, type QuestionFilters } from './catalog';
 import { createMockExam } from './mockExam';
 import { gradeQuestion } from './grading';
 import { newSeed, pick, seededRandom } from './random';
@@ -71,9 +71,14 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
   const correctCount=session.history.filter(h=>h.isCorrect).length;
   const filtered=session.mode==='weakness-review'?Object.keys(deck).map(Number).map(id=>questionById.get(id)).filter((q):q is Question=>!!q):filterQuestions(session.filters);
   const report=(history:QuizHistoryItem[])=>onScoreUpdated({history,score:history.length?`${Math.round(history.filter(h=>h.isCorrect).length/history.length*100)}%`:'0%',topicWeaknesses:[...new Set(history.filter(h=>!h.isCorrect).map(h=>h.topic))]});
-  function configure(mode:QuizMode,filters:Filters=session.filters,timed=mode==='mock-exam'&&!!session.timing) {
+  async function configure(mode:QuizMode,filters:Filters=session.filters,timed=mode==='mock-exam'&&!!session.timing) {
     if(busy.current)return;
-    setSession(first(mode,filters,deck,session.history,srs,timed));setNotice('');
+    busy.current=true;setLoading(true);setNotice('');
+    try {
+      await ensureCatalog(filters.track, mode==='weakness-review'?Object.keys(deck).map(Number):[]);
+      if(alive.current)setSession(first(mode,filters,deck,session.history,srs,timed));
+    } catch { if(alive.current)setNotice('Questions could not be loaded. Please try again; your current session is unchanged.'); }
+    finally { busy.current=false;if(alive.current)setLoading(false); }
   }
   function toggle(option:string) {
     const q=session.current;if(!q||session.evaluation||busy.current)return;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useLearningTrack } from '../../engine/LearningTrack';
-import { questionById } from '../../engine/catalog';
+import { questionMetaById } from '../../engine/catalog';
 
 /** Answers needed in a topic before it is judged, so one unlucky miss does not flag a topic. */
 export const TOPIC_MIN_ANSWERS = 3;
@@ -14,7 +14,7 @@ export interface TopicStanding { topic: string; correct: number; total: number; 
 export function topicStandings(history: readonly { questionId: number; isCorrect: boolean; topic: string }[], track: string): TopicStanding[] {
   const latest = new Map<number, { topic: string; isCorrect: boolean }>();
   for (const h of history) {
-    if ((questionById.get(h.questionId)?.track ?? 'local') === track) latest.set(h.questionId, h);
+    if ((questionMetaById.get(h.questionId)?.track ?? 'local') === track) latest.set(h.questionId, h);
   }
   const topics = new Map<string, { correct: number; total: number }>();
   for (const { topic, isCorrect } of latest.values()) {

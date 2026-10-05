@@ -49,7 +49,7 @@ describe('first load', () => {
     expect(packages.filter(p => /^(motion|framer-motion)(\/|$)/.test(p))).toEqual([]);
   });
 
-  it.each(['data/labs.ts', 'data/changelog.ts', 'data/flashcards.ts', 'data/questions.ts', 'engine/catalog.ts', 'engine/mockExam.ts'])(
+  it.each(['data/labs.ts', 'data/changelog.ts', 'data/flashcards.ts', 'data/questions.ts', 'engine/catalog.ts', 'engine/clientCatalog.ts', 'engine/catalogCore.ts', 'engine/mockExam.ts'])(
     'leaves %s to the section that needs it', file => {
       expect(files).not.toContain(file);
     });

@@ -1,3 +1,4 @@
+import { questionChunks } from './scripts/question-build/questionChunks.ts';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -12,7 +13,9 @@ export default defineConfig(({command}) => {
   const commit=process.env.VITE_APP_COMMIT_SHA||'local';
   return {
     define: {'import.meta.env.VITE_APP_BUILD_DATE':JSON.stringify(buildDate)},
-    plugins: [react(), tailwindcss(), {
+    plugins: [questionChunks(), { name: 'browser-catalog', enforce: 'pre', resolveId(source, importer) {
+      if (importer && /(?:^|\/)catalog(?:\.ts)?$/.test(source)) return path.resolve(import.meta.dirname, 'src/engine/clientCatalog.ts');
+    } }, react(), tailwindcss(), {
       name:'release-build-info',
       generateBundle() {
         this.emitFile({type:'asset',fileName:'build-info.json',source:JSON.stringify({version:pkg.version,commit,buildDate})});
@@ -21,6 +24,8 @@ export default defineConfig(({command}) => {
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),
+        // Only the browser build replaces the synchronous full server catalog.
+        [path.resolve(import.meta.dirname, 'src/engine/catalog.ts')]: path.resolve(import.meta.dirname, 'src/engine/clientCatalog.ts'),
       },
     },
     server: {

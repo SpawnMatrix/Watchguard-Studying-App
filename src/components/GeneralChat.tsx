@@ -1,5 +1,5 @@
 import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
-import { authoredQuestions } from '../data/authoredQuestions';
+import { qaQuestions } from '../engine/catalog';
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Sparkles, Search, Compass, BookOpen, User, Bot, AlertTriangle, ExternalLink, HelpCircle, Layers, CheckCircle, ChevronDown, ChevronUp, Link } from "lucide-react";
 import { motion, AnimatePresence } from "./motion";
@@ -20,7 +20,7 @@ interface Message {
 
 export default function GeneralChat() {
   const {track}=useLearningTrack();
-  const trackQA=useMemo(()=>track==='local'?LOCAL_QA_DATABASE:authoredQuestions.filter(q=>q.track===track).map(q=>({id:q.id,question:q.question,answer:q.correctAnswers.join('; ')+'\n\n'+q.explanation,category:q.topic,keywords:[q.topic,q.objective||''],refLink:q.sources?.find(s=>s.url)?.url})),[track]);
+  const trackQA=useMemo(()=>track==='local'?LOCAL_QA_DATABASE:qaQuestions.filter(q=>q.track===track).map(q=>({id:q.id,question:q.question,answer:q.correctAnswers.join('; ')+'\n\n'+q.explanation,category:q.topic,keywords:[q.topic,q.objective||''],refLink:q.sources?.find(s=>s.url)?.url})),[track]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "init",
