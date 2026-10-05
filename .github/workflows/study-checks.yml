@@ -74,6 +74,12 @@ jobs:
         with:
           node-version: 22
       - run: docker build --build-arg COMMIT_SHA=ci-smoke --build-arg BUILD_DATE=ci -t study-test .
+      - name: Assert build tools are absent from the production image
+        run: >-
+          docker run --rm --entrypoint node study-test -e
+          "for (const name of ['vite', '@vitejs/plugin-react', '@tailwindcss/vite']) {
+          try { require.resolve(name); } catch (e) { if (e.code === 'MODULE_NOT_FOUND') continue; throw e; }
+          throw new Error(name + ' is installed in production'); }"
       - name: Start production image with persistent data
         run: docker run -d --name study-smoke -p 3000:3000 -e ENABLE_AI_FEATURES=false -v study-smoke-data:/data study-test
       - name: Wait for health and test study flows
