@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState, type FormEvent,
 import { ShieldCheck, Shuffle, KeyRound, Download, UserRound, LogOut, LifeBuoy, X } from 'lucide-react';
 import { PROGRESS_EVENT, readJSON, restoreBrowser, snapshotBrowser } from './storage';
 import type { StudySnapshot } from './schema';
+import { canCheckRemote, freshness, type LocalSyncState } from './freshness';
 
 type Saved={username:string;revision:number;snapshot:StudySnapshot;updatedAt:number};
 type Cache={revision:number;snapshot:StudySnapshot;pending:boolean};
@@ -49,6 +50,9 @@ export default function AccountGate({children}:{children:ReactNode}) {
   const [generation,setGeneration]=useState(0),[conflict,setConflict]=useState<Saved|null>(null);
   const active=useRef<string|null>(null),revision=useRef(0),pending=useRef(false),sending=useRef(false),conflicted=useRef(false);
   const dialogRef=useRef<HTMLDivElement>(null);
+  // Read by the sync listeners, which are registered once per sign-in rather than on every render.
+  const signedIn=useRef<string|null>(null),panelOpen=useRef(false),lastCheck=useRef(0);
+  signedIn.current=username;panelOpen.current=modal;
   const [bringLocal,setBringLocal]=useState(true);
   const owner=localStorage.getItem(OWNER);
   const hasLegacy=!owner&&Object.keys(snapshotBrowser()).length>0;
@@ -106,10 +110,22 @@ export default function AccountGate({children}:{children:ReactNode}) {
   useEffect(()=>{
     let timer:ReturnType<typeof setTimeout>;
     const changed=()=>{pending.current=true;remember();if(!conflicted.current)setStatus(active.current?'Saving…':'Saved on this device');clearTimeout(timer);timer=setTimeout(sync,600);};
-    const online=()=>{void sync();};
     const otherTab=(event:StorageEvent)=>{if(event.key===OWNER&&event.newValue!==active.current){active.current=null;pending.current=false;setReady(false);setUsername(null);setModal(true);setMode('login');setError('The account changed in another tab. Sign in here to continue.');}};
     window.addEventListener('storage',otherTab);
-    const visible=()=>{if(document.visibilityState==='visible')void sync();};
+    const local=():LocalSyncState=>({user:signedIn.current&&active.current,revision:revision.current,pending:pending.current,sending:sending.current,conflicted:conflicted.current,busy:panelOpen.current});
+    // A tab coming back may be behind a save made on another device since it was last in view.
+    const checkRemote=async()=>{
+      if(!canCheckRemote(local(),lastCheck.current,Date.now()))return;
+      lastCheck.current=Date.now();
+      try{
+        const saved=await request('me');
+        const verdict=freshness(local(),saved);
+        if(verdict==='adopt')enter(saved);
+        else if(verdict==='signed-out')setStatus('Sign in to sync');
+      }catch{/* Offline or the server is down: keep studying on what this device has. */}
+    };
+    const online=()=>{void sync();void checkRemote();};
+    const visible=()=>{if(document.visibilityState==='visible'){void sync();void checkRemote();}};
     window.addEventListener(PROGRESS_EVENT,changed);window.addEventListener('online',online);document.addEventListener('visibilitychange',visible);
     const retry=setInterval(sync,15_000);
     if(ready&&pending.current)void sync();
