@@ -345,7 +345,7 @@ export default function App() {
               {activeTab === "flashcards" && <FlashcardStudio />}
               {activeTab === "sandbox" && <NetworkSimulator />}
               {activeTab === "admin" && (
-                <CatalogBoundary section="admin"><PerformanceDashboard 
+                <CatalogBoundary section="admin"><PerformanceDashboard
                   score={quizStats.score} 
                   topicWeaknesses={quizStats.topicWeaknesses} 
                   history={quizStats.history}
