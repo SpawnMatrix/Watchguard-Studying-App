@@ -8,6 +8,7 @@ import WeaknessTracker from "./dashboard/WeaknessTracker";
 import AuditReportBuilder from "./dashboard/AuditReportBuilder";
 import ReportVisualization from "./dashboard/ReportVisualization";
 import ExamReadiness from "./dashboard/ExamReadiness";
+import ExamPlanner from "./dashboard/ExamPlanner";
 
 interface QuizHistoryItem {
   questionId: number;
@@ -93,6 +94,8 @@ export default function PerformanceDashboard({
       <div className="console-tabs" role="group" aria-label="Progress and administration views"><button className={panel==='progress'?'is-active':''} aria-pressed={panel==='progress'} onClick={()=>setPanel('progress')}>Study progress</button><button className={panel==='admin'?'is-active':''} aria-pressed={panel==='admin'} onClick={()=>setPanel('admin')}>Accounts & tutor settings</button></div>
       <div hidden={panel!=='progress'}>
       <OverviewStats score={score} completedLabs={completedLabs} history={history} />
+
+      <ExamPlanner history={history} />
 
       <ExamReadiness history={history} />
 

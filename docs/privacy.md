@@ -199,8 +199,9 @@ one.
 `watchguard-study-profile-name-v1`, `watchguard-srs-v1`,
 `watchguard-lab-progress-v1`, `watchguard-sandbox-progress-v1` (ids of solved
 sandbox challenges, since 1.24.0), `watchguard-flashcard-srs-v1` (each
-reviewed flashcard's box, due time and first-review time, since 1.25.0), plus
-device-local extras
+reviewed flashcard's box, due time and first-review time, since 1.25.0),
+`watchguard-exam-date-v1` (the exam date a learner entered for each track, since
+1.26.0), plus device-local extras
 (`watchguard-study-owner`, `watchguard-account-cache:<user>`,
 `watchguard-portal-theme`, `watchguard-learning-track:<user>`,
 `watchguard-changelog-seen-v1`, `watchguard-suggestion-claims-v1`, `watchguard_custom_gemini_api_key`).

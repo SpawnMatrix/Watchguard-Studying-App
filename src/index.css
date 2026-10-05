@@ -335,6 +335,16 @@ button[data-answer-state]:disabled { opacity: 1; }
 .exam-readiness h3 svg,.topic-review h3 svg{width:16px;height:16px;flex:none;color:var(--color-watchguard-orange)}
 .readiness-summary{margin:0 0 14px;padding:10px 14px;border:1px solid var(--color-wg-border);border-radius:10px;color:var(--color-wg-text);line-height:1.55}
 .readiness-summary strong{font-family:var(--font-display);font-size:1.2rem;color:var(--color-watchguard-orange)}
+.exam-planner{display:flex;flex-direction:column;gap:12px}.exam-planner h3{margin-bottom:2px}
+.exam-plan-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}.exam-plan-form label{display:flex;flex-direction:column;gap:6px;color:var(--color-wg-text);font-weight:500}
+.exam-plan-form input{min-height:40px;border:1px solid var(--color-wg-border);border-radius:8px;padding:6px 10px;background:var(--color-wg-dark);color:var(--color-wg-text);color-scheme:inherit}
+.exam-plan-form button,.exam-plan-actions button{min-height:40px;padding:0 14px;border-radius:8px;font-size:.82rem}
+.exam-plan-today,.exam-plan-mocks{margin:0;color:var(--color-wg-text);line-height:1.55}.exam-plan-today strong,.exam-plan-mocks strong{color:var(--color-watchguard-orange)}
+.exam-plan-split{display:grid;gap:6px;margin:0;padding:0;list-style:none}.exam-plan-split li{display:flex;gap:10px;align-items:baseline;line-height:1.45}
+.exam-plan-count{flex:none;min-width:2.4em;text-align:right;font:600 .95rem var(--font-mono);color:var(--color-watchguard-orange)}
+.exam-plan-actions{display:flex;gap:8px;flex-wrap:wrap}
+.home-exam{display:flex;width:fit-content;margin:-4px 0 14px;padding:3px 10px;border:1px solid var(--color-watchguard-orange);border-radius:999px;color:var(--color-watchguard-orange);font-size:.75rem;cursor:pointer;background:transparent}
+:root[data-theme="light"] .exam-plan-today strong,:root[data-theme="light"] .exam-plan-mocks strong,:root[data-theme="light"] .exam-plan-count,:root[data-theme="light"] .home-exam{color:#a63416;border-color:#a63416}
 .readiness-summary.is-above{border-color:#16a34a}.readiness-summary.is-below{border-color:#dc2626}
 .readiness-table{overflow-x:auto}
 .readiness-table table{width:100%;border-collapse:collapse}
