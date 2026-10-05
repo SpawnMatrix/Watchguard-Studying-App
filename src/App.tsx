@@ -21,7 +21,7 @@ const FlashcardStudio = lazy(() => loadSection(() => import("./components/Flashc
 const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
 const Suggestions = lazy(() => loadSection(() => import("./components/Suggestions")));
 const WhatsNew = lazy(() => loadSection(() => import("./components/WhatsNew")));
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, MotionConfig } from "motion/react";
 
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news" | "ideas";
 const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news", "ideas"];
@@ -224,7 +224,8 @@ export default function App() {
   ];
 
   return (
-    <div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
+    // The CSS reduced-motion rule cannot reach motion's JS-driven transitions; this does.
+    <MotionConfig reducedMotion="user"><div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
       
       {/* Top Professional Navigation Console Bar */}
       <a className="skip-link" href="#study-content">Skip to study content</a>
@@ -451,6 +452,6 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div></MotionConfig>
   );
 }
