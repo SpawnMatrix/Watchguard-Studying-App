@@ -771,3 +771,11 @@ button:disabled{cursor:default}
 .exam-clock.is-behind{border-color:#ef4444;color:#fca5a5}.exam-clock.is-ahead{border-color:#22c55e}
 :root[data-theme="light"] .exam-clock.is-behind{color:#b91c1c;border-color:#b91c1c}
 .exam-time-result{max-width:46ch;margin:4px auto 0;color:var(--color-wg-text-muted);font-size:.85rem;line-height:1.5}
+/* Shell transitions are CSS so the first bundle carries no animation library; the global
+   prefers-reduced-motion rule above already shortens them to nothing. */
+@keyframes section-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes dialog-enter{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fade-enter{from{opacity:0}to{opacity:1}}
+.section-enter{animation:section-enter .15s ease-out both}
+.dialog-enter{animation:dialog-enter .18s ease-out both}
+.dialog-backdrop-enter{animation:fade-enter .15s ease-out both}

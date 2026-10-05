@@ -7,7 +7,6 @@ import { writeStudyValue } from "./account/storage";
 import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
 import { tabFromHash } from "./engine/shortcuts";
 import { loadSection } from "./engine/lazySection";
-import { markChangelogSeen, unseenChangelogCount } from "./engine/changelogSeen";
 import SectionErrorBoundary from "./components/SectionErrorBoundary";
 import { Waypoints, House, Bot, Trophy, Layers, BarChart3, ShieldCheck, Terminal, UserRound, Clock, Globe, BookMarked, Sun, Moon, Pencil, History, Lightbulb } from "lucide-react";
 // Study Home loads with the app; every other section is fetched the first time it is opened, so the
@@ -21,7 +20,6 @@ const FlashcardStudio = lazy(() => loadSection(() => import("./components/Flashc
 const TopologyStudio = lazy(() => loadSection(() => import("./components/TopologyStudio")));
 const Suggestions = lazy(() => loadSection(() => import("./components/Suggestions")));
 const WhatsNew = lazy(() => loadSection(() => import("./components/WhatsNew")));
-import { motion, AnimatePresence, MotionConfig } from "motion/react";
 
 type Tab = "topology" | "home" | "chat" | "quiz" | "labs" | "flashcards" | "sandbox" | "admin" | "news" | "ideas";
 const TABS: readonly Tab[] = ["home", "chat", "quiz", "topology", "labs", "flashcards", "sandbox", "admin", "news", "ideas"];
@@ -91,10 +89,17 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>(() => tabFromHash(window.location.hash, TABS) ?? "home");
   // Opening What's New is what marks it read; the badge clears on the way in
   // rather than on the way out, so it does not sit there while you read it.
-  const [unseenNews, setUnseenNews] = useState(() => unseenChangelogCount());
+  // The release text is only needed for this count, so it loads after first paint instead of with
+  // the shell; the badge appears a moment later.
+  const [unseenNews, setUnseenNews] = useState(0);
   useEffect(() => {
-    if (activeTab === "news") { markChangelogSeen(); setUnseenNews(0); }
-    else setUnseenNews(unseenChangelogCount());
+    let current = true;
+    import("./engine/changelogSeen").then(({ markChangelogSeen, unseenChangelogCount }) => {
+      if (!current) return;
+      if (activeTab === "news") { markChangelogSeen(); setUnseenNews(0); }
+      else setUnseenNews(unseenChangelogCount());
+    }).catch(() => { /* The badge is a nicety; a failed chunk load must not break navigation. */ });
+    return () => { current = false; };
   }, [activeTab]);
   useEffect(() => {
     const current = tabFromHash(window.location.hash, TABS);
@@ -224,8 +229,7 @@ export default function App() {
   ];
 
   return (
-    // The CSS reduced-motion rule cannot reach motion's JS-driven transitions; this does.
-    <MotionConfig reducedMotion="user"><div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
+    <div className="app-shell min-h-screen bg-watchguard-dark text-gray-100 font-sans">
       
       {/* Top Professional Navigation Console Bar */}
       <a className="skip-link" href="#study-content">Skip to study content</a>
@@ -325,15 +329,9 @@ export default function App() {
 
         {/* Active Learning Component Panel */}
         <div id="study-content" tabIndex={-1} className="study-content">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.15 }}
-              className="h-full"
-            >
+          {/* A CSS entrance: the shell no longer loads motion, and a new section appears at once rather
+              than waiting for the old one to animate out. */}
+          <div key={activeTab} className="section-enter h-full">
               <SectionErrorBoundary>
               <Suspense fallback={<p className="section-loading" role="status">Loading section…</p>}>
               {activeTab === "home" && <StudyHome name={profileName || account.username || 'learner'} history={quizStats.history} completedLabs={completedLabs} onNavigate={setActiveTab}/>}
@@ -357,30 +355,20 @@ export default function App() {
               {activeTab === "ideas" && <Suggestions />}
               </Suspense>
               </SectionErrorBoundary>
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
       </main>
 
       {/* Global Security Footer */}
       <ReleaseFooter />
 
-      <AnimatePresence>
-        {isProfileEditorOpen && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
+      {isProfileEditorOpen && (
+          <div className="dialog-backdrop-enter fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4">
+            <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="profile-dialog-title"
-              className="w-full max-w-md rounded-2xl border border-watchguard-border bg-watchguard-gray p-6 shadow-2xl"
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              className="dialog-enter w-full max-w-md rounded-2xl border border-watchguard-border bg-watchguard-gray p-6 shadow-2xl"
             >
               <div className="mb-5 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-watchguard-orange/10 text-watchguard-orange border border-watchguard-orange/30">
@@ -448,10 +436,9 @@ export default function App() {
                   </div>
                 </div>
               </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div></MotionConfig>
+            </div>
+          </div>
+      )}
+    </div>
   );
 }

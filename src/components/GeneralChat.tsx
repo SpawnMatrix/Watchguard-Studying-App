@@ -2,7 +2,7 @@ import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
 import { authoredQuestions } from '../data/authoredQuestions';
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Sparkles, Search, Compass, BookOpen, User, Bot, AlertTriangle, ExternalLink, HelpCircle, Layers, CheckCircle, ChevronDown, ChevronUp, Link } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "./motion";
 import AIChatMode from "./AIChatMode";
 import QADeskMode from "./QADeskMode";
 import { handleError } from "../utils/errorHandler";

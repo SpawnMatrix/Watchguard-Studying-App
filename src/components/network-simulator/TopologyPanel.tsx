@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Shield } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "../motion";
 
 interface TopologyPanelProps {
   animatingPacket: {

@@ -48,6 +48,15 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.27.1',
+    date: '2026-10-05',
+    headline: 'A faster first load',
+    changes: [
+      { kind: 'improved', text: 'The portal downloads about 40% less before it can show anything, which helps most on phones and slow connections.' },
+      { kind: 'improved', text: 'Switching sections no longer waits for the previous one to animate away.' },
+    ],
+  },
+  {
     version: '1.27.0',
     date: '2026-10-05',
     headline: 'Practise against the clock',

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { HelpCircle, Search, AlertTriangle, ChevronUp, ChevronDown, ExternalLink } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "./motion";
 import { QAItem } from "../types/chat";
 import { parseBold } from "../utils/textFormatting";
 
