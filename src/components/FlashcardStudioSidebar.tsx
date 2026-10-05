@@ -9,6 +9,8 @@ interface FlashcardStudioSidebarProps {
   setSearchQuery: (query: string) => void;
   filteredCardsLength: number;
   currentIndex: number;
+  /** Replaces the position line, e.g. with what is left in today's deck. */
+  positionText?: string;
 }
 
 export default function FlashcardStudioSidebar({
@@ -18,7 +20,8 @@ export default function FlashcardStudioSidebar({
   searchQuery,
   setSearchQuery,
   filteredCardsLength,
-  currentIndex
+  currentIndex,
+  positionText
 }: FlashcardStudioSidebarProps) {
   return (
     <div className="w-full md:w-64 space-y-4 flex-shrink-0">
@@ -59,7 +62,7 @@ export default function FlashcardStudioSidebar({
         <div className="bg-watchguard-dark/40 border border-watchguard-border/60 p-3 rounded-lg space-y-1">
           <span className="text-[10px] font-mono text-gray-500 block">Position</span>
           <p className="text-[11px] text-gray-300 font-sans">
-            Showing {currentIndex + 1} of {filteredCardsLength} matching flashcards.
+            {positionText ?? `Showing ${currentIndex + 1} of ${filteredCardsLength} matching flashcards.`}
           </p>
         </div>
       )}
