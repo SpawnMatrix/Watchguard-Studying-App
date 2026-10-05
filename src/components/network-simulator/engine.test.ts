@@ -25,7 +25,7 @@ describe('policy simulation boundaries',()=>{
   expect(evaluateFlow(config,tls).status).toBe('Allowed');
   expect(evaluateFlow({...config,inspectTls:true},tls).failureOrigin).toBe('client');
   const blocked=evaluateFlow({...config,inspectTls:true,trustCa:true},tls);
-  expect(blocked.status).toBe('Denied');expect(blocked.trace.at(-1)?.stage).toBe('Content inspection');
+  expect(blocked.status).toBe('Denied');expect(blocked.trace?.at(-1)?.stage).toBe('Content inspection');
   expect(evaluateFlow({...config,inspectTls:true,trustCa:true},{...tls,payload:'clean'}).status).toBe('Allowed');
  });
  it('does not apply the HTTP proxy to UDP/80',()=>{expect(evaluateFlow({...config,outgoing:false},{...flow,protocol:'UDP',dstPort:80}).status).toBe('Denied');});

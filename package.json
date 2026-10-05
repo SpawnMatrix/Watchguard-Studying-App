@@ -1,7 +1,7 @@
 {
   "name": "watchguard-study-portal",
   "private": true,
-  "version": "1.27.5",
+  "version": "1.27.6",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -36,13 +36,15 @@
     "@axe-core/playwright": "^4.13.0",
     "@types/express": "^5.0.6",
     "@types/node": "^22.14.0",
+    "@types/react": "~19.2",
+    "@types/react-dom": "~19.2",
     "@vitest/coverage-v8": "^5.0.3",
     "autoprefixer": "^10.6.1",
     "esbuild": "^0.28.2",
     "playwright": "^1.63.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "~5.8.2",
+    "typescript": "^7.0.2",
     "vite": "^8.3.2",
     "vitest": "^5.0.3"
   }

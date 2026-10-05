@@ -43,6 +43,7 @@ export const INTERNAL_ONLY: Record<string, string> = {
   '1.9.1': 'Automated, verified database backups.',
   '1.15.3': 'Removed unused code.',
   '1.15.5': 'Removed an unused dependency.',
+  '1.27.6': 'TypeScript 7, with React now type-checked.',
   '1.27.5': 'Build toolchain moved to Vite 8 and Vitest 5.',
   '1.27.4': 'Interface libraries updated: motion 14 and lucide-react 1.',
   '1.27.3': 'Server dependencies moved to Express 5.',

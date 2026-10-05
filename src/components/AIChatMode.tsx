@@ -10,7 +10,7 @@ interface AIChatModeProps {
   inputValue: string;
   setInputValue: (val: string) => void;
   handleSend: (text: string) => void;
-  scrollRef: RefObject<HTMLDivElement>;
+  scrollRef: RefObject<HTMLDivElement | null>;
   suggestedPrompts: string[];
 }
 
