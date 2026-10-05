@@ -55,11 +55,9 @@ assertAdminPasswordSafe();
  * rate limiter in the app.
  */
 /**
- * Express 4 parses query strings with `qs` by default, which carries two open advisories (an
- * array-limit bypass and a denial of service through attacker-controlled input). No route in
- * this app reads `req.query`, so the extended parser buys nothing: "simple" uses the Node
- * built-in and takes `qs` off the request path entirely. Revisit only if a route needs nested
- * query syntax, which would be a good moment to move to Express 5 instead.
+ * No route reads `req.query`, so query strings are parsed with the Node built-in rather than
+ * `qs`, which has carried advisories. "simple" is Express 5's default; it stays explicit so a
+ * future default change cannot quietly put `qs` back on the request path.
  */
 app.set("query parser", "simple");
 app.set("trust proxy", proxyTrustSetting());
@@ -349,7 +347,8 @@ async function startServer() {
         if (/\/assets\//.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       }
     }));
-    app.get("*", (_req, res) => {
+    // Express 5's path-to-regexp needs the catch-all named; "*" alone no longer matches anything.
+    app.get("/{*splat}", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

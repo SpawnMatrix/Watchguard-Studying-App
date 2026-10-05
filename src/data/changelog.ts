@@ -43,6 +43,7 @@ export const INTERNAL_ONLY: Record<string, string> = {
   '1.9.1': 'Automated, verified database backups.',
   '1.15.3': 'Removed unused code.',
   '1.15.5': 'Removed an unused dependency.',
+  '1.27.3': 'Server dependencies moved to Express 5.',
 };
 
 /** Newest first. */
