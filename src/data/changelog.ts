@@ -48,6 +48,15 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.23.0',
+    date: '2026-10-05',
+    headline: 'Answer on the diagram itself',
+    changes: [
+      { kind: 'new', text: '**Eleven new diagram questions** ask you to click the device or link that answers them: where NAT changes an address, which Firebox decrypts a BOVPN, where a broadcast stops, and more.' },
+      { kind: 'improved', text: 'Thirteen of the sixteen network diagrams now have a question you answer by clicking the drawing, up from two.' },
+    ],
+  },
+  {
     version: '1.22.2',
     date: '2026-10-05',
     headline: 'Calmer motion and a tidier settings page',

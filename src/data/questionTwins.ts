@@ -31,7 +31,7 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [53, 1521], // auto-order versus manual order
   [49, 95], // the Outgoing policy's sources and destination
   [15, 62], // Optional networks are in the default Outgoing policy
-  [78, 1601], // 1-to-1 NAT outbound source address
+  [78, 1601, 1617], // 1-to-1 NAT outbound source address
   [81, 104], // Application Control blocks applications regardless of URL
   [50, 1507, 1608], // clients must trust the Proxy Authority certificate
   [37, 48], // Firebox System Manager live status and diagnostics
@@ -43,6 +43,7 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [1505, 1530], // Phase 1 up, Phase 2 fails
   [1508, 1536, 1609], // an Allow entry does not prove the application worked
   [1510, 1541], // VLAN tagging mismatch with the link up
+  [203, 1618], // the far BOVPN gateway decrypts
   [1021, 1515], // Default Threat Protection overrides an allow policy
   [1131, 1517], // keeping management access narrow without locking yourself out
   [1144, 1518], // an IPS signature exception for a suspected false positive
@@ -50,6 +51,9 @@ export const QUESTION_TWINS: readonly (readonly number[])[] = [
   [1063, 1542], // a static route needs a reachable gateway
   // Network+
   [114, 1612], // OSPF chooses by cost
+  [1610, 1623], // 172.16.4.200 is in 172.16.4.192/26
+  [1613, 1625], // DHCP broadcasts stop at the router without a relay
+  [1614, 1626], // the gateway must be a router on the host's subnet
   [1383, 1442], // recovery point objective
   // WatchGuard Cloud
   [1400, 1428], // Cloud visibility leaves a locally managed device's configuration local
