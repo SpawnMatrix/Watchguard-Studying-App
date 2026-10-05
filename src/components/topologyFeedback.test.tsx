@@ -5,6 +5,7 @@ import TopologyQuizzer from './TopologyQuizzer';
 import StandardQuizzer from './StandardQuizzer';
 import type { TopologyDiagramData } from '../engine/topology';
 import type { Question } from '../data/questions';
+import { topologyEdgeGeometry } from '../engine/topologyGeometry';
 
 const diagram: TopologyDiagramData = {
   version: 1, title: 'Feedback fixture', width: 700, height: 300,
@@ -20,6 +21,20 @@ const diagram: TopologyDiagramData = {
 };
 
 describe('answer review feedback', () => {
+  it('marks a link selection, correct answer and wrong answer away from its label', () => {
+    const linked = { ...diagram, edges: [{ ...diagram.edges[0], label: 'WAN link' }], hotspots: [{ target: 'edge' as const, targetId: 'link', answer: 'WAN' }] };
+    const render = (submitted: boolean, correct: string[]) => renderToStaticMarkup(<NetworkTopology diagram={linked} selected={['WAN']} correct={correct} submitted={submitted} onSelect={() => {}}/>);
+    expect(render(false, ['WAN'])).toContain('hotspot-marker is-selected');
+    expect(render(true, ['WAN'])).toContain('lucide-check');
+    expect(render(true, [])).toContain('lucide-x');
+    expect(render(true, ['WAN'])).toContain('WAN — correct answer');
+    expect(render(true, ['WAN'])).toContain('translate(350 172)');
+  });
+  it.each([[580, 150], [120, 450], [580, 450], [350, 150]])('separates the marker from labels in each link orientation (%s, %s)', (x, y) => {
+    const g = topologyEdgeGeometry(diagram.nodes[0], { ...diagram.nodes[1], x, y }, 'A long connection label');
+    if (g.anchor === 'start') expect(g.markerX + 12).toBeLessThan(g.labelX);
+    else expect(g.markerY - 12).toBeGreaterThan(g.labelY + 5);
+  });
   it('marks selected, correct and wrong diagram nodes with a shape, not only a colour', () => {
     const props = { diagram, selected: ['Client'], correct: ['Firebox'], onSelect: () => {} };
     const before = renderToStaticMarkup(<NetworkTopology {...props}/>);
