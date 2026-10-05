@@ -107,8 +107,8 @@ export const questionTemplates: QuestionTemplate[] = [
   local(10012, 'Diagnose NAT loopback access', 'NAT', 'NAT Loopback, pp. 130–131', r => {
     const n=networks(r), allowed=pick(r,[true,false]);
     return one(`Internet users can reach ${n.publicIP}, mapped by SNAT to ${n.server}. Trusted client ${n.client} uses that public address. The publishing policy ${allowed?'already includes':'excludes'} Trusted sources. Which next step addresses ${allowed?'possible asymmetric replies':'the policy mismatch'}?`,
-      allowed?'Check the server return path and whether source NAT is required for this topology.':'Include the required Trusted sources in the policy that uses the SNAT action.',
-      ['Replace the SNAT action with an outbound-only dynamic NAT rule.','Disable every inbound policy.','Change the client address to the public server address.'],
+      allowed?'Check the server return path and whether source NAT is required.':'Include the required Trusted sources in the SNAT policy.',
+      ['Replace the SNAT action with an outbound-only dynamic NAT rule.','Remove the SNAT action and publish the server with 1-to-1 NAT.','Add a second SNAT action that maps the same public address.'],
       `NAT loopback lets internal clients use the published address. Both the policy source scope and the return path matter. ${allowed?'If replies bypass the Firebox, source translation may be needed.':'An external-only source scope does not permit a Trusted client.'}`);
   }),
   local(10013, 'Manual policy order', 'Policies', 'Policy Precedence, pp. 148–149', r => {
@@ -129,8 +129,8 @@ export const questionTemplates: QuestionTemplate[] = [
   }),
   local(10016, 'VLAN tag mismatch', 'Routing', 'VLANs, pp. 82–89', r => {
     const vlan=integer(r,10,200), wrong=vlan+1;
-    return one(`The switch sends tagged VLAN ${vlan} on its uplink. The Firebox port accepts tagged VLAN ${wrong} only. Physical link is up but VLAN ${vlan} clients cannot reach their gateway. What should you correct first?`,`Allow the matching tagged VLAN ${vlan} on the Firebox uplink.`,
-      ['Change the public DNS server.','Enable outbound static NAT for every client.','Disable spanning tree on all switches.'],`802.1Q VLAN IDs must agree across the tagged link. Link-up proves the physical connection, not VLAN membership.`);
+    return one(`The switch sends tagged VLAN ${vlan} on its uplink. The Firebox port accepts tagged VLAN ${wrong} only. Physical link is up but VLAN ${vlan} clients cannot reach their gateway. What should you correct first?`,`Allow tagged VLAN ${vlan} on the Firebox's uplink.`,
+      ['Change the switch uplink to untagged.','Enable outbound static NAT for every client.','Disable spanning tree on all switches.'],`802.1Q VLAN IDs must agree across the tagged link. Link-up proves the physical connection, not VLAN membership.`);
   }),
   net(10017, 'Separate DNS failure from IP reachability', 'Troubleshooting', '5.3 Network services troubleshooting', r => {
     const n=networks(r), resolves=pick(r,[true,false]);
@@ -147,18 +147,18 @@ export const questionTemplates: QuestionTemplate[] = [
   }),
   local(10019, 'BOVPN PFS mismatch', 'BOVPN', 'VPN Negotiations; Troubleshoot BOVPN Tunnels, pp. 277–280, 305–312', r => {
     const group=pick(r,[14,19,20]), n=networks(r);
-    return {...one(`An IKEv1 BOVPN to ${n.publicIP} completes Phase 1. Local Phase 2 requires PFS group ${group}; the peer proposes no PFS. Which change addresses this mismatch?`,`Configure compatible Phase 2 PFS settings on both peers.`,
-      ['Change only the local DNS suffix.','Open the Fireware Web UI management port to everyone.','Change only the Phase 1 gateway display name.'],`Phase 1 success does not establish the IPsec data SA. Phase 2 PFS settings must be compatible; the peer must offer the required group ${group}, or both sides must adopt another agreed secure configuration.`),type:'log',logMessage:`SIMULATED IKE DIAGNOSTIC\npeer=${n.publicIP}\nphase1=established\nphase2: received proposal without PFS; expecting PFS group ${group}`};
+    return {...one(`An IKEv1 BOVPN to ${n.publicIP} completes Phase 1. Local Phase 2 requires PFS group ${group}; the peer proposes no PFS. Which change addresses this mismatch?`,`Make the Phase 2 PFS settings match on both peers.`,
+      ['Change the Phase 1 encryption to AES-256 on both peers.','Open the Fireware Web UI management port to everyone.','Change only the Phase 1 gateway display name.'],`Phase 1 success does not establish the IPsec data SA. Phase 2 PFS settings must be compatible; the peer must offer the required group ${group}, or both sides must adopt another agreed secure configuration.`),type:'log',logMessage:`SIMULATED IKE DIAGNOSTIC\npeer=${n.publicIP}\nphase1=established\nphase2: received proposal without PFS; expecting PFS group ${group}`};
   }),
   local(10020, 'Interpret an allowed session', 'Logging & Monitoring', 'Read Traffic Log Messages, pp. 60–61', r => {
     const n=networks(r), port=pick(r,[80,443,25]);
-    return {...one(`Traffic Monitor records an Allow for ${n.client} to ${n.server}:${port}. The application still fails. What can you conclude from this entry alone?`,'The logged traffic matched an allow action; application success is not proven.',
-      ['The full application transaction succeeded.','Every packet in both directions arrived.','The server certificate is trusted by every client.'],`An Allow entry describes the firewall decision for the logged traffic. Inspect replies, server availability, TLS, and application behavior to locate a later failure.`),type:'log',logMessage:`SIMULATED TRAFFIC LOG\nAllow ${n.client} ${n.server} 51432 ${port} tcp\npolicy="Branch-Service"`};
+    return {...one(`Traffic Monitor records an Allow for ${n.client} to ${n.server}:${port}. The application still fails. What can you conclude from this entry alone?`,'Only that the logged traffic was allowed by policy.',
+      ['The full application transaction succeeded.','Every packet in both directions was allowed.','The server certificate is trusted by every client.'],`An Allow entry describes the firewall decision for the logged traffic. Inspect replies, server availability, TLS, and application behavior to locate a later failure.`),type:'log',logMessage:`SIMULATED TRAFFIC LOG\nAllow ${n.client} ${n.server} 51432 ${port} tcp\npolicy="Branch-Service"`};
   }),
   local(10021, 'DHCP across a routed boundary', 'Routing', 'Interfaces; VLANs, pp. 71–74, 82–89', r => {
     const n=networks(r), vlan=integer(r,10,90);
-    return one(`Clients in VLAN ${vlan} broadcast DHCP Discover, but the only DHCP server is ${n.server} on another routed subnet. What is needed at the client subnet's Layer 3 boundary?`,'DHCP relay directed to the server, with a matching remote scope and permitted traffic.',
-      ['Static NAT for the DHCP server public address.','A longer DNS TTL.','A default route on each client before it has any address.'],`DHCP Discover is a local broadcast. A relay forwards the request to the server and identifies the client subnet so the server can choose the appropriate scope.`);
+    return one(`Clients in VLAN ${vlan} broadcast DHCP Discover, but the only DHCP server is ${n.server} on another routed subnet. What is needed at the client subnet's Layer 3 boundary?`,'A DHCP relay that forwards requests to the server.',
+      ['Static NAT for the DHCP server public address.','A larger subnet mask so the broadcast reaches the server.','A default route on each client before it has an address.'],`DHCP Discover is a local broadcast, and no mask change carries a broadcast across a router. A relay forwards the request to the server and identifies the client subnet so the server can choose the appropriate scope. The server still needs a scope for that subnet, and policies must permit the relayed traffic.`);
   }),
   local(10022, 'Choose an SD-WAN path', 'Routing', 'Link Monitor; SD-WAN, pp. 110–113, 119–122', r => {
     const threshold=integer(r,50,100), good=threshold-integer(r,10,30), bad=threshold+integer(r,10,30), goodA=pick(r,[true,false]);
@@ -178,8 +178,8 @@ export const questionTemplates: QuestionTemplate[] = [
   local(10025, 'Diagnose HTTPS inspection trust', 'Proxies', 'HTTPS-proxy Policies, pp. 209–217', r => {
     const trusted=pick(r,[true,false]);
     return one(`After HTTPS content inspection is enabled, a client reports ${trusted?'a hostname mismatch for portal.example, although its certificate chain is trusted':'an untrusted issuer, and the client does not trust the Firebox inspection CA'}. What should you check first?`,
-      trusted?'Whether the presented certificate covers portal.example in its subject alternative names.':'Whether the correct inspection CA certificate is installed in the client trust store.',
-      ['Disable all HTTPS filtering permanently.','Change the DHCP subnet mask.','Replace the DNS server with the Firebox public IP without testing.'],
+      trusted?'Whether the certificate lists portal.example as a SAN entry.':'Whether the inspection CA is in the client trust store.',
+      ['Whether HTTPS filtering can be disabled for this one site.','Whether the client clock and time zone are correct.','Whether the DNS record for portal.example has expired.'],
       trusted?'Certificate trust and hostname validation are separate checks. A trusted issuer does not make a certificate valid for every hostname.':'Content inspection creates a separate TLS connection to the client. The client must trust the CA that signs that connection; also validate name and date checks.');
   }),
   net(10026, 'Match a service and transport', 'Network Services', '1.4 Common protocols', r => {
@@ -200,8 +200,8 @@ export const questionTemplates: QuestionTemplate[] = [
   }),
   {id:10029,title:'Choose the management plane',topic:'WatchGuard Cloud',track:'cloud',section:'Management and visibility',build:r=>{
     const cloud=pick(r,[true,false]);
-    return one(`A branch Firebox is ${cloud?'cloud-managed':'locally managed and added to WatchGuard Cloud for visibility'}. Where should its firewall policy configuration be managed?`,cloud?'In WatchGuard Cloud.':'In the supported local tools, such as Policy Manager or Fireware Web UI.',
-      [cloud?'In Policy Manager as if it were locally managed.':'In Cloud solely because visibility was enabled.','In a DNS TXT record.','By editing Traffic Monitor history.'],`Configuration ownership depends on management mode. Cloud visibility for a locally managed device does not transfer ownership of its firewall configuration to Cloud.`);
+    return one(`A branch Firebox is ${cloud?'cloud-managed':'locally managed and added to WatchGuard Cloud for visibility'}. Where should its firewall policy configuration be managed?`,cloud?'In WatchGuard Cloud.':'Locally, in Policy Manager or Fireware Web UI.',
+      [cloud?'In Policy Manager as if it were locally managed.':'In Cloud solely because visibility was enabled.','In Firebox System Manager.','In the Traffic Monitor view.'],`Configuration ownership depends on management mode. Cloud visibility for a locally managed device does not transfer ownership of its firewall configuration to Cloud. Firebox System Manager and Traffic Monitor show status and logs; neither is where policy is configured.`);
   }},
   local(10030, 'Calculate a temporary block expiry', 'Security Services', 'Default Threat Protection, pp. 32–35', r => {
     const hour=integer(r,8,18), minute=integer(r,0,39), duration=pick(r,[10,20,30]), total=hour*60+minute+duration;
@@ -283,9 +283,9 @@ export const questionTemplates: QuestionTemplate[] = [
   local(10054, 'Find the missing return route', 'Routing', 'Static Routing; Routing Decisions Logic, pp. 90-91, 114-118', r => {
     const n = networks(r), optional = n.router.replace(/\.\d+$/, '.1');
     const clientNet = `${n.client.replace(/\.\d+$/, '.0')}/24`;
-    const answer = `A route to ${clientNet} via ${optional}, added on the downstream router`;
+    const answer = `A route to ${clientNet} via ${optional}, on the downstream router`;
     return { ...one(`The Firebox has a static route for ${n.remote} via ${n.router}, and a packet capture confirms requests from ${n.client} arrive at the server. Replies never come back. Which route is missing, and where?`, answer,
-      [`A route to ${n.remote} via ${n.router}, added again on the Firebox`, `A default route configured on ${n.client}`, `A host route to ${n.server} added on the core switch`],
+      [`A route to ${n.remote} via ${n.router}, added again on the Firebox`, `A default route on ${n.client} pointing at the Firebox`, `A host route to ${n.server} added on the core switch`],
       `Forward delivery only proves half the path. The downstream router receives a packet sourced from ${clientNet}, a network it has no route to, so it sends the reply to its own default gateway instead of back through ${optional}. Adding the return route on that router completes the path. Repeating the forward route on the Firebox changes nothing, because that half already works.`),
       type: 'topology', topology: diagram('Asymmetric return path', 1070, 460, [
         node('client', 'client', 'Trusted client', 130, 230, { detail: n.client, zone: 'trusted' }),
