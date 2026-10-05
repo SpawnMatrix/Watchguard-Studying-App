@@ -9,6 +9,9 @@
 import { chromium } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const fixtures = JSON.parse(execFileSync(process.execPath, ['--import', 'tsx', fileURLToPath(new URL('./a11y-fixtures.ts', import.meta.url))], { encoding: 'utf8' }));
 
 const base = process.env.A11Y_URL || 'http://127.0.0.1:3000';
 const SECTIONS = ['home', 'chat', 'quiz', 'topology', 'labs', 'flashcards', 'sandbox', 'admin', 'news', 'ideas'];
@@ -20,10 +23,11 @@ const browser = await chromium.launch();
 const failures = [];
 let checked = 0;
 
-async function open(theme, hash, passGate = true) {
+async function open(theme, hash, passGate = true, setup) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   await context.addInitScript(t => { try { localStorage.setItem('watchguard-portal-theme', t); } catch {} }, theme);
   const page = await context.newPage();
+  if (setup) await setup(context, page);
   await page.goto(`${base}/${hash ? `#${hash}` : ''}`, { waitUntil: 'networkidle' });
   if (passGate) {
     await page.getByPlaceholder('e.g. packet_pilot').fill('a11y_check');
@@ -36,6 +40,7 @@ async function open(theme, hash, passGate = true) {
 }
 
 async function check(page, name) {
+  await page.evaluate(() => document.fonts.ready);
   checked++;
   const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
   for (const v of violations) {
@@ -66,6 +71,65 @@ for (const theme of THEMES) {
       await page.locator('[data-answer-state]').first().waitFor();
       await check(page, `quiz-reviewed/${theme}`);
     }
+    if (section === 'home') {
+      await page.getByRole('button', { name: 'Edit display name', exact: true }).click();
+      await page.getByRole('dialog', { name: 'Edit your display name' }).waitFor();
+      await check(page, `profile-dialog/${theme}`);
+      await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    }
+    if (section === 'chat') {
+      for (const track of ['local', 'cloud', 'network-plus']) {
+        await page.getByLabel('Learning track', { exact: true }).selectOption(track);
+        const note = page.locator('button').filter({ has: page.locator('h4') }).first();
+        await note.click();
+        await page.getByText('Keywords:', { exact: true }).waitFor();
+        await check(page, `qa-expanded-${track}/${theme}`);
+      }
+    }
+    if (section === 'admin') {
+      for (const track of ['local', 'network-plus', 'cloud']) {
+        await page.getByLabel('Learning track', { exact: true }).selectOption(track);
+        const date = new Date(); date.setDate(date.getDate() + 24);
+        const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        await page.getByLabel(/When do you sit/).fill(iso);
+        await page.getByRole('button', { name: 'Plan my days', exact: true }).click();
+        await page.getByRole('button', { name: 'Change date', exact: true }).waitFor();
+        await check(page, `exam-plan-${track}/${theme}`);
+      }
+    }
+    await context.close();
+  }
+  {
+    const { context, page } = await open(theme, '', false);
+    await page.getByRole('button', { name: 'Sign in', exact: true }).first().click();
+    await check(page, `signin-dialog/${theme}`);
+    await page.getByRole('button', { name: 'Forgot your PIN?', exact: true }).click();
+    await page.getByLabel('Recovery code', { exact: true }).waitFor();
+    await check(page, `recovery-dialog/${theme}`);
+    await page.getByRole('button', { name: 'Lost your recovery code too?', exact: true }).click();
+    await page.getByRole('button', { name: 'Give me a code', exact: true }).waitFor();
+    await check(page, `assisted-recovery-dialog/${theme}`);
+    await context.close();
+  }
+  {
+    const { context, page } = await open(theme, 'labs', true, async context => {
+      await context.addInitScript(progress => localStorage.setItem('watchguard-lab-progress-v1', JSON.stringify(progress)), fixtures.lab.progress);
+    });
+    await page.getByRole('button').filter({ has: page.getByRole('heading', { name: fixtures.lab.name, exact: true }) }).first().click();
+    await page.getByRole('heading', { name: 'Lab complete', exact: true }).waitFor();
+    await check(page, `lab-complete/${theme}`);
+    await context.close();
+  }
+  {
+    // Fixture responses exercise populated markup without posting to or modifying any server.
+    const { context, page } = await open(theme, 'ideas', true, async (_context, page) => {
+      await page.route('**/api/suggestions', route => route.fulfill({ json: { suggestions:
+        ['open', 'planned', 'shipped'].map((status, i) => ({ id: i + 1, body: `Accessibility fixture ${status}: **study idea**`,
+          displayName: i === 1 ? 'fixture_author' : null, status, adminReply: 'Thanks for the suggestion. **Update** available here.',
+          createdAt: Date.now(), updatedAt: Date.now() })) } }));
+    });
+    await page.getByText('fixture_author', { exact: true }).waitFor();
+    await check(page, `ideas-populated/${theme}`);
     await context.close();
   }
 }
