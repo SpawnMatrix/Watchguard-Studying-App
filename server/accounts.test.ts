@@ -53,7 +53,8 @@ describe('durable study accounts',()=>{
   });
   it('rejects secrets and malformed progress before it can replace a valid snapshot',()=>{
     expect(validateSnapshot(snapshot)).toEqual(snapshot);
-    for(const input of [{gemini_api_key:'secret'},{weakness_deck:'null'},{weakness_deck:'[]'},{watchguard_mastered_flashcards:'{}'},{'watchguard-study-progress-v1':'{"quizStats":{}}'},{weakness_deck:'{"1":-1}'}])expect(()=>validateSnapshot(input)).toThrow();
+    for(const input of [{gemini_api_key:'secret'},{weakness_deck:'null'},{weakness_deck:'[]'},{watchguard_mastered_flashcards:'{}'},{'watchguard-study-progress-v1':'{"quizStats":{}}'},{weakness_deck:'{"1":-1}'},{'watchguard-sandbox-progress-v1':'["dns","dns"]'},{'watchguard-sandbox-progress-v1':'["<script>"]'},{'watchguard-sandbox-progress-v1':'{"dns":true}'}])expect(()=>validateSnapshot(input)).toThrow();
+    expect(validateSnapshot({'watchguard-sandbox-progress-v1':'["dns","tls"]'})).toEqual({'watchguard-sandbox-progress-v1':'["dns","tls"]'});
   });
   it('enforces cookies, write intent, account identity and revision checks through HTTP',async()=>{
     const s=open(),app=express();app.use(express.json());app.use('/api/account',accountRoutes(s));

@@ -48,6 +48,15 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.24.0',
+    date: '2026-10-05',
+    headline: 'The sandbox remembers what you have solved',
+    changes: [
+      { kind: 'improved', text: 'Solved **Network Sandbox** challenges stay solved after a reload, with a tick in the challenge list.' },
+      { kind: 'improved', text: 'If you have a study account, solved challenges sync to your other devices like your lab progress.' },
+    ],
+  },
+  {
     version: '1.23.0',
     date: '2026-10-05',
     headline: 'Answer on the diagram itself',

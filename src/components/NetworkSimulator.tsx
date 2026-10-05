@@ -4,6 +4,8 @@ import { PolicyController, FlowInjector, TopologyPanel, SyslogTerminal, type Pac
 import { challenges, defaultConfig, defaultFlow, evaluateFlow, validateFlow, type Flow, type SandboxConfig } from './network-simulator/engine';
 
 import { flowPresets, packetOutcome, packetToFlow, policyRows } from './network-simulator/workspace';
+import { SANDBOX_PROGRESS_KEY, markSolved, solvedCount, validSandboxProgress } from '../engine/sandboxProgress';
+import { readJSON, writeStudyValue } from '../account/storage';
 
 type SandboxView = 'overview' | 'policies' | 'test' | 'monitor';
 
@@ -11,8 +13,10 @@ export default function NetworkSimulator() {
   const [config,setConfig]=useState<SandboxConfig>(()=>structuredClone(defaultConfig));
   const [flow,setFlow]=useState<Flow>({...defaultFlow});
   const [packets,setPackets]=useState<Packet[]>([]),[inspectedPacket,setInspectedPacket]=useState<Packet|null>(null);
-  const [autoGen,setAutoGen]=useState(false),[challengeId,setChallengeId]=useState(''),[completed,setCompleted]=useState<string[]>([]);
+  const [autoGen,setAutoGen]=useState(false),[challengeId,setChallengeId]=useState(''),[completed,setCompleted]=useState<string[]>(()=>{const saved=readJSON<unknown>(SANDBOX_PROGRESS_KEY,[]);return validSandboxProgress(saved)?saved:[];});
   const [feedback,setFeedback]=useState(''),[error,setError]=useState('');
+  // Solved challenges are study progress: they survive reloads and sync with the account.
+  useEffect(()=>{if(completed.length)writeStudyValue(SANDBOX_PROGRESS_KEY,JSON.stringify(completed));},[completed]);
   const [view,setView]=useState<SandboxView>('overview');
   const [animatingPacket,setAnimatingPacket]=useState<{from:string;to:string;status:'Allowed'|'Denied';protocol:string}|null>(null);
   const counter=useRef(Date.now()),animationTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -36,7 +40,7 @@ export default function NetworkSimulator() {
         const sameFlow=(['from','to','protocol','dstIP','dstPort','payload'] as const).every(key=>input[key]===intended[key]);
         const expected=challenge.id==='gav'?'HTTPS-proxy with content inspection':challenge.id==='block'?'Blocked Sites':challenge.id==='udp'?'Unhandled Internal Packet':null;
         const resultMatches=expected?packet.matchedPolicy===expected&&packet.status==='Denied'&&!packet.failureOrigin:packet.status==='Allowed';
-        if(sameFlow&&resultMatches&&challenge.solved(config,input)){setCompleted(ids=>ids.includes(challenge.id)?ids:[...ids,challenge.id]);setFeedback('Challenge complete. Explain the deciding step before moving on.');}
+        if(sameFlow&&resultMatches&&challenge.solved(config,input)){setCompleted(ids=>markSolved(ids,challenge.id));setFeedback('Challenge complete. Explain the deciding step before moving on.');}
         else setFeedback('Keep investigating. Use the decision trace and the hint, then run the challenge flow again.');
       }
     }
@@ -62,7 +66,7 @@ export default function NetworkSimulator() {
   return <div className="sandbox-workspace">
     <header className="section-heading"><div><p className="eyebrow">LOCAL FIREBOX · TEACHING SIMULATION</p><h1>Network Sandbox</h1><p>Configure the policy. Test the traffic. Explain the result.</p></div><span className="catalog-count"><FlaskConical size={18}/>{challenges.length} guided challenges</span></header>
     <section className="sandbox-mission" aria-label="Guided challenges">
-      <div className="sandbox-mission-top"><label>Choose a challenge<select aria-label="Sandbox challenge" value={challengeId} onChange={e=>loadChallenge(e.target.value)}><option value="">Free exploration</option>{challenges.map(c=><option key={c.id} value={c.id}>{completed.includes(c.id)?'✓ ':''}{c.title}</option>)}</select></label><span>{completed.length} / {challenges.length} completed this visit</span></div>
+      <div className="sandbox-mission-top"><label>Choose a challenge<select aria-label="Sandbox challenge" value={challengeId} onChange={e=>loadChallenge(e.target.value)}><option value="">Free exploration</option>{challenges.map(c=><option key={c.id} value={c.id}>{completed.includes(c.id)?'✓ ':''}{c.title}</option>)}</select></label><span>{solvedCount(completed,challenges.map(c=>c.id))} / {challenges.length} completed</span></div>
       {challenge?<div className="sandbox-objective"><strong>{challenge.goal}</strong><details><summary>Need a hint?</summary><p>{challenge.hint}</p></details></div>:<p className="sandbox-description">Start with a challenge or explore a test preset. This browser-only model covers policies, global blocks and content inspection. NAT, VPN, routing failures and return sessions are outside its scope.</p>}
       {feedback&&<p role="status" className="sandbox-feedback"><CheckCircle2 size={18}/>{feedback}</p>}
     </section>

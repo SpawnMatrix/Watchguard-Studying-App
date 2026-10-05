@@ -197,7 +197,8 @@ one.
 `watchguard-study-progress-v1`, `weakness_deck`,
 `watchguard_mastered_flashcards`, `watchguard-quiz-session-v2`,
 `watchguard-study-profile-name-v1`, `watchguard-srs-v1`,
-`watchguard-lab-progress-v1`, plus device-local extras
+`watchguard-lab-progress-v1`, `watchguard-sandbox-progress-v1` (ids of solved
+sandbox challenges, since 1.24.0), plus device-local extras
 (`watchguard-study-owner`, `watchguard-account-cache:<user>`,
 `watchguard-portal-theme`, `watchguard-learning-track:<user>`,
 `watchguard-changelog-seen-v1`, `watchguard-suggestion-claims-v1`, `watchguard_custom_gemini_api_key`).
