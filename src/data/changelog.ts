@@ -52,6 +52,7 @@ export const INTERNAL_ONLY: Record<string, string> = {
 
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
+  { version: '1.28.0', date: '2026-10-05', headline: 'Your daily flashcards on Home', changes: [{ kind: 'new', text: 'Study Home shows how many flashcards are due today for your learning track, including new cards.' }] },
   {
     version: '1.27.2',
     date: '2026-10-05',
