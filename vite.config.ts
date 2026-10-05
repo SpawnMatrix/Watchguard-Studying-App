@@ -2,8 +2,9 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
-import {version} from './package.json';
-import {buildTimestamp} from './src/releaseInfo';
+// Written for Vite's native config loader: explicit extensions, import attributes, import.meta.dirname.
+import pkg from './package.json' with {type: 'json'};
+import {buildTimestamp} from './src/releaseInfo.ts';
 
 export default defineConfig(({command}) => {
   // The updater need not pass a date: each compiled image carries its actual build time.
@@ -14,12 +15,12 @@ export default defineConfig(({command}) => {
     plugins: [react(), tailwindcss(), {
       name:'release-build-info',
       generateBundle() {
-        this.emitFile({type:'asset',fileName:'build-info.json',source:JSON.stringify({version,commit,buildDate})});
+        this.emitFile({type:'asset',fileName:'build-info.json',source:JSON.stringify({version:pkg.version,commit,buildDate})});
       },
     }],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       },
     },
     server: {
