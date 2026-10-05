@@ -132,6 +132,25 @@ for (const theme of THEMES) {
     await check(page, `ideas-populated/${theme}`);
     await context.close();
   }
+  {
+    // Presentation fixture only; HTTP tests separately enforce actual admin authorization.
+    const { context, page } = await open(theme, 'admin', true, async (_context, page) => {
+      await page.route('**/api/admin/me', route => route.fulfill({ json: {
+        isAdmin: true, username: 'fixture_admin', accountIsAdmin: true, breakGlassAvailable: false,
+        adminCount: 1, recoveriesCompleted: 0, pendingSuggestions: 0, globalAIEnabled: false,
+      } }));
+      await page.route('**/api/admin/users', route => route.fulfill({ json: { users: [
+        { username: 'fixture_admin', role: 'administrator', createdAt: 1760000000000 },
+        { username: 'fixture_learner', role: 'learner', createdAt: 1760000000000 },
+      ], nextCursor: null } }));
+    });
+    await page.getByRole('button', { name: 'Accounts & tutor settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Administrator', exact: true }).click();
+    await page.getByRole('button', { name: 'Load accounts', exact: true }).click();
+    await page.getByText('2 accounts shown', { exact: true }).waitFor();
+    await check(page, `admin-directory/${theme}`);
+    await context.close();
+  }
 }
 await browser.close();
 

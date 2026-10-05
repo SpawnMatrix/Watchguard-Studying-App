@@ -1,3 +1,4 @@
+import AdminUserDirectory from './AdminUserDirectory';
 import React, { useCallback, useEffect, useId, useState } from 'react';
 import { Settings, Key, Eye, EyeOff, Lock, LifeBuoy, ShieldCheck, LogOut, Lightbulb, UserRound } from 'lucide-react';
 import { handleError } from '../../utils/errorHandler';
@@ -74,8 +75,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
     try {
       const data = await adminRequest('/me', undefined, 'GET');
       setState(data);
-      // The queue is the only list this console still fetches, and it is a
-      // list of things people wrote rather than of the people who wrote them.
+      // The account directory loads only when an administrator requests it.
       if (data.isAdmin) {
         const board = await adminRequest('/suggestions', undefined, 'GET').catch(() => ({ suggestions: [] }));
         setQueue(board.suggestions ?? []);
@@ -136,10 +136,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
     } finally { setBusy(false); }
   };
 
-  /**
-   * There is no list of accounts to pick from any more, so a role change is
-   * typed. That is the point: the console should not be a roster.
-   */
+  /** Role changes remain an explicit action by typed username. */
   const handleRole = async (isAdmin: boolean) => {
     const username = roleName.trim().toLowerCase();
     if (!username) { report('Type the username first.', false); return; }
@@ -193,7 +190,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
           <Settings className="w-4 h-4 text-watchguard-orange" />
           <h3 className="font-display font-semibold text-white">Accounts & tutor settings</h3>
         </div>
-        <div className="flex items-center space-x-2.5 text-[10px] font-mono">
+        <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-mono">
           <span className="text-gray-400">Current User:</span>
           <span className="text-watchguard-orange bg-watchguard-orange/10 px-2 py-0.5 rounded border border-watchguard-orange/20 font-bold">
             {state.username || displayName}
@@ -308,6 +305,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
 
           {state.isAdmin && (
             <div className="space-y-4">
+              <AdminUserDirectory key={state.adminCount}/>
               <div className="flex items-center justify-between bg-watchguard-dark border border-watchguard-border rounded-lg p-2.5">
                 <div className="space-y-0.5">
                   <span className="text-xs text-white font-mono block">Global AI Features</span>
@@ -365,7 +363,7 @@ export default function AdminConsole({ displayName }: AdminConsoleProps) {
                   Administrator role ({state.adminCount} active)
                 </span>
                 <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
-                  Type a username. There is no list of accounts here, and the last administrator
+                  Type a username from the directory below. The last administrator
                   cannot be removed.
                 </p>
                 <div className="flex gap-2 flex-wrap">
