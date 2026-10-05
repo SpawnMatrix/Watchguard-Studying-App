@@ -2,6 +2,7 @@ import { validLabProgress } from '../engine/labProgress';
 import { validSandboxProgress } from '../engine/sandboxProgress';
 import { validFlashcardSrs } from '../engine/flashcardSrs';
 import { validExamDates } from '../engine/examPlan';
+import { validTiming } from '../engine/examTimer';
 
 /** Only study data is synchronized. API keys, PINs and browser identity are excluded. */
 export const STUDY_KEYS = ['watchguard-study-progress-v1','weakness_deck','watchguard_mastered_flashcards','watchguard-quiz-session-v2','watchguard-study-profile-name-v1','watchguard-srs-v1','watchguard-lab-progress-v1','watchguard-sandbox-progress-v1','watchguard-flashcard-srs-v1','watchguard-exam-date-v1'] as const;
@@ -28,7 +29,8 @@ export function validStudyValue(key:string,value:string):boolean {
     if(key==='watchguard-study-progress-v1')return object(v)&&strings(v.completedLabs)&&object(v.quizStats)&&typeof v.quizStats.score==='string'&&strings(v.quizStats.topicWeaknesses)&&history(v.quizStats.history);
     if(key==='watchguard-quiz-session-v2')return object(v)&&['practice','mock-exam','weakness-review'].includes(v.mode)&&object(v.filters)&&['local','cloud','network-plus','all'].includes(v.filters.track)&&typeof v.filters.topic==='string'&&['mixed','authored','generated'].includes(v.filters.content)&&Array.isArray(v.queue)&&v.queue.every(question)&&
       (v.current===null||question(v.current))&&Number.isSafeInteger(v.index)&&v.index>=0&&strings(v.selected)&&history(v.history)&&Array.isArray(v.seen)&&v.seen.every(Number.isSafeInteger)&&Number.isSafeInteger(v.examStart)&&v.examStart>=0&&v.examStart<=v.history.length&&typeof v.complete==='boolean'&&
-      (v.evaluation===null||(object(v.evaluation)&&typeof v.evaluation.isCorrect==='boolean'&&typeof v.evaluation.detailedExplanation==='string'));
+      (v.evaluation===null||(object(v.evaluation)&&typeof v.evaluation.isCorrect==='boolean'&&typeof v.evaluation.detailedExplanation==='string'))&&
+      (v.timing===undefined||validTiming(v.timing));
     return false;
   }catch{return false;}
 }
