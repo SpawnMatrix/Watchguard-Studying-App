@@ -4,7 +4,7 @@ Node **22.13 or later** is required for the built-in SQLite API; the image remai
 
 Both Compose files mount `study-data` at `/data` and set `DATA_DIR=/data`. Compose prefixes the volume with its project name. Keep the same Compose file/project name on upgrades so the application uses the same volume. Do not use `docker compose down -v` for a routine update. Accounts and progress are not baked into the image or committed to Git.
 
-The existing updater, port mapping, health endpoint (`/api/session`), image tagging, and rollback process remain. Initial accounts are created when users open the upgraded app. Existing browser progress can be imported during registration. Main is automatically deployed by the existing updater; review and merge the PR only when ready for that rollout.
+The existing updater, port mapping, health endpoint (`/healthz`, which the image's `HEALTHCHECK` calls), image tagging, and rollback process remain. Initial accounts are created when users open the upgraded app. Existing browser progress can be imported during registration. Main is automatically deployed by the existing updater; review and merge the PR only when ready for that rollout.
 
 ## Back up
 
@@ -125,3 +125,47 @@ curl -fsS http://127.0.0.1:3001/api/version
 ```
 
 After an approved merge, run `sudo systemctl start watchguard-update.service` to trigger the existing update workflow immediately instead of waiting for the next timer tick. This uses the same build, health check, and rollback logic. Keep the named data volume intact.
+
+## What the updater does
+
+Each tick, `update-watchguard` compares `origin/main` with `.deployed-commit` in the checkout. For a new commit it:
+
+1. Builds the image, tagged with the commit.
+2. Backs up the database with `deploy/docker/backup-watchguard.sh` while the old container is still serving, so a release that changes the schema can be undone. This needs no backup timer; the file lands in the same backup directory as the nightly ones and is verified the same way.
+3. Replaces the container and waits up to 90 seconds for it to report healthy.
+4. On success, records the commit and removes old images. Every deploy tags a new image, and `docker image prune` only removes untagged ones, so before this every image ever deployed stayed on the disk. It keeps the running image, the previous one (the rollback target) and the newest others up to `WATCHGUARD_KEEP_IMAGES`, and clears build cache unused for a week.
+5. On failure, rolls back to the previous image, resets the checkout to the previous commit so it matches what runs, and records the bad commit in `.failed-commit`.
+
+A commit in `.failed-commit` is not tried again. Earlier versions retried it every five minutes, and each retry replaced the healthy rolled-back container with the broken one for up to 90 seconds. Until `main` moves on, each tick exits with an error naming the commit, so `systemctl --failed` shows that production is behind `main`. To try the same commit again, for example after fixing `.env`:
+
+```sh
+sudo rm /opt/watchguard-study-portal/.failed-commit
+sudo systemctl start watchguard-update.service
+```
+
+Tune it with `sudo systemctl edit watchguard-update.service`, under `[Service]` as `Environment=NAME=value`:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `WATCHGUARD_KEEP_IMAGES` | `3` | Commit-tagged images to keep, counting the running one and the rollback target |
+| `WATCHGUARD_PREDEPLOY_BACKUP` | `true` | `true` backs up first and deploys even if the backup fails; `required` refuses to deploy without a verified backup; `false` skips it |
+| `WATCHGUARD_BRANCH` | `main` | Branch to follow |
+| `WATCHGUARD_APP_DIR` | `/opt/watchguard-study-portal` | The updater's checkout |
+
+The updater runs from its installed copy, so a change to `deploy/docker/update-watchguard.sh` does nothing until it is installed again:
+
+```sh
+cd /opt/watchguard-study-portal
+sudo install -m 755 deploy/docker/update-watchguard.sh /usr/local/sbin/update-watchguard
+sudo systemctl start watchguard-update.service
+journalctl -u watchguard-update.service -n 30 --no-pager
+```
+
+To see how much space old images take before and after:
+
+```sh
+docker images watchguard-study-portal
+docker system df
+df -h /
+```
+
