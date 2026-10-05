@@ -1,5 +1,5 @@
 import { useLearningTrack } from '../engine/LearningTrack';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, RotateCcw, CheckCircle2, BookOpen, ExternalLink, Sparkles, Timer } from 'lucide-react';
 import { SECONDS_PER_QUESTION, announcement, formatClock, pace, remainingMs, usedMs } from '../engine/examTimer';
 import StandardQuizzer from './StandardQuizzer';
@@ -15,6 +15,7 @@ import { studyQuestions, formatLabels, filtersForNewSession, type ContentMode, t
 import { trackLabels } from '../engine/types';
 import { retainedCount, weakestTopics } from '../engine/srs';
 import { activatesOnEnter, isChosenQuizOption, isTypingTarget, quizShortcut } from '../engine/shortcuts';
+import { eraseConfirmation, restoreErased } from '../engine/historyReset';
 
 export type { QuizHistoryItem };
 interface PracticeQuizProps {onScoreUpdated:(record:{score:string;topicWeaknesses:string[];history:QuizHistoryItem[]})=>void;launch?:QuizLaunch|null;onLaunchConsumed?:()=>void}
@@ -39,6 +40,10 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
     window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
   });
   const {session:s,deck,srs,loading,notice,correctCount,filtered}=engine;
+  // What the last erase removed, held until Practice is left so it can be put back.
+  const [erased,setErased]=useState<QuizHistoryItem[]|null>(null);
+  const erase=()=>{if(!window.confirm(eraseConfirmation(s.history.length)))return;const removed=engine.reset();if(removed?.length)setErased(removed);};
+  const undoErase=()=>{if(!erased)return;engine.restoreHistory(restoreErased(erased,s.history));setErased(null);};
   const q=s.current;
   const topics=['All',...new Set(studyQuestions.filter(item=>s.filters.track==='all'||(item.track??'local')===s.filters.track).map(item=>item.topic))];
   // Only topics the practice weighting is actually boosting, and only ones in this session's track.
@@ -63,7 +68,9 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
       <label>Topic<select aria-label="Topic" disabled={loading||s.mode==='weakness-review'} value={s.filters.topic} onChange={e=>engine.configure(s.mode,{...s.filters,topic:e.target.value})}>{topics.map(topic=><option key={topic}>{topic}</option>)}</select></label>
       <label>Question pool<select aria-label="Question pool" disabled={loading||s.mode==='weakness-review'} value={s.filters.content} onChange={e=>engine.configure(s.mode,{...s.filters,content:e.target.value as ContentMode})}><option value="mixed">Questions + scenarios</option><option value="authored">Authored questions</option><option value="generated">Fresh scenarios</option></select></label>
       <label>Question format<select aria-label="Question format" disabled={loading||s.mode==='weakness-review'} value={s.filters.format??'all'} onChange={e=>engine.configure(s.mode,{...s.filters,format:e.target.value as QuestionFormat})}>{Object.entries(formatLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+      <div className="quiz-erase"><p><strong>Answer history</strong><span>{s.history.length} answer{s.history.length===1?'':'s'} on all tracks. Study Home, exam readiness and the planner are built from it.</span></p><button className="secondary-button" disabled={loading||!s.history.length} onClick={erase}><RotateCcw size={15}/>Erase answer history</button></div>
     </div></details>
+    {erased&&<p className="quiz-notice quiz-erased" role="status"><span>Erased {erased.length} answer{erased.length===1?'':'s'}.</span><button className="secondary-button" onClick={undoErase}>Undo</button></p>}
     <div className={`quiz-columns ${q?.type==='topology'?'has-topology':''}`}><section className="question-panel" aria-label="Current question">
       <div className="question-meta"><span>{s.mode==='mock-exam'?`Question ${Math.min(s.index+1,s.queue.length)} of ${s.queue.length}`:s.mode==='weakness-review'?`${Object.keys(deck).length} concepts to review`:'Practice session'}</span><div className="flex gap-2 flex-wrap">{timing&&!s.complete&&<span className={`exam-clock is-${pace(timing,s.index+(s.evaluation?1:0),s.queue.length,engine.now).replace(' ','-')}`} role="timer" aria-label={`${formatClock(left)} left`}><Timer size={13} aria-hidden="true"/>{formatClock(left)} · {pace(timing,s.index+(s.evaluation?1:0),s.queue.length,engine.now)}</span>}{timing&&!s.complete&&<span className="sr-only" aria-live="polite">{announcement(left)}</span>}{q&&<span className="topic-tag">{q.topic}</span>}{q?.variant&&<span className="variant-tag"><Sparkles size={13}/>Fresh scenario</span>}</div></div>
       {s.mode==='mock-exam'&&s.queue.length>0&&<progress className="exam-progress" value={s.index+(s.evaluation?1:0)} max={s.queue.length} aria-label="Exam progress"/>}
@@ -78,7 +85,7 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
         {s.evaluation&&!s.evaluation.isCorrect&&q&&<ExplainLikeL1 question={q} selectedAnswers={s.selected}/>}
         {s.evaluation&&q?.sources&&<div className="question-sources"><strong>Check the reasoning</strong>{q.sources.map((source,i)=><div key={i}>{source.url?<a href={source.url} target="_blank" rel="noreferrer">{source.title}<ExternalLink size={13}/></a>:<span>{source.title}</span>}{source.section&&<p>{source.section}</p>}</div>)}{q.firewareVersion&&<p>{q.firewareVersion}. Verify version-specific settings on your device.</p>}</div>}
       </div>
-      <div className="question-actions"><button className="secondary-button" disabled={loading} onClick={engine.reset}><RotateCcw size={15}/>Reset statistics</button>{q&&<button className="primary-button" disabled={loading||(!s.evaluation&&!s.selected.length)} onClick={s.evaluation?engine.next:engine.submit}>{loading?'Getting feedback…':s.evaluation?s.mode==='mock-exam'&&s.index===s.queue.length-1?'Finish exam':'Next question':'Check answer'}<ArrowRight size={17}/></button>}</div>
+      {q&&<div className="question-actions"><button className="primary-button" disabled={loading||(!s.evaluation&&!s.selected.length)} onClick={s.evaluation?engine.next:engine.submit}>{loading?'Getting feedback…':s.evaluation?s.mode==='mock-exam'&&s.index===s.queue.length-1?'Finish exam':'Next question':'Check answer'}<ArrowRight size={17}/></button></div>}
     </section><QuizAnalyticsPanel quizHistory={s.mode==='mock-exam'?examHistory:s.history} correctCount={s.mode==='mock-exam'?examHistory.filter(h=>h.isCorrect).length:correctCount} totalQuestions={s.mode==='mock-exam'?s.queue.length:filtered.length}/></div>
   </div>;
 }

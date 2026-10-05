@@ -123,11 +123,14 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
     const q=pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
     setSession(s=>({...s,current:q,seen:q?[...seen,q.id]:[],selected:[],evaluation:null}));
   }
-  function reset(){if(busy.current)return;setSession(first(session.mode,session.filters,deck,[],srs,!!session.timing));setNotice('');report([]);}
+  /** Erases the answer history and returns what was erased, so the caller can offer an undo. */
+  function reset():QuizHistoryItem[]|null{if(busy.current)return null;const erased=session.history;setSession(first(session.mode,session.filters,deck,[],srs,!!session.timing));setNotice('');report([]);return erased;}
+  /** Replaces the history wholesale; used to undo an erase. */
+  function restoreHistory(history:QuizHistoryItem[]){if(busy.current)return;setSession(first(session.mode,session.filters,deck,history,srs,!!session.timing));setNotice('');report(history);}
   /** Replaces the whole selection at once, for ordering questions. */
   function setOrder(order:string[]) {
     if(session.evaluation||busy.current)return;
     setSession(s=>({...s,selected:order}));
   }
-  return {session,deck,srs,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset,setOrder,now};
+  return {session,deck,srs,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset,restoreHistory,setOrder,now};
 }
