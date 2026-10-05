@@ -766,3 +766,8 @@ button:disabled{cursor:default}
 .flashcard-reset{padding:2px 8px;border:1px solid var(--color-wg-border);border-radius:999px;background:transparent;color:var(--color-wg-text-muted);font-size:.72rem;cursor:pointer;white-space:nowrap}
 .flashcard-reset:hover,.flashcard-reset:focus-visible{border-color:#dc2626;color:#f87171}
 [data-theme="light"] .flashcard-reset:hover,[data-theme="light"] .flashcard-reset:focus-visible{color:#b91c1c}
+.quiz-timed{display:flex;flex-direction:column;gap:4px}.quiz-timed span{display:flex;align-items:center;gap:8px}.quiz-timed small{color:var(--color-wg-text-muted);font-size:.72rem}
+.exam-clock{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:6px;border:1px solid var(--color-wg-border);font:600 .75rem var(--font-mono);font-variant-numeric:tabular-nums;color:var(--color-wg-text)}
+.exam-clock.is-behind{border-color:#ef4444;color:#fca5a5}.exam-clock.is-ahead{border-color:#22c55e}
+:root[data-theme="light"] .exam-clock.is-behind{color:#b91c1c;border-color:#b91c1c}
+.exam-time-result{max-width:46ch;margin:4px auto 0;color:var(--color-wg-text-muted);font-size:.85rem;line-height:1.5}

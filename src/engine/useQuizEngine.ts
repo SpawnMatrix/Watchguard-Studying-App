@@ -10,6 +10,7 @@ import { gradeQuestion } from './grading';
 import { newSeed, pick, seededRandom } from './random';
 import type { Track } from './types';
 import { readJSON, writeStudyValue } from '../account/storage';
+import { isExpired, startTiming, validTiming, type ExamTiming } from './examTimer';
 
 export type QuizMode='practice'|'mock-exam'|'weakness-review';
 export interface QuizLaunch { mode:QuizMode; filters:QuestionFilters; questionId?:number; seed?:number }
@@ -18,22 +19,26 @@ interface Session {
   mode:QuizMode;filters:Filters;current:Question|null;queue:Question[];index:number;
   selected:string[];evaluation:EvaluationData|null;history:QuizHistoryItem[];seen:number[];
   examStart:number;complete:boolean;
+  /** Present only for a timed mock exam. */
+  timing?:ExamTiming;
 }
 const SESSION_KEY='watchguard-quiz-session-v2';
 const SRS_KEY='watchguard-srs-v1';
 const DEFAULT_FILTERS:Filters={topic:'All',track:'local',content:'mixed'};
-function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:QuizHistoryItem[]=[],srs:SrsState=emptySrsState()):Session {
+function first(mode:QuizMode,filters:Filters,deck:Record<number,number>,history:QuizHistoryItem[]=[],srs:SrsState=emptySrsState(),timed=false):Session {
   const pool=mode==='weakness-review'?Object.keys(deck).map(Number).map(id=>questionById.get(id)).filter((q):q is Question=>!!q):filterQuestions(filters);
   const queue=mode==='mock-exam'?createMockExam(pool,newSeed()):[];
   // Spaced repetition biases which question comes next; it never changes the
   // pool itself, so every existing filter and mode keeps its meaning.
   const q=mode==='mock-exam'?queue[0]:pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
-  return {mode,filters,queue,index:0,current:q??null,selected:[],evaluation:null,history,seen:q?[q.id]:[],examStart:history.length,complete:false};
+  const session:Session={mode,filters,queue,index:0,current:q??null,selected:[],evaluation:null,history,seen:q?[q.id]:[],examStart:history.length,complete:false};
+  return mode==='mock-exam'&&timed&&queue.length?{...session,timing:startTiming(queue.length)}:session;
 }
 function load(deck:Record<number,number>,track:Track):Session {
   const saved=readJSON<Session|null>(SESSION_KEY,null);
   if(saved&&['practice','mock-exam','weakness-review'].includes(saved.mode)&&saved.filters&&Array.isArray(saved.history)&&Array.isArray(saved.queue)&&Array.isArray(saved.selected)&&Array.isArray(saved.seen)&&Number.isInteger(saved.index)&&Number.isInteger(saved.examStart)&&
-      (!saved.current||(questionById.has(saved.current.id)&&Array.isArray(saved.current.options)&&Array.isArray(saved.current.correctAnswers)))) return saved;
+      (!saved.current||(questionById.has(saved.current.id)&&Array.isArray(saved.current.options)&&Array.isArray(saved.current.correctAnswers)))&&
+      (saved.timing===undefined||validTiming(saved.timing))) return saved;
   const progress=readJSON<any>('watchguard-study-progress-v1',null);
   return first('practice',{...DEFAULT_FILTERS,track},deck,Array.isArray(progress?.quizStats?.history)?progress.quizStats.history:[],parseSrsState(readJSON<any>(SRS_KEY,null)));
 }
@@ -52,12 +57,23 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
   const busy=useRef(false),alive=useRef(true),request=useRef<AbortController|null>(null);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;request.current?.abort();};},[]);
   useEffect(()=>{writeStudyValue(SESSION_KEY,JSON.stringify(session));},[session]);
+  // A timed exam ends at its deadline, including one that passed while the tab was closed. What was
+  // answered counts; questions never reached are left out of history, spaced repetition and the
+  // weakness deck, because the learner never saw them. The results screen counts them as wrong.
+  const [now,setNow]=useState(()=>Date.now());
+  const timing=session.timing,running=!!timing&&!timing.endedAt&&!session.complete;
+  useEffect(()=>{
+    if(!running)return;
+    const tick=()=>{const at=Date.now();setNow(at);
+      setSession(s=>s.timing&&isExpired(s.timing,at)&&!s.complete?{...s,complete:true,current:null,selected:[],evaluation:null,timing:{...s.timing,endedAt:s.timing.deadline,timedOut:true}}:s);};
+    tick();const id=setInterval(tick,1000);return()=>clearInterval(id);
+  },[running]);
   const correctCount=session.history.filter(h=>h.isCorrect).length;
   const filtered=session.mode==='weakness-review'?Object.keys(deck).map(Number).map(id=>questionById.get(id)).filter((q):q is Question=>!!q):filterQuestions(session.filters);
   const report=(history:QuizHistoryItem[])=>onScoreUpdated({history,score:history.length?`${Math.round(history.filter(h=>h.isCorrect).length/history.length*100)}%`:'0%',topicWeaknesses:[...new Set(history.filter(h=>!h.isCorrect).map(h=>h.topic))]});
-  function configure(mode:QuizMode,filters:Filters=session.filters) {
+  function configure(mode:QuizMode,filters:Filters=session.filters,timed=mode==='mock-exam'&&!!session.timing) {
     if(busy.current)return;
-    setSession(first(mode,filters,deck,session.history,srs));setNotice('');
+    setSession(first(mode,filters,deck,session.history,srs,timed));setNotice('');
   }
   function toggle(option:string) {
     const q=session.current;if(!q||session.evaluation||busy.current)return;
@@ -94,18 +110,19 @@ export function useQuizEngine(onScoreUpdated:(record:{score:string;topicWeakness
     setNotice('');
     if(session.mode==='mock-exam') {
       const index=session.index+1;
-      setSession(s=>({...s,index,current:s.queue[index]??null,selected:[],evaluation:null,complete:index>=s.queue.length}));return;
+      const done=index>=session.queue.length;
+      setSession(s=>({...s,index,current:s.queue[index]??null,selected:[],evaluation:null,complete:done,timing:done&&s.timing?{...s.timing,endedAt:Math.min(Date.now(),s.timing.deadline)}:s.timing}));return;
     }
     let pool=filtered.filter(q=>!session.seen.includes(q.id)),seen=session.seen;
     if(!pool.length){pool=filtered;seen=[];}
     const q=pool.length?materialize(weightedPick(seededRandom(newSeed()),pool,srs)??pick(seededRandom(newSeed()),pool)):null;
     setSession(s=>({...s,current:q,seen:q?[...seen,q.id]:[],selected:[],evaluation:null}));
   }
-  function reset(){if(busy.current)return;setSession(first(session.mode,session.filters,deck,[],srs));setNotice('');report([]);}
+  function reset(){if(busy.current)return;setSession(first(session.mode,session.filters,deck,[],srs,!!session.timing));setNotice('');report([]);}
   /** Replaces the whole selection at once, for ordering questions. */
   function setOrder(order:string[]) {
     if(session.evaluation||busy.current)return;
     setSession(s=>({...s,selected:order}));
   }
-  return {session,deck,srs,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset,setOrder};
+  return {session,deck,srs,loading,notice,correctCount,filtered,configure,toggle,submit,next,reset,setOrder,now};
 }

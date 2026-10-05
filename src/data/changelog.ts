@@ -48,6 +48,16 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.27.0',
+    date: '2026-10-05',
+    headline: 'Practise against the clock',
+    changes: [
+      { kind: 'new', text: 'Mock exams can be **timed**, at a pace of one minute per question. A clock shows the time left and whether you are on pace or behind.' },
+      { kind: 'new', text: 'The clock keeps running if you reload. When time runs out the exam ends, and questions you never reached count as wrong in the score, as they would on the day.' },
+      { kind: 'improved', text: 'Unreached questions stay out of your practice history, so a timed exam never marks something as missed that you did not see.' },
+    ],
+  },
+  {
     version: '1.26.0',
     date: '2026-10-05',
     headline: 'Tell it your exam date and get a plan for today',
