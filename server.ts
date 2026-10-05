@@ -1,7 +1,7 @@
 import { version } from './package.json';
 import { readFileSync } from 'node:fs';
 import { buildTimestamp } from './src/releaseInfo';
-import express from "express";
+import express, { type Request, type Response } from "express";
 import path from "path";
 import dotenv from "dotenv";
 import { AccountStore } from './server/accounts';
@@ -191,7 +191,7 @@ app.post("/api/admin/toggle-ai", requireSameSiteWrite, adminOnly, (req, res) => 
 });
 
 // API Endpoints
-app.post("/api/chat", tutorGate, async (req, res) => {
+app.post("/api/chat", tutorGate, async (req: Request, res: Response) => {
   const { prompt, history } = req.body ?? {};
   const problem = tutorInputProblem(prompt, history);
   if (problem) return res.status(400).json({ message: problem });
@@ -212,7 +212,7 @@ app.post("/api/chat", tutorGate, async (req, res) => {
   }
 });
 
-app.post("/api/quiz/evaluate", tutorGate, async (req, res) => {
+app.post("/api/quiz/evaluate", tutorGate, async (req: Request, res: Response) => {
   const { question, options, selectedAnswer, correctAnswer, questionId, selectedOptions } = req.body ?? {};
   const customApiKey = req.headers["x-gemini-api-key"] as string | undefined;
   let canonical = questionById.get(questionId);
@@ -255,7 +255,7 @@ app.post("/api/quiz/evaluate", tutorGate, async (req, res) => {
   }
 });
 
-app.post("/api/lab/diagnostic", tutorGate, async (req, res) => {
+app.post("/api/lab/diagnostic", tutorGate, async (req: Request, res: Response) => {
   const { labName, stepTitle, stepInstruction, technicianIssue } = req.body ?? {};
   const problem = labDiagnosticProblem(labName, stepTitle, stepInstruction, technicianIssue);
   if (problem) return res.status(400).json({ message: problem });
