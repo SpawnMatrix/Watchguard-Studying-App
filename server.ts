@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { buildTimestamp } from './src/releaseInfo';
 import express, { type Request, type Response } from "express";
 import path from "path";
+import { productionFiles } from './server/static';
 import dotenv from "dotenv";
 import { AccountStore } from './server/accounts';
 import { accountRoutes } from './server/accountRoutes';
@@ -341,16 +342,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath, {
-      setHeaders: (res, filePath) => {
-        // Hashed build assets are immutable; the shell and icons are not.
-        if (/\/assets\//.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }));
-    // Express 5's path-to-regexp needs the catch-all named; "*" alone no longer matches anything.
-    app.get("/{*splat}", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    app.use(productionFiles(distPath));
   }
 
   app.listen(PORT, "0.0.0.0", () => {
