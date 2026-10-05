@@ -12,7 +12,7 @@ export default defineConfig({
     // throttling tests flake under load.
     testTimeout: 20000,
     alias: {
-      '@': path.resolve(__dirname, '.'),
+      '@': path.resolve(import.meta.dirname, '.'),
     },
   },
 })
