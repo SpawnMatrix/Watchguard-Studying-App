@@ -1,4 +1,5 @@
 import { Question } from "../data/questions";
+import { answerKey, answerState } from "../engine/answerState";
 import { HelpCircle } from "lucide-react";
 
 interface StandardQuizzerProps {
@@ -10,6 +11,7 @@ interface StandardQuizzerProps {
 }
 
 export default function StandardQuizzer({ question, selectedOptions, isSubmitted, isLoading, onOptionToggle }: StandardQuizzerProps) {
+  const correctAnswers = answerKey(question);
   return (
     <div className="flex flex-col space-y-4">
       {/* Question body */}
@@ -39,16 +41,14 @@ export default function StandardQuizzer({ question, selectedOptions, isSubmitted
             optionStyle = "bg-watchguard-orange/15 border-watchguard-orange text-watchguard-orange shadow-lg shadow-watchguard-orange/5";
           }
           if (isSubmitted) {
-            // If this option is correct, highlight green
-            const qCorrect = question.correctAnswers || [question.correctAnswer];
-            const isThisCorrect = qCorrect.includes(opt);
+            const isThisCorrect = correctAnswers.includes(opt);
 
             if (isThisCorrect) {
               optionStyle = "bg-green-500/10 border-green-500 text-green-400";
             } else if (isSelected) {
               optionStyle = "bg-red-500/10 border-red-500 text-red-400";
             } else {
-              optionStyle = "bg-watchguard-dark/20 border-watchguard-border/40 text-gray-500 opacity-60";
+              optionStyle = "bg-watchguard-dark/20 border-watchguard-border/40 text-gray-400";
             }
           }
 
@@ -56,6 +56,7 @@ export default function StandardQuizzer({ question, selectedOptions, isSubmitted
             <button
               key={idx}
               aria-pressed={isSelected}
+              data-answer-state={isSubmitted ? answerState(opt, correctAnswers, selectedOptions) : undefined}
               data-quiz-option=""
               disabled={isSubmitted || isLoading}
               onClick={() => onOptionToggle(opt)}

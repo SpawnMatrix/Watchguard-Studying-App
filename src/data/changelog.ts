@@ -48,6 +48,18 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.22.1',
+    date: '2026-10-05',
+    headline: 'Easier-to-read answers and the fonts we meant to use',
+    changes: [
+      { kind: 'fixed', text: 'In light mode, the correct and incorrect answers after **Check answer** are now dark enough to read. The correct answer was the faintest text on the screen.' },
+      { kind: 'fixed', text: 'Options you did not pick stay readable after you check an answer instead of fading out.' },
+      { kind: 'improved', text: 'Diagram answers show a tick or a cross on the device, so you can see which was right without relying on colour.' },
+      { kind: 'fixed', text: 'The portal’s typefaces now load. They are served by the portal itself, so no font service learns that you visited.' },
+      { kind: 'fixed', text: 'Your first visit says **Welcome**, not “Welcome back”.' },
+    ],
+  },
+  {
     version: '1.22.0',
     date: '2026-09-28',
     headline: 'Share an idea and follow its progress',
