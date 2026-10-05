@@ -48,6 +48,15 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.22.2',
+    date: '2026-10-05',
+    headline: 'Calmer motion and a tidier settings page',
+    changes: [
+      { kind: 'improved', text: 'If your device asks for reduced motion, sections now switch without sliding or fading.' },
+      { kind: 'improved', text: '**Accounts & tutor settings** opens on your own tutor key, with administrator controls in a separate view.' },
+    ],
+  },
+  {
     version: '1.22.1',
     date: '2026-10-05',
     headline: 'Easier-to-read answers and the fonts we meant to use',

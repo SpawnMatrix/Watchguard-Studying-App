@@ -1,0 +1,31 @@
+name: Tag release
+# Every release on main gets a v<version> tag pointing at the commit that shipped it.
+# Tags pushed with GITHUB_TOKEN start no other workflow, so this never triggers an image publish.
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+permissions:
+  contents: write
+concurrency:
+  group: tag-release
+  cancel-in-progress: false
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Tag the version if it is new
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists at $(git rev-list -n1 "$tag")"; exit 0
+          fi
+          heading=$(head -n1 "docs/releases/$tag.md" | sed -E "s/^# *//; s/^Version $version — //")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "$tag — $heading" -m "Release $version. Notes: docs/releases/$tag.md"
+          git push origin "refs/tags/$tag"
