@@ -48,6 +48,16 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.26.0',
+    date: '2026-10-05',
+    headline: 'Tell it your exam date and get a plan for today',
+    changes: [
+      { kind: 'new', text: '**Exam plan** on Progress & Admin: enter your exam date to get a daily question target, split across the exam categories that need it most, with the reason for each.' },
+      { kind: 'new', text: 'The plan suggests when to sit mock exams: weekly at first, every three days in the last two weeks, and a final one two days before the exam.' },
+      { kind: 'improved', text: 'Study Home shows how many days are left, with a link to today’s plan.' },
+    ],
+  },
+  {
     version: '1.25.0',
     date: '2026-10-05',
     headline: 'A daily flashcard deck that knows when to bring cards back',

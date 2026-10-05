@@ -4,6 +4,7 @@ import { homeMetrics } from '../engine/homeMetrics';
 import { buildStudyReport } from '../engine/progress';
 import { useLearningTrack, learningTrackLabels } from '../engine/LearningTrack';
 import { readJSON } from '../account/storage';
+import { EXAM_PLAN_KEY, daysUntil, validExamDates } from '../engine/examPlan';
 import OverviewStats from './dashboard/OverviewStats';
 
 export default function StudyHome({name,history,completedLabs,onNavigate}:{name:string;history:QuizHistoryItem[];completedLabs:string[];onNavigate:(tab:'quiz'|'labs'|'sandbox'|'flashcards'|'admin')=>void}) {
@@ -12,8 +13,9 @@ export default function StudyHome({name,history,completedLabs,onNavigate}:{name:
   const resume=!!saved?.current&&!saved?.complete;
   // Nothing answered, no lab done, nothing to resume: this is a first visit, not a return.
   const returning=history.length>0||completedLabs.length>0||resume;
+  const dates=readJSON<unknown>(EXAM_PLAN_KEY,{}),exam=validExamDates(dates)?dates[track]:undefined,daysLeft=exam?daysUntil(exam):null;
   return <div className="space-y-6">
-    <section className="home-hero"><div><p className="eyebrow">YOUR STUDY BRIEFING</p><h1>{returning?'Welcome back':'Welcome'}, {name}.</h1><p>Build the habits. Understand the network.</p><span className="home-track">{learningTrackLabels[track]}</span><button className="primary-button" onClick={()=>onNavigate('quiz')}>{resume?'Continue your quiz':'Start practicing'}<ArrowRight size={18}/></button>{resume&&<small>Saved session · {saved.mode === 'mock-exam' ? `Exam question ${saved.index+1} of ${saved.queue.length}` : saved.current.topic}</small>}</div><div className="home-signal" aria-hidden="true"><Route size={78} strokeWidth={1}/><span>LEARN / APPLY / REVIEW</span></div></section>
+    <section className="home-hero"><div><p className="eyebrow">YOUR STUDY BRIEFING</p><h1>{returning?'Welcome back':'Welcome'}, {name}.</h1><p>Build the habits. Understand the network.</p><span className="home-track">{learningTrackLabels[track]}</span>{daysLeft!==null&&daysLeft>=0&&<button type="button" className="home-exam" onClick={()=>onNavigate('admin')}>{daysLeft===0?'Exam today':`Exam in ${daysLeft} day${daysLeft===1?'':'s'}`} · see today’s plan</button>}<button className="primary-button" onClick={()=>onNavigate('quiz')}>{resume?'Continue your quiz':'Start practicing'}<ArrowRight size={18}/></button>{resume&&<small>Saved session · {saved.mode === 'mock-exam' ? `Exam question ${saved.index+1} of ${saved.queue.length}` : saved.current.topic}</small>}</div><div className="home-signal" aria-hidden="true"><Route size={78} strokeWidth={1}/><span>LEARN / APPLY / REVIEW</span></div></section>
     <div><p className="eyebrow mb-3">LIFETIME PROGRESS · ALL TRACKS</p><OverviewStats score={metrics.accuracy===null?'—':`${metrics.accuracy}%`} completedLabs={completedLabs} history={history}/></div>
     <div className="home-grid">
       <section className="home-card"><h2><Target size={19}/>Topic accuracy</h2><p>Observed practice results, not an exam pass prediction.</p>{metrics.topics.length?metrics.topics.slice(0,6).map(t=><div className="mastery-row" key={t.topic}><div><span>{t.topic}</span><small>{t.correct}/{t.total} · {t.percent}%</small></div><progress value={t.correct} max={t.total} aria-label={`${t.topic} accuracy`}/></div>):<div className="home-empty">Your topic map starts with your first answer.</div>}<div className="flex gap-3 flex-wrap"><button className="secondary-button" onClick={()=>onNavigate('quiz')}>Practice a weak topic<ArrowRight size={16}/></button>{track!=='cloud'&&<button className="secondary-button" onClick={()=>onNavigate('admin')}>Exam readiness by category<ArrowRight size={16}/></button>}</div></section>
