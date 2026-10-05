@@ -48,6 +48,16 @@ export const INTERNAL_ONLY: Record<string, string> = {
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.25.0',
+    date: '2026-10-05',
+    headline: 'A daily flashcard deck that knows when to bring cards back',
+    changes: [
+      { kind: 'new', text: '**Due today** shows the flashcards whose review interval has passed, plus up to 10 new cards a day.' },
+      { kind: 'new', text: 'After revealing a card, choose **Again** or **Knew it** (or press `1` / `2`). Cards you know come back after 1, 3, 7 and then 21 days, the same schedule practice questions use.' },
+      { kind: 'improved', text: 'A card you miss returns at the end of today’s deck, not straight away. **Browse all** and Mark as Mastered work as before.' },
+    ],
+  },
+  {
     version: '1.24.0',
     date: '2026-10-05',
     headline: 'The sandbox remembers what you have solved',
