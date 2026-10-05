@@ -19,7 +19,9 @@ const authored = studyQuestions.filter(q => !q.variant);
 
 const claims: [string, RegExp, number][] = [
   ['authored questions', /\*\*(\d+) authored questions\*\*/, authored.length],
-  ['diagram scenarios', /including a (\d+)-scenario diagram section/, topologyQuestions.length],
+  ['diagram questions', /including a (\d+)-question diagram section/, topologyQuestions.length],
+  ['diagram questions answered on the diagram', /\((\d+) answered by clicking the diagram itself\)/,
+    topologyQuestions.filter(q => q.topology?.hotspots?.length).length],
   ['multi-select items', /and (\d+) multi-select items/, authored.filter(q => q.isMultiSelect).length],
   ['Local Firebox items (the NSE blueprint pool)', /all (\d+) Local Firebox items/, filterQuestions({ track: 'local' }).length],
   ['Network+ items (the N10-009 blueprint pool)', /: (\d+) items classified by domain/, studyQuestions.filter(q => q.track === 'network-plus').length],

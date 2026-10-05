@@ -491,4 +491,133 @@ const networkScenarios: Question[] = [
   }),
 ];
 
-export const topologyQuestions: Question[] = [...localScenarios, ...networkScenarios];
+// ---------------------------------------------------------------------------------------------
+// Find it on the diagram
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Most scenarios above ask a conceptual question beside their diagram: every option is an
+ * explanation and nothing in the drawing can be clicked. These companions reuse a scenario's
+ * network and ask the learner to point at the device or link that answers a different question
+ * about it, which is how the exam itself uses diagrams. Each tests a fact its scenario does not;
+ * where two would still give each other away in one mock exam, they are twinned in
+ * questionTwins.ts.
+ */
+type LocateOption = [answer: string, targetId?: string, target?: TopologyHotspot['target']];
+interface LocateSpec extends Pick<TopoSpec, 'id' | 'topic' | 'objective' | 'question' | 'explanation' | 'title'> {
+  /** The scenario whose network this question reuses. */
+  base: number;
+  /** Each option with the element a click selects. An option with no element is a button only. */
+  answer: LocateOption;
+  wrong: LocateOption[];
+}
+
+const scenarios = [...localScenarios, ...networkScenarios];
+
+function locate(spec: LocateSpec): Question {
+  const base = scenarios.find(q => q.id === spec.base);
+  if (!base?.topology || !base.track) throw new Error(`Diagram companion ${spec.id} names missing scenario ${spec.base}`);
+  const { topology } = base;
+  return topo({
+    id: spec.id, topic: spec.topic, track: base.track, objective: spec.objective,
+    question: spec.question, answer: spec.answer[0], wrong: spec.wrong.map(([text]) => text),
+    explanation: spec.explanation, title: spec.title, description: topology.description,
+    size: { width: topology.width, height: topology.height }, nodes: topology.nodes, edges: topology.edges,
+    hotspots: [spec.answer, ...spec.wrong]
+      .filter(([, targetId]) => targetId)
+      .map(([answer, targetId, target = 'node']) => spot(targetId!, answer, target)),
+  });
+}
+
+const companions: Question[] = ([
+  {
+    id: 1616, base: 1600, topic: 'NAT', objective: 'Static NAT, pp. 126-127',
+    title: 'Three-zone perimeter: before and after SNAT',
+    question: "An SNAT action publishes the web server as 203.0.113.80. Click the link on which an Internet client's request still has 203.0.113.80 as its destination.",
+    answer: ['The Eth0 external link', 'e3', 'edge'],
+    wrong: [['The Eth2 optional link', 'e2', 'edge'], ['The DMZ-to-server link', 'e4', 'edge'], ['The Eth1 trusted link', 'e1', 'edge']],
+    explanation: 'The Firebox rewrites the destination as the packet passes through it, so the public address exists only on the external side. From Eth2 onwards the request is addressed to 10.0.2.80, which is why the server never needs to know its public address. The trusted link is not on the path at all: the request comes in from the Internet, not from the LAN.',
+  },
+  {
+    id: 1617, base: 1601, topic: 'NAT', objective: '1-to-1 NAT, pp. 128-129',
+    title: 'Published mail server: where the source changes',
+    question: "A 1-to-1 NAT rule maps 10.0.2.25 to 198.51.100.25. Click the first link on which the mail server's outbound SMTP traffic carries 198.51.100.25 as its source.",
+    answer: ['The Eth0 link to the Internet', 'e2', 'edge'],
+    wrong: [['The Eth2 link from the server', 'e1', 'edge'], ['The link to the partner MTA', 'e3', 'edge'], ['The mail server, as it sends', 'mail']],
+    explanation: "The server only knows its private address, 10.0.2.25, and sends with it. The Firebox applies the 1-to-1 mapping as the traffic leaves Eth0, so the Internet side is the first to see 198.51.100.25 - not 203.0.113.1, the interface's own address, which dynamic NAT would have used. The partner link carries the translated address too, but only after Eth0 has produced it.",
+  },
+  {
+    id: 1618, base: 1603, topic: 'BOVPN', objective: 'BOVPN Configuration, pp. 281-289',
+    title: 'Two-site BOVPN: where traffic is decrypted',
+    question: 'A host on the Site A LAN sends traffic to 10.20.0.15 through the BOVPN. Click the device that decrypts it.',
+    answer: ['Firebox B', 'fwb'],
+    wrong: [['Firebox A', 'fwa'], ['A host on Site B LAN', 'lanb'], ['A host on Site A LAN', 'lana']],
+    explanation: 'Each Firebox is a tunnel endpoint. Firebox A encrypts traffic that matches the tunnel route on its way out, and Firebox B decrypts it before forwarding it onto 10.20.0.0/24 in the clear. The hosts at either end never see IPsec, which is why a BOVPN needs no software on them.',
+  },
+  {
+    id: 1619, base: 1605, topic: 'Routing', objective: 'Multi-WAN; Link Monitor, pp. 110-113',
+    title: 'Dual-ISP failover: what Link Monitor should test',
+    question: "Link Monitor for Eth0 pings only the interface's default gateway, which stays up when ISP A's upstream network fails. Click where you should add a target so that outage also triggers failover.",
+    answer: ['A host reached via ISP A', 'isp1'],
+    wrong: [['A host reached via ISP B', 'isp2'], ['The Firebox itself', 'fw'], ['A host on the Trusted LAN', 'lan']],
+    explanation: "Link Monitor decides whether Eth0 is usable by probing through Eth0, so its targets must sit on the path that interface serves. A gateway that answers while everything beyond it is down hides exactly the failure you care about; a host further into ISP A's network does not. A target through ISP B tests the wrong link, and nothing inside the Firebox or the LAN says anything about either ISP.",
+  },
+  {
+    id: 1620, base: 1606, topic: 'Routing', objective: 'Secondary Networks; VLANs, pp. 78-89',
+    title: 'Two subnets on one interface: who routes between them',
+    question: 'Eth1 has 10.50.9.1/24 added as a secondary network. A host at 10.50.9.20 sends to 10.50.1.20 on the same switch. Click the device that routes the packet between the two networks.',
+    answer: ['The Firebox', 'fw'],
+    wrong: [['The access switch', 'sw'], ['None; they share a segment']],
+    explanation: "Sharing a switch does not put two hosts in the same subnet. 10.50.1.20 is outside the sender's /24, so it sends the frame to its gateway, 10.50.9.1 on the Firebox, which routes it back out of Eth1. The access switch only forwards frames inside the one untagged segment and makes no routing decision.",
+  },
+  {
+    id: 1621, base: 1607, topic: 'Mobile VPN', objective: 'Mobile VPN Routing Options, pp. 262-263',
+    title: 'Remote worker: where the tunnel ends',
+    question: 'The VPN user opens a file share on 10.60.0.20. Click the link where that traffic is no longer inside the SSL VPN tunnel.',
+    answer: ['The Eth1 link to the LAN', 'e3', 'edge'],
+    wrong: [['The SSL VPN link', 'e2', 'edge'], ['The home network link', 'e1', 'edge'], ['None; it is end to end']],
+    explanation: 'Mobile VPN with SSL runs from the client software on the laptop to the Firebox. The Firebox decrypts the traffic and forwards it onto Eth1 like any other routed packet, so the LAN link carries it outside the tunnel - kept private there only if the application encrypts it itself, as SMB 3 encryption can. The home network carries the tunnel itself, still encrypted, on its way to the Internet.',
+  },
+  {
+    id: 1622, base: 1608, topic: 'Proxies', objective: 'HTTPS-proxy Policies, pp. 209-217',
+    title: 'Where inspection happens: who checks the site',
+    question: "With content inspection on, the browser only ever sees a certificate signed by the Firebox. Click the device that validates the external site's own certificate.",
+    answer: ['The Firebox', 'fw'],
+    wrong: [['The trusted client', 'client'], ['The external site', 'site']],
+    explanation: "Inspection splits the session in two. The Firebox is the client on the external half, so it is the one that receives and validates the site's real certificate; the browser never sees it. That is why certificate validation is configured in the HTTPS-proxy action - if the Firebox did not check, nothing would.",
+  },
+  {
+    id: 1623, base: 1610, topic: 'IP Addressing', objective: '1.7 IPv4 addressing',
+    title: 'Which subnet holds the host: its VLAN',
+    question: 'The workstation is 172.16.4.200. Click the VLAN link its traffic arrives on at the Distribution router.',
+    answer: ['VLAN 50', 'e2', 'edge'],
+    wrong: [['VLAN 40', 'e1', 'edge'], ['Both, alternately'], ['Neither VLAN']],
+    explanation: 'Operations is 172.16.4.192/26, which runs from .192 to .255, so .200 belongs to it and reaches the router on VLAN 50. Engineering, 172.16.4.128/26, ends at .191. A host lives in exactly one subnet, and that subnet - not the switch it plugs into - decides which gateway interface it uses.',
+  },
+  {
+    id: 1624, base: 1612, topic: 'Routing', objective: '2.2 Routing technologies',
+    title: 'OSPF cost comparison: after a failure',
+    question: 'The R2-R4 link fails and OSPF reconverges. Click the link R1 now uses first toward 10.80.9.0/24.',
+    answer: ['The R1-R3 link', 'e3', 'edge'],
+    wrong: [['The R1-R2 link', 'e1', 'edge'], ['The R2-R4 link', 'e2', 'edge'], ['The R3-R4 link', 'e4', 'edge']],
+    explanation: 'With R2-R4 gone, the path through R2 no longer reaches R4, leaving R1-R3-R4 at a total cost of 30 as the only route. R1 forwards on its own link to R3; R3-R4 is the second hop, not the first. OSPF picks the lowest-cost path that exists, and the cost-20 path no longer does.',
+  },
+  {
+    id: 1625, base: 1613, topic: 'Network Services', objective: '3.4 IPv4 network services',
+    title: 'DHCP across a router: where the broadcast stops',
+    question: 'A host in VLAN 60 broadcasts a DHCPDISCOVER. No relay is configured. Click the furthest device that receives it.',
+    answer: ['The L3 gateway', 'rtr'],
+    wrong: [['The access switch', 'sw'], ['The DHCP server', 'dhcp'], ['The VLAN 50 hosts', 'v50']],
+    explanation: "A broadcast reaches everything in its VLAN, including the gateway's VLAN 60 interface at the far end of the trunk, and stops there: routers do not forward broadcasts. The DHCP server is on another subnet and VLAN 50 is another broadcast domain, so neither hears it. A relay on that gateway is what turns the broadcast into a unicast the server can receive.",
+  },
+  {
+    id: 1626, base: 1614, topic: 'Troubleshooting', objective: '5.2 Troubleshoot general networking issues',
+    title: 'Local works, remote does not: the right gateway',
+    question: 'The workstation at 10.100.1.40/24 has the wrong default gateway configured. Click the device whose address it should use instead.',
+    answer: ['The router at 10.100.1.1', 'rtr'],
+    wrong: [['The access switch', 'sw'], ['The peer at 10.100.1.55', 'peer'], ['An Internet host', 'net']],
+    explanation: "A default gateway has to be a router on the host's own subnet. 10.100.1.1 is both, so it is the right address. The local peer is on the subnet but does not route, a layer 2 switch has no part in the decision, and anything on the Internet is exactly what the gateway exists to reach.",
+  },
+] satisfies LocateSpec[]).map(locate);
+
+export const topologyQuestions: Question[] = [...scenarios, ...companions];
