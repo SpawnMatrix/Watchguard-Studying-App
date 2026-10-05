@@ -38,6 +38,33 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+  a11y:
+    # axe-core against every section in both themes, on the production build. Contrast regressions
+    # fail here rather than shipping; scripts/a11y-allowlist.json is where an exception is explained.
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start the production build
+        run: |
+          mkdir -p "$RUNNER_TEMP/a11y-data"
+          NODE_ENV=production PORT=3000 COOKIE_SECURE=false ENABLE_AI_FEATURES=false DATA_DIR="$RUNNER_TEMP/a11y-data" nohup node dist/server.cjs > "$RUNNER_TEMP/a11y-server.log" 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/healthz > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/a11y-server.log"; exit 1
+      - name: Check every section in both themes
+        env:
+          A11Y_URL: http://127.0.0.1:3000
+        run: npm run a11y
   container:
     needs: test
     runs-on: ubuntu-latest
