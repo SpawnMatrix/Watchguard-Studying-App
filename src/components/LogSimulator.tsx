@@ -31,7 +31,7 @@ export default function LogSimulator({ question, selectedOptions, isSubmitted, i
 
       {/* Log Terminal Window */}
       {question.logMessage && (
-        <div className="bg-black/90 border border-gray-700 rounded-lg p-4 font-mono text-xs sm:text-sm shadow-inner relative overflow-hidden">
+        <div className="log-terminal bg-black/90 border border-gray-700 rounded-lg p-4 font-mono text-xs sm:text-sm shadow-inner relative overflow-hidden">
           <div className="flex items-center space-x-2 text-gray-500 mb-2 pb-2 border-b border-gray-800">
             <Terminal className="w-4 h-4" />
             <span>Traffic Monitor - Raw Logs</span>

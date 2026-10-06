@@ -250,9 +250,11 @@ button, a, input, select, textarea { touch-action: manipulation; }
 @media (max-width: 800px) {
   .app-header-inner { padding: 1rem; }
   .study-layout { display: flex; flex-direction: column; padding: 1rem; gap: 1.25rem; }
-  .study-nav { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); position: static; width: 100%; gap: .4rem; }
+  /* One scrolling row rather than a grid: three or four rows of tiles pushed every section about
+     260px down the screen before any content showed. The active section is scrolled into view by App. */
+  .study-nav { flex-direction: row; position: relative; top: auto; align-self: stretch; overflow-x: auto; gap: .4rem; margin: 0 -1rem; padding: 0 1rem .4rem; scroll-snap-type: x proximity; scroll-padding-inline: 1rem; scrollbar-width: thin; }
   .nav-caption { display: none; }
-  .study-nav-item { justify-content: center; text-align: center; flex-direction: column; gap: .35rem; padding: .65rem .3rem; font-size: .75rem; background: var(--color-wg-gray); border-color: var(--color-wg-border); }
+  .study-nav-item { flex: 0 0 5.6rem; scroll-snap-align: start; justify-content: center; text-align: center; flex-direction: column; gap: .35rem; padding: .6rem .3rem; font-size: .75rem; line-height: 1.2; background: var(--color-wg-gray); border-color: var(--color-wg-border); }
   .study-nav-item { position: relative; }
   .study-nav-badge { position: absolute; top: .3rem; right: .3rem; margin-left: 0; }
   .app-footer { text-align: center; }
@@ -541,7 +543,6 @@ button:disabled{cursor:default}
   .primary-button:hover:not(:disabled) { transform: translateY(-1px); }
 }
 @media(max-width:640px){
-  .study-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
   .session-tools{width:100%;gap:8px}
   .session-telemetry{flex:1;gap:6px;padding:8px;font-size:10px}
   .session-telemetry>*{margin:0!important;border:0;padding:0}
@@ -791,3 +792,7 @@ button:disabled{cursor:default}
   --color-red-300: #b91c1c; --color-red-400: #b91c1c;
   --color-sky-400: #0369a1; --color-blue-400: #1d4ed8; --color-indigo-400: #4338ca;
 }
+/* The log viewer is a terminal and stays dark in both themes, so it keeps the dark-theme text shades
+   the light theme swaps out above. Light-theme green and muted grey measured 3.2:1 and 2.32:1 on it,
+   and axe failed the quiz screen whenever the first question drawn was a log question. */
+:root[data-theme="light"] .log-terminal { --color-green-400: #4ade80; --color-wg-text-muted: #94a3b8; }
