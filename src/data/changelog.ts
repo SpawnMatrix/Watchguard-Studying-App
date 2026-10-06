@@ -54,6 +54,7 @@ export const INTERNAL_ONLY: Record<string, string> = {
 
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
+  { version: '1.30.0', date: '2026-10-05', headline: 'An account directory for administrators', changes: [{ kind: 'improved', text: 'Administrators can view usernames, roles and account creation dates in a paginated directory. Study progress stays private.' }] },
   { version: '1.29.0', date: '2026-10-05', headline: 'Download questions for your track', changes: [{ kind: 'improved', text: 'Question sections download the bank for your learning track. Saved quizzes and weakness review still work across tracks.' }] },
   { version: '1.28.1', date: '2026-10-05', headline: 'Clear verdicts on diagram links', changes: [{ kind: 'improved', text: 'Diagram links show a tick or cross after an answer, placed away from the link label.' }] },
   { version: '1.28.0', date: '2026-10-05', headline: 'Your daily flashcards on Home', changes: [{ kind: 'new', text: 'Study Home shows how many flashcards are due today for your learning track, including new cards.' }] },

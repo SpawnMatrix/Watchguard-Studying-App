@@ -1,7 +1,7 @@
 {
   "name": "watchguard-study-portal",
   "private": true,
-  "version": "1.29.1",
+  "version": "1.30.0",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
