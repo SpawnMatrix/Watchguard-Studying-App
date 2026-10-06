@@ -12,6 +12,10 @@
 .quiz-filter-drawer{margin-bottom:20px;border:1px solid var(--color-wg-border);border-radius:12px;background:var(--color-wg-gray)}
 .quiz-filter-drawer summary{padding:14px 18px;cursor:pointer;color:var(--color-wg-text);font-size:.85rem;font-weight:600}
 .quiz-filter-drawer summary span{font-weight:400;color:var(--color-wg-text-muted);margin-left:12px}
+.quiz-erase{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--color-wg-border)}
+.quiz-erase p{display:grid;gap:2px;margin:0;font-size:.8rem;color:var(--color-wg-text-muted)}
+.quiz-erase strong{color:var(--color-wg-text);font-size:.85rem}
+.quiz-erased{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .quiz-filter-drawer .quiz-filters{grid-template-columns:repeat(3,minmax(0,1fr));margin:0;border:0;border-top:1px solid var(--color-wg-border);border-radius:0 0 12px 12px}
 .topology-figure{border:1px solid var(--color-wg-border);border-radius:14px;background:var(--color-wg-dark);overflow:hidden}
 .topology-figure figcaption{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--color-wg-border);font-size:.85rem}
@@ -312,6 +316,7 @@ button[data-answer-state]:disabled { opacity: 1; }
 .variant-tag{color:#f29879;background:#ed633d15}
 .question-body{padding:22px;min-height:360px}
 .question-actions{padding:18px 22px;border-top:1px solid var(--color-watchguard-border);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.question-actions .primary-button{margin-left:auto}
 .question-sources{font-size:.8rem;border-top:1px solid var(--color-watchguard-border);padding-top:18px;margin-top:20px;color:#aab7c9;line-height:1.7}
 .question-sources>div{margin-top:8px}.question-sources a{display:inline-flex;align-items:center;gap:6px;color:#f3a287;text-decoration:underline;text-underline-offset:3px}
 .quiz-notice,.review-streak{font-size:.85rem;color:#f3a287;margin:16px 0}
