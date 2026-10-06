@@ -55,6 +55,7 @@ export const INTERNAL_ONLY: Record<string, string> = {
 
 /** Newest first. */
 export const changelog: ChangelogEntry[] = [
+  { version: '1.30.4', date: '2026-10-05', headline: 'Your answer history is safe from a stray tap', changes: [{ kind: 'fixed', text: '**Reset statistics** sat next to Check answer and erased every answer with one tap. It is now **Erase answer history** in Practice settings, asks first, and can be undone.' }] },
   { version: '1.30.3', date: '2026-10-05', headline: 'More room on phones', changes: [{ kind: 'improved', text: 'On phones the section menu is one scrolling row, so every section starts much higher on the screen.' }, { kind: 'fixed', text: 'Progress shows no quiz accuracy until your first answer, instead of 0%.' }, { kind: 'fixed', text: 'Traffic logs in the quiz are easier to read in light mode.' }] },
   { version: '1.30.2', date: '2026-10-05', headline: 'Progress from your other devices, without asking', changes: [{ kind: 'fixed', text: 'A tab left open now picks up progress you saved on another device when you come back to it, instead of asking you to choose a save after your next answer.' }] },
   { version: '1.30.0', date: '2026-10-05', headline: 'An account directory for administrators', changes: [{ kind: 'improved', text: 'Administrators can view usernames, roles and account creation dates in a paginated directory. Study progress stays private.' }] },
