@@ -79,7 +79,7 @@ export const logScenarioBuilders: ((r: Random) => LogScenarioSpec)[] = [
       title: 'Unhandled internal packet',
       subject: `${n.trusted} to ${n.server} on TCP ${port}`,
       topic: 'Policies',
-      cause: 'No policy matched the traffic, so the Firebox dropped it under the implicit final deny.',
+      cause: 'No policy matched, so the implicit final deny dropped the packet.',
       distractors: [
         'A proxy action denied the content after inspecting it.',
         'The source address failed the default spoofing check.',
@@ -103,7 +103,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.server} ${n.sport} ${port} tcp 20
       title: 'Default packet handling drops a spoofed source',
       subject: `${n.trusted} to ${n.internet} on TCP 443`,
       topic: 'Troubleshooting',
-      cause: 'The source address arrived on an interface that does not own that network, so anti-spoofing dropped it.',
+      cause: 'Anti-spoofing dropped a source seen on the wrong interface.',
       distractors: [
         'No policy matched the traffic and the implicit deny applied.',
         'The HTTPS proxy denied the request after content inspection.',
@@ -127,7 +127,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 443 tcp 20 1
       title: 'HTTP proxy denies content by body type',
       subject: `${n.trusted} to downloads.example.net on TCP 80`,
       topic: 'Proxies',
-      cause: 'A proxy policy matched and allowed the connection, then the proxy action denied the content itself.',
+      cause: 'The proxy action denied the content after the policy allowed it.',
       distractors: [
         'No policy matched, so the implicit deny dropped the packet.',
         'The packet was dropped by the default spoofing check.',
@@ -151,7 +151,7 @@ ${ts(r)} firebox http-proxy[2100]: ProxyDrop: HTTP Body Content Type match (HTTP
       title: 'An explicit Deny policy matched first',
       subject: `${n.trusted} to ${n.internet} on TCP 443`,
       topic: 'Policies',
-      cause: 'A policy with a Deny action sat above the permitting policy, and the first match wins.',
+      cause: 'A Deny policy above the permitting policy matched it first.',
       distractors: [
         'No policy matched and the traffic hit the implicit deny.',
         'The proxy action rejected the content after inspection.',
@@ -175,10 +175,10 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 443 tcp 20 6
       title: 'Traffic denied for want of a route',
       subject: `${n.trusted} to ${n.optional} on TCP 445`,
       topic: 'Routing',
-      cause: 'The Firebox had no route to the destination network, so it could not forward the packet.',
+      cause: 'The Firebox had no route to the destination network.',
       distractors: [
-        'The implicit deny dropped it because no policy matched.',
-        'Anti-spoofing rejected the source address.',
+        'The implicit deny dropped it as no policy matched.',
+        'Anti-spoofing rejected the source address as forged.',
         'A proxy action denied the request payload.',
       ],
       log: `SIMULATED TRAFFIC MONITOR
@@ -199,7 +199,7 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.optional} ${n.sport} 445 tcp 20 1
       title: 'Source is on the Blocked Sites list',
       subject: `${n.internet} to ${n.fbx} on TCP 443`,
       topic: 'Security Services',
-      cause: 'The source address was on the Blocked Sites list, which is enforced ahead of the policy list.',
+      cause: 'The source address was on the Blocked Sites list.',
       distractors: [
         'The traffic matched a Deny policy in the firewall rule set.',
         'No policy matched, so the implicit deny applied.',
@@ -223,11 +223,11 @@ ${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} 443 tcp 20 118 (
       title: 'Policy matched but was outside its schedule',
       subject: `${n.trusted} to ${n.internet} on TCP 80`,
       topic: 'Policies',
-      cause: 'The matching policy was inactive at that time of day because a schedule was applied to it.',
+      cause: 'The matching policy was outside its operating schedule.',
       distractors: [
-        'The policy was deleted, so the implicit deny applied.',
-        'The proxy denied the content after inspection.',
-        'The source address failed authentication.',
+        'The policy had been deleted, so the implicit final deny applied.',
+        'The HTTP proxy denied the content after inspecting it.',
+        'The source address failed Firebox user authentication.',
       ],
       log: `SIMULATED TRAFFIC MONITOR
 ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 80 tcp 20 63 (Guest-Web-00) proc_id="firewall" rc="101" msg_id="3000-0149" in_ifname="Trusted" out_ifname="External" schedule="Business-Hours" sched_state="inactive"`,
@@ -247,11 +247,11 @@ ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.internet} ${n.sport} 80 tcp 20 63
       title: 'Branch traffic missed the BOVPN tunnel route',
       subject: `${n.trusted} to ${n.optional} on TCP 3389`,
       topic: 'BOVPN',
-      cause: 'The traffic did not match the tunnel route, so it was sent to the default gateway and denied instead of being encrypted.',
+      cause: 'It missed the tunnel route, so it went to the internet instead.',
       distractors: [
-        'Phase 1 failed, so the tunnel never came up.',
-        'The proxy denied the payload after inspection.',
-        'A spoofing check dropped the packet.',
+        'Phase 1 failed, so the tunnel never came up and nothing passed.',
+        'A proxy action denied the payload after inspecting it.',
+        'A spoofing check dropped the packet before it was routed.',
       ],
       log: `SIMULATED TRAFFIC MONITOR
 ${ts(r)} firebox kernel: Deny ${n.trusted} ${n.optional} ${n.sport} 3389 tcp 20 127 (Unhandled Internal Packet-00) proc_id="firewall" rc="101" msg_id="3000-0148" in_ifname="Trusted" out_ifname="External" tunnel=""`,
@@ -323,7 +323,7 @@ ${ts(r)} firebox http-proxy[1234]: ProxyDrop: HTTP Web Blocker (HTTP-proxy-00) $
       title: 'Intrusion Prevention drops an exploit attempt',
       subject: `${n.internet} to the published server ${n.fbx} on TCP 443`,
       topic: 'Security Services',
-      cause: 'Intrusion Prevention matched a signature for a known exploit and dropped the connection.',
+      cause: 'Intrusion Prevention matched a known exploit signature and dropped it.',
       distractors: [
         'Gateway AntiVirus matched a virus signature inside the request payload.',
         'The traffic reached the end of the policy list without matching anything at all.',
@@ -444,9 +444,9 @@ ${ts(r)} firebox kernel: Deny ${n.internet} ${n.fbx} ${n.sport} ${FLOOD_PROTOCOL
       title: 'Content inspection rejects a server certificate',
       subject: `${n.trusted} to ${n.internet} on TCP 443`,
       topic: 'Proxies',
-      cause: 'Certificate validation rejected the server certificate during content inspection.',
+      cause: "Certificate validation rejected the server's certificate during inspection.",
       distractors: [
-        'The client does not trust the Firebox Proxy Authority certificate it was shown.',
+        'The client does not trust the Firebox Proxy Authority certificate.',
         'Gateway AntiVirus found malware hidden inside the encrypted payload.',
         'WebBlocker denied the destination because of the category assigned to it.',
       ],
