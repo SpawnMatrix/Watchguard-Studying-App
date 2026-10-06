@@ -792,3 +792,7 @@ button:disabled{cursor:default}
   --color-red-300: #b91c1c; --color-red-400: #b91c1c;
   --color-sky-400: #0369a1; --color-blue-400: #1d4ed8; --color-indigo-400: #4338ca;
 }
+/* The log viewer is a terminal and stays dark in both themes, so it keeps the dark-theme text shades
+   the light theme swaps out above. Light-theme green and muted grey measured 3.2:1 and 2.32:1 on it,
+   and axe failed the quiz screen whenever the first question drawn was a log question. */
+:root[data-theme="light"] .log-terminal { --color-green-400: #4ade80; --color-wg-text-muted: #94a3b8; }
