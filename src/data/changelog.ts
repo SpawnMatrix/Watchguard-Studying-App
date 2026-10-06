@@ -37,6 +37,7 @@ export interface ChangelogEntry {
  * the gap between two versions in the list is always explained.
  */
 export const INTERNAL_ONLY: Record<string, string> = {
+  '1.30.1': 'Deployment updater removes old images, stops retrying a failed release, and backs up before deploying.',
   '1.29.1': 'Accessibility sweep now checks 48 screens, including dialogs and populated study states.',
   '1.28.2': 'Vite and its plugins are development-only dependencies.',
   '1.27.7': 'Missing build assets return a non-cacheable 404.',

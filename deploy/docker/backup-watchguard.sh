@@ -26,8 +26,8 @@ KEEP_MIN="${WATCHGUARD_BACKUP_KEEP_MIN:-7}"
 # Set to the number of accounts you expect to exist. 1 catches the empty-database case without
 # needing maintenance; raise it if you want a stronger floor.
 MIN_ACCOUNTS="${WATCHGUARD_BACKUP_MIN_ACCOUNTS:-1}"
-LOCK_FILE="/run/lock/watchguard-study-backup.lock"
-UPDATE_LOCK_FILE="/run/lock/watchguard-study-update.lock"
+LOCK_FILE="${WATCHGUARD_BACKUP_LOCK:-/run/lock/watchguard-study-backup.lock}"
+UPDATE_LOCK_FILE="${WATCHGUARD_UPDATE_LOCK:-/run/lock/watchguard-study-update.lock}"
 
 # Never overlap with another backup.
 exec 9>"${LOCK_FILE}"
@@ -35,11 +35,14 @@ flock -n 9 || exit 0
 
 # Hold the updater's lock too, so it cannot replace the container halfway through a backup. The
 # updater takes that lock non-blocking and skips its tick while we hold it; we wait for an update
-# already in progress to finish rather than failing.
-exec 8>"${UPDATE_LOCK_FILE}"
-if ! flock -w 900 8; then
-  echo "An update held the deployment lock for 15 minutes; no backup taken." >&2
-  exit 1
+# already in progress to finish rather than failing. The updater's own pre-deploy backup already
+# holds it, and waiting on itself would stall the deploy for the full 15 minutes.
+if [[ "${WATCHGUARD_UPDATE_LOCK_HELD:-false}" != "true" ]]; then
+  exec 8>"${UPDATE_LOCK_FILE}"
+  if ! flock -w 900 8; then
+    echo "An update held the deployment lock for 15 minutes; no backup taken." >&2
+    exit 1
+  fi
 fi
 
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
