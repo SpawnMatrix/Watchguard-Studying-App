@@ -599,6 +599,15 @@ export class AccountStore {
 
   /* ---------------- administration ---------------- */
 
+  /** Explicit projection: never join progress, sessions, recovery or credential columns. */
+  accountDirectory(after = '') {
+    const rows = this.db.prepare('SELECT username,is_admin,created_at FROM accounts WHERE username > ? ORDER BY username LIMIT 51')
+      .all(after) as { username: string; is_admin: number; created_at: number }[];
+    const users = rows.slice(0, 50).map(row => ({ username: row.username,
+      role: row.is_admin ? 'administrator' as const : 'learner' as const, createdAt: row.created_at }));
+    return { users, nextCursor: rows.length > 50 ? users.at(-1)!.username : null };
+  }
+
   adminCount(): number {
     return (this.db.prepare('SELECT COUNT(*) AS n FROM accounts WHERE is_admin=1').get() as { n: number }).n;
   }
