@@ -168,4 +168,3 @@ docker images watchguard-study-portal
 docker system df
 df -h /
 ```
-

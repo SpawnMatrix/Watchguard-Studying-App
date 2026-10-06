@@ -9,8 +9,10 @@ The rule it is measured against:
 
 1. **Log essentially nothing about people.** The only per-user state worth
    keeping is study state — where a learner is in the material.
-2. **Nothing leaks.** No endpoint hands one learner another's data, and no
-   learner's content leaves the server unless that learner turned it on.
+2. **Nothing leaks.** Ordinary learners cannot read another learner's data.
+   The owner-approved administrator directory exposes only usernames, roles
+   and creation dates (section 3). No learner's content should leave the server
+   unless that learner turned it on; section 4 records the remaining consent gap.
 3. **Administrators can do almost nothing.** Helping someone back into their
    account is the goal; an administrator acting alone should not be able to
    take one over.
@@ -234,14 +236,12 @@ the synced snapshot.
 | `POST /api/account/{register,login,recover}` | username, admin flag, own snapshot; recovery code on register/recover | Caller's own. The session token is stripped from the body and set as a cookie (`accountRoutes.ts:38`). |
 | `PUT /api/account/progress` | new revision, and on a 409 the stored snapshot | Caller's own; the route refuses when the body's username is not the session's (`accountRoutes.ts:66`). |
 | `GET /api/admin/me` | whether an admin session exists, the caller's username, whether break-glass is configured, the number of administrators, the number of completed recoveries | Caller's own, plus two counts. |
-| `GET /api/admin/users` | **Removed in v1.20.0.** Answers 410 with no data. | Nobody's. |
+| `GET /api/admin/users` | Username, role and creation timestamp, 50 accounts per page (v1.30.0). | All accounts, only to an active administrator session. |
 | `POST /api/admin/recovery/approve` | whether the code was live | Nobody's: it names no account. |
 | `GET /api/session` | whether a proxy forwarded an identity | Caller's own; the identity itself stays server-side (`server.ts:142`). |
 | `GET /api/stats`, `GET /api/questions`, `GET /api/version`, `/healthz` | catalogue counts and build metadata | Nobody's. |
 
-Every response is now scoped to the caller's own session or to an aggregate
-count. Until v1.20.0 `GET /api/admin/users` returned the entire population to
-any administrator on every console load; see section 7.
+Study responses remain scoped to the caller. At the owner’s request, v1.30.0 adds an explicit exception: an active administrator can load a paginated directory of usernames, roles and creation dates. The query selects only those columns, never progress, last activity, credentials or recovery/session data. It uses private, no-store caching and does not fetch until the administrator clicks Load accounts. The broader pre-v1.20.0 directory remains removed.
 
 ### Account enumeration
 
@@ -363,9 +363,11 @@ a response.
 
 ## 6. What an administrator can do
 
-As of v1.22.0.
+As of v1.30.0.
 
 **Can:**
+
+- Load the account directory: usernames, administrator/learner roles and creation dates.
 
 - Approve one recovery request by the code a learner reads out. They are not
   told whose account it is, and approving does not reset anything: the new PIN
@@ -378,9 +380,7 @@ As of v1.22.0.
 
 **Cannot:**
 
-- List accounts. The route is gone and so is `AccountStore.listAccounts()`;
-  nothing on the server can produce a roster.
-- See anyone's username, creation time, progress revision or last activity.
+- See anyone's progress revision or last activity, or read credential, recovery or session secrets.
 - Sign another learner out of their devices.
 - Read, export or alter anyone's study progress.
 - Reset a PIN on their own. Approval is half of a reset; the other half needs
@@ -458,7 +458,7 @@ on the claim, and is the only deletion on the board.
 
 ## 7. Summary
 
-After v1.22.0, in plain language:
+After v1.30.0, in plain language:
 
 - The server logs the port it started on, up to two configuration warnings,
   and a class name when a request fails. Nothing else.
@@ -471,8 +471,7 @@ After v1.22.0, in plain language:
 - Recovery takes the same time whether or not the username is real, so the
   portal cannot be asked which of a list of names has an account.
 - It has no telemetry, no analytics, no error reporting and no request log.
-- An administrator can approve a recovery code and change a role. They cannot
-  list accounts, read progress, or reset a PIN without the learner's device.
+- An administrator can approve a recovery code and change a role. They can list usernames, roles and creation dates in an administrator session. They cannot read progress or reset a PIN without the learner's device.
 - It stores ideas people post, with no link back to them unless they asked for
   their name to be shown. An anonymous post is anonymous to us as well.
 

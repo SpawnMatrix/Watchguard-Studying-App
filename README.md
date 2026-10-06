@@ -25,7 +25,7 @@ This portal features an interactive **Firebox Live Network & Interface Simulator
 - Dedicated **Topology Lab** with scenario previews, selected-diagram practice, and topology mock exams. Inline SVG diagrams have keyboard-accessible hotspots, fit/readable-size views, optional animation, and complete network details. Content authors: [stable topology v1 contract and track behavior](docs/visual-workstream.md).
 - Practice can filter by question format: diagrams, traffic logs, policy ordering, or multiple choice.
 - **Quicker studying**: answer with `1`–`9` or `A`–`D` and press `Enter` to check and continue; arrow keys move through flashcards. The open section is kept in the URL (`#labs`, `#quiz`), so reloads keep your place and Back works, and each section downloads only when first opened.
-- Every PR must bump the package version, match the lockfile versions, and add release notes. Run `npm run check:release` after fetching origin/main. When a release reaches `main`, the *Tag release* workflow tags that commit `v<version>`, so `git checkout v1.18.1` gets you exactly what shipped. Every pull request also runs axe-core over 48 screens in both themes, including open dialogs, expanded notes, completed labs, populated Ideas and dated exam plans; run it locally with `A11Y_URL=http://127.0.0.1:3000 npm run a11y` against a production build. The footer shows the version, author, and immutable build time. [Version 1.2.0 release notes](docs/releases/v1.2.0.md).
+- Every PR must bump the package version, match the lockfile versions, and add release notes. Run `npm run check:release` after fetching origin/main. When a release reaches `main`, the *Tag release* workflow tags that commit `v<version>`, so `git checkout v1.18.1` gets you exactly what shipped. Every pull request also runs axe-core over 50 screens in both themes, including open dialogs, expanded notes, completed labs, populated Ideas dated exam plans and the admin directory; run it locally with `A11Y_URL=http://127.0.0.1:3000 npm run a11y` against a production build. The footer shows the version, author, and immutable build time. [Version 1.2.0 release notes](docs/releases/v1.2.0.md).
 
 Read [engine and compatibility](docs/study-engine.md), [source/reuse audit](docs/content-sources.md), and [persistent deployment and backups](docs/deployment-data.md). Use Node >=22.13. Keep the Compose data volume across upgrades. This independent practice tool does not guarantee an exam result; check the current objectives and Fireware version.
 
@@ -69,9 +69,9 @@ Deliberately very little. The full reasoning, including what this design does
 
 | Can | Cannot |
 | --- | --- |
-| Approve one recovery request, by a code the learner reads out | List accounts — the route and the query behind it are gone |
-| Promote or demote an administrator by typed username | See any learner's username, sign-up date, progress or last activity |
-| Turn the global AI tutor on or off | Sign another learner out of their devices |
+| View usernames, roles and creation dates in the admin-only directory | Read PINs, recovery codes or session tokens |
+| Promote or demote an administrator by typed username | See study progress or last activity |
+| Approve a recovery code or turn the global AI tutor on or off | Sign another learner out of their devices |
 | See two counts: administrators, and completed recoveries | Read or change anyone's study progress |
 | Publish, decline or reply to a posted idea | Learn who wrote an anonymous idea |
 |  | Reset a PIN alone — approval is only half of one |

@@ -186,25 +186,51 @@ describe('what an administrator can reach over HTTP', () => {
     return { cookie, admin: elevated.headers.get('set-cookie')!.split(';')[0] };
   };
 
-  it('no longer offers a list of accounts or a way to sign somebody out', async () => {
+  it('lists only approved account fields and still cannot sign somebody out', async () => {
     const store = open();
     const base = await ready(build(store));
-    const { admin } = await asAdmin(base);
+    const { admin, cookie: studyCookie } = await asAdmin(base);
     await send(base, '/api/account/register', { username: 'pilot', pin: '482951' });
 
     // 410, not 404: the path answers "removed" for consoles still running the
     // previous build, and answers it with no data whatsoever.
-    for (const gone of ["/api/admin/users", "/api/admin/users/sign-out"]) {
+    for (const gone of ["/api/admin/users/sign-out"]) {
       const response = await send(base, gone, undefined, { cookie: admin }, 'GET');
       expect(response.status, gone).toBe(410);
       expect(JSON.stringify(await response.json())).not.toContain('pilot');
     }
     expect((await send(base, '/api/admin/users/sign-out', { username: 'pilot' }, { cookie: admin })).status).toBe(410);
-    // And the store cannot produce one either.
-    expect((store as unknown as { listAccounts?: unknown }).listAccounts).toBeUndefined();
+    const response = await send(base, '/api/admin/users', undefined, { cookie: admin }, 'GET');
+    expect((await send(base, '/api/admin/users', undefined, { cookie: studyCookie }, 'GET')).status).toBe(403);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    const directory = await response.json();
+    expect(directory.users.map((u: any) => u.username)).toEqual(['chief', 'pilot']);
+    for (const user of directory.users) expect(Object.keys(user).sort()).toEqual(['createdAt', 'role', 'username']);
+    expect(directory.users[0].role).toBe('administrator');
+    expect(directory.users[1].role).toBe('learner');
+    expect(directory.users[1].createdAt).toBeGreaterThan(0);
+    expect(directory.nextCursor).toBeNull();
+    expect((await send(base, '/api/admin/users?after=bad%20cursor', undefined, { cookie: admin }, 'GET')).status).toBe(400);
+    await send(base, '/api/admin/logout', {}, { cookie: admin });
+    expect((await send(base, '/api/admin/users', undefined, { cookie: admin }, 'GET')).status).toBe(403);
   }, 30_000);
 
-  it('tells an administrator a count, never a roster', async () => {
+  it('paginates the directory without duplicate accounts or credential fields', () => {
+    const store = open();
+    const insert = store.db.prepare('INSERT INTO accounts (username,salt,pin_hash,recovery_hash,created_at) VALUES (?,?,?,?,?)');
+    for (let i = 0; i < 52; i++) insert.run(`fixture_${String(i).padStart(3, '0')}`, 'hidden-salt', 'hidden-pin', 'hidden-recovery', 1234);
+    const first = store.accountDirectory();
+    expect(first.users).toHaveLength(50);
+    expect(first.nextCursor).toBe('fixture_049');
+    const last = store.accountDirectory(first.nextCursor!);
+    expect(last.users.map(u => u.username)).toEqual(['fixture_050', 'fixture_051']);
+    expect(last.nextCursor).toBeNull();
+    expect(JSON.stringify([first, last])).not.toContain('hidden-');
+    expect(new Set([...first.users, ...last.users].map(u => u.username)).size).toBe(52);
+  });
+
+  it('keeps the status endpoint limited to counts', async () => {
     const store = open();
     const base = await ready(build(store));
     const { admin } = await asAdmin(base);
@@ -305,12 +331,11 @@ describe('the console keeps step with the server', () => {
   const console_ = readFileSync(path.join(__dirname, '..', 'src/components/dashboard/AdminConsole.tsx'), 'utf8');
 
   it('does not ask for anything the server stopped offering', () => {
-    expect(console_).not.toMatch(/\/users['"]/);
     expect(console_).not.toMatch(/users\/sign-out/);
     expect(console_).not.toMatch(/ManagedUser/);
   });
 
-  it('offers approval and role changes, and shows a count rather than a list', () => {
+  it('offers approval and role changes separately from the directory', () => {
     expect(console_).toMatch(/\/recovery\/approve/);
     expect(console_).toMatch(/users\/role/);
     expect(console_).toMatch(/recoveriesCompleted/);

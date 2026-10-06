@@ -157,8 +157,7 @@ export function adminRoutes(store: AccountStore, suggestions?: SuggestionStore) 
   /**
    * Approve one recovery request, by the code the learner reads out.
    *
-   * This is the whole of what an administrator can do about somebody else's
-   * account. They do not learn whose account it is, and approving is not the
+   * This action does not identify the account attached to the code. Approving is not the
    * same as resetting: the new PIN is set back on the device that opened the
    * request, which this administrator does not have. See docs/privacy.md for
    * what that does and does not prevent.
@@ -211,32 +210,20 @@ export function adminRoutes(store: AccountStore, suggestions?: SuggestionStore) 
     }
   });
 
-  /**
-   * `GET /users` and `POST /users/sign-out` used to live here.
-   *
-   * The first returned every account with its creation time, progress revision
-   * and last activity, to any administrator, on every console load — the whole
-   * roster of a deployment, none of which helping one person back into their
-   * account requires. The second signed a named learner out of every device
-   * without their involvement, which is not help, and which a reset the
-   * learner asked for already does.
-   *
-   * The capability is gone, not reduced: `AccountStore.listAccounts()` was
-   * deleted with it, so nothing on this server can produce a roster.
-   *
-   * The paths stay, answering 410. Merging to main deploys within minutes, so
-   * there will be browser tabs still running the previous console asking for
-   * `/users` on load; "this was removed" is a better answer for them, and for
-   * anyone scripting against the API, than a bare 404 that reads like a bug.
-   * They stay behind the same gate, so an unauthenticated caller still learns
-   * only that they are not an administrator.
-   */
-  for (const path of ['/users', '/users/sign-out']) {
-    router.all(path, gate, actionLimit, (_req, res) => res.status(410).json({
+  // Owner-requested directory: only username, role and creation date. An active
+  // administrator session is required, including for a caller who holds the role.
+  router.get('/users', gate, actionLimit, (req, res) => {
+    const after = req.query.after ?? '';
+    if (typeof after !== 'string' || (after !== '' && !/^[a-z0-9_]{3,24}$/.test(after))) {
+      return res.status(400).json({ message: 'Invalid account cursor.' });
+    }
+    res.json(store.accountDirectory(after));
+  });
+  // The old ability to sign another learner out remains removed.
+  router.all('/users/sign-out', gate, actionLimit, (_req, res) => res.status(410).json({
       success: false,
-      message: 'This console no longer lists learner accounts.',
+      message: 'Signing out another learner is not available.',
     }));
-  }
 
   return router;
 }
