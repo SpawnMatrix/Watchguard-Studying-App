@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Target } from 'lucide-react';
 import { useLearningTrack } from '../../engine/LearningTrack';
+import { PLAN_TARGET } from '../../engine/examPlan';
 import { examReadiness, READINESS_MIN_ANSWERS, type BlueprintId } from '../../engine/mockExam';
 import type { Track } from '../../engine/types';
 
@@ -41,12 +42,14 @@ export default function ExamReadiness({ history }: { history: readonly { questio
     <section className="exam-readiness" aria-labelledby="exam-readiness-title">
       <h3 id="exam-readiness-title"><Target aria-hidden="true" />Exam readiness · {blueprint.exam}</h3>
       {estimate !== null ? (
-        <p className={`readiness-summary${passMark === undefined ? '' : estimate >= passMark ? ' is-above' : ' is-below'}`}>
+        <p className={`readiness-summary${passMark === undefined ? '' : estimate >= PLAN_TARGET ? ' is-above' : estimate >= passMark ? ' is-near' : ' is-below'}`}>
           <strong>{estimate}%</strong> weighted by the exam outline.{' '}
           {passMark !== undefined
-            ? estimate >= passMark
-              ? `The exam needs ${passMark}%, so you are on track.`
-              : `The exam needs ${passMark}%, so you are ${passMark - estimate} points short.`
+            ? estimate >= PLAN_TARGET
+              ? `The exam needs ${passMark}% and your target is ${PLAN_TARGET}%, so you are on track.`
+              : estimate >= passMark
+                ? `That is enough for the ${passMark}% the exam needs, but ${PLAN_TARGET - estimate} points short of the ${PLAN_TARGET}% target that leaves room for a bad day.`
+                : `The exam needs ${passMark}%, so you are ${passMark - estimate} points short, and ${PLAN_TARGET - estimate} short of the ${PLAN_TARGET}% target.`
             : 'CompTIA reports a scaled score (720 on a 100–900 scale), not a percentage, so use this to compare domains rather than to predict a pass.'}
         </p>
       ) : (
@@ -78,8 +81,8 @@ export default function ExamReadiness({ history }: { history: readonly { questio
                     <>
                       <span className="readiness-score">{r.correct}/{r.answered} · {r.score}%</span>
                       <span
-                        className={`readiness-bar${passMark !== undefined && r.score >= passMark ? ' is-pass' : ''}`}
-                        style={passMark !== undefined ? { ['--pass' as string]: `${passMark}%` } : undefined}
+                        className={`readiness-bar${passMark !== undefined && r.score >= PLAN_TARGET ? ' is-pass' : ''}`}
+                        style={passMark !== undefined ? { ['--pass' as string]: `${passMark}%`, ['--target' as string]: `${PLAN_TARGET}%` } : undefined}
                         aria-hidden="true"
                       >
                         <span style={{ width: `${r.score}%` }} />
@@ -99,7 +102,10 @@ export default function ExamReadiness({ history }: { history: readonly { questio
           {focus.score === null ? ', where you have not answered enough questions for a score yet.' : `, where you are at ${focus.score}%.`}
         </p>
       )}
-      <p className="readiness-note">Each question counts once, by your most recent answer, so questions you have since got right no longer count against you.</p>
+      <p className="readiness-note">
+        Each question counts once, by your most recent answer, so questions you have since got right no longer count against you.
+        {passMark !== undefined && ` On each bar, the grey line is the ${passMark}% pass mark and the green line the ${PLAN_TARGET}% target; a bar turns green when it reaches the target.`}
+      </p>
     </section>
   );
 }

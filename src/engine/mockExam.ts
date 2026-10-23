@@ -4,6 +4,7 @@ import { NSE_WEIGHTS, nseCategory } from '../data/nseBlueprint';
 import { twinGroup } from '../data/questionTwins';
 import { createExam, questionMetaById, studyQuestions } from './catalog';
 import { seededRandom, shuffle } from './random';
+import type { Track } from './types';
 
 /**
  * Mock exams that are shaped like the exam they rehearse.
@@ -19,6 +20,9 @@ import { seededRandom, shuffle } from './random';
  * N10-009 and WatchGuard Network Security Essentials for Locally-Managed Fireboxes. Anything else - a
  * single topic, the Cloud track, All tracks, a format filter that empties a domain - keeps the uniform
  * draw, because there is no blueprint to honour and forcing one would distort it.
+ *
+ * A whole-track mock is as long as the real exam where the vendor states a fixed length: 70 questions
+ * for NSE. Everything else, Network+ included, is MOCK_EXAM_SIZE.
  */
 
 export type BlueprintId = 'network-plus' | 'nse';
@@ -32,19 +36,26 @@ interface Blueprint {
   classify: (q: Pick<Question, 'id' | 'topic' | 'track'>) => number | undefined;
   /** Published passing score as a percentage, where the vendor states one. */
   passMark?: number;
+  /** Questions on the real exam, where the vendor states a fixed number. A whole-track mock is this long. */
+  questions?: number;
 }
+
+/** Length of a mock with no fixed-length exam behind it. */
+export const MOCK_EXAM_SIZE = 50;
 
 const BLUEPRINTS: Blueprint[] = [
   {
     id: 'network-plus', unit: 'domain', weights: N10_009_WEIGHTS,
     classify: q => q.track === 'network-plus' ? NETWORK_PLUS_DOMAIN[q.id] : undefined,
     // CompTIA reports a scaled score (720 on 100-900), not a percentage, so no pass mark is claimed.
+    // It gives a maximum of 90 questions rather than a fixed number, so the mock stays MOCK_EXAM_SIZE.
   },
   {
     id: 'nse', unit: 'category', weights: NSE_WEIGHTS,
     classify: q => (q.track ?? 'local') === 'local' ? nseCategory(q) : undefined,
     // Network Security Essentials for Locally-Managed Fireboxes Study Guide, Exam Description.
     passMark: 75,
+    questions: 70,
   },
 ];
 
@@ -52,7 +63,7 @@ const categoriesOf = (b: Blueprint) => Object.keys(b.weights).map(Number).sort((
 
 /**
  * Whole-question quotas per category for an exam of `size`, by largest remainder so they always sum
- * to `size`. Ties go to the heavier category. Network+ at 50: 12/10/9/7/12. NSE at 50: 5/5/7/13/13/7.
+ * to `size`. Ties go to the heavier category. Network+ at 50: 12/10/9/7/12. NSE at 70: 7/7/10/18/18/10.
  */
 export function blueprintQuotas(size: number, blueprint: BlueprintId = 'network-plus'): Record<number, number> {
   const b = BLUEPRINTS.find(x => x.id === blueprint)!;
@@ -99,11 +110,12 @@ export function withoutTwins(pool: readonly Question[], seed: number, size: numb
 
 /**
  * The blueprint exam for a whole exam pool, or null when the pool cannot honour a blueprint.
- * Deterministic for a given pool and seed, like createExam.
+ * Deterministic for a given pool and seed, like createExam. Without a size it is as long as the real exam.
  */
-export function createBlueprintExam(pool: readonly Question[], seed: number, size = 50): Question[] | null {
+export function createBlueprintExam(pool: readonly Question[], seed: number, size?: number): Question[] | null {
   const b = blueprintFor(pool);
   if (!b) return null;
+  size ??= b.questions ?? MOCK_EXAM_SIZE;
   const quotas = blueprintQuotas(size, b.id);
   const group = (questions: readonly Question[]) => {
     const groups = new Map<number, Question[]>(categoriesOf(b).map(c => [c, []]));
@@ -121,8 +133,16 @@ export function createBlueprintExam(pool: readonly Question[], seed: number, siz
 }
 
 /** What the quiz engine calls: the blueprint when it applies, the uniform draw otherwise. */
-export function createMockExam(pool: readonly Question[], seed: number, size = 50): Question[] {
-  return createBlueprintExam(pool, seed, size) ?? createExam(withoutTwins(pool, seed, size), seed, size);
+export function createMockExam(pool: readonly Question[], seed: number, size?: number): Question[] {
+  const uniform = size ?? MOCK_EXAM_SIZE;
+  return createBlueprintExam(pool, seed, size) ?? createExam(withoutTwins(pool, seed, uniform), seed, uniform);
+}
+
+const TRACK_BLUEPRINT: Partial<Record<Track | 'all', BlueprintId>> = { local: 'nse', 'network-plus': 'network-plus' };
+
+/** The longest mock a track draws, to label the mode before one starts: a topic or format filter makes it shorter. */
+export function fullMockLength(track: Track | 'all'): number {
+  return BLUEPRINTS.find(b => b.id === TRACK_BLUEPRINT[track])?.questions ?? MOCK_EXAM_SIZE;
 }
 
 export interface DomainResult {

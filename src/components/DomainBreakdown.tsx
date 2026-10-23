@@ -1,3 +1,4 @@
+import { PLAN_TARGET } from '../engine/examPlan';
 import { examResults } from '../engine/mockExam';
 
 /**
@@ -7,7 +8,8 @@ import { examResults } from '../engine/mockExam';
  * a whole, so a strong score in one area can carry a weak one right up until the real exam draws a
  * harder set there. Showing each domain against its weighting makes the gap visible while there is
  * still time to study it. WatchGuard publishes a 75% passing score, so an NSE mock is also compared
- * with it; CompTIA reports a scaled score instead, so no percentage is claimed for Network+.
+ * with it, and with the higher practice target; CompTIA reports a scaled score instead, so no
+ * percentage is claimed for Network+.
  */
 export default function DomainBreakdown({ history }: { history: readonly { questionId: number; isCorrect: boolean }[] }) {
   const results = examResults(history);
@@ -21,8 +23,13 @@ export default function DomainBreakdown({ history }: { history: readonly { quest
     <section className="domain-breakdown" aria-label={`Score by exam ${unit}`}>
       <h3>Score by exam {unit}</h3>
       {passMark !== undefined && (
-        <p className={`domain-passmark ${overall >= passMark ? 'is-above' : 'is-below'}`}>
-          {overall}% overall. The real exam needs {passMark}%{overall >= passMark ? ', so this attempt would pass.' : `, so this attempt is ${passMark - overall} points short.`}
+        <p className={`domain-passmark ${overall >= PLAN_TARGET ? 'is-above' : overall >= passMark ? 'is-near' : 'is-below'}`}>
+          {overall}% overall.{' '}
+          {overall >= PLAN_TARGET
+            ? `That clears the ${passMark}% the real exam needs and the ${PLAN_TARGET}% target.`
+            : overall >= passMark
+              ? `That would pass the real exam, which needs ${passMark}%, but is ${PLAN_TARGET - overall} points short of the ${PLAN_TARGET}% target that leaves room for a harder set on the day.`
+              : `That is ${passMark - overall} points short of the ${passMark}% the real exam needs, and ${PLAN_TARGET - overall} short of the ${PLAN_TARGET}% target.`}
         </p>
       )}
       <table>

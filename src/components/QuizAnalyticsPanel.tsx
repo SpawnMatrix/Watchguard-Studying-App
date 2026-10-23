@@ -1,4 +1,5 @@
 import { Award, BarChart } from "lucide-react";
+import { PLAN_TARGET } from "../engine/examPlan";
 
 export interface QuizHistoryItem {
   attemptId?: string;
@@ -40,7 +41,7 @@ export default function QuizAnalyticsPanel({ quizHistory, correctCount, totalQue
             <Award className="w-4 h-4 text-watchguard-orange" />
             <span>Training Analytics</span>
           </h3>
-          <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">Practice target: 85%</span>
+          <span className="text-[10px] font-mono text-watchguard-orange uppercase tracking-wider">Practice target: {PLAN_TARGET}%</span>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -78,7 +79,7 @@ export default function QuizAnalyticsPanel({ quizHistory, correctCount, totalQue
             {Object.entries(topicStats).map(([topic, statsVal]) => {
               const stats = statsVal as { total: number; correct: number };
               const percentage = Math.round((stats.correct / stats.total) * 100);
-              const isFailing = percentage < 85;
+              const isFailing = percentage < PLAN_TARGET;
               return (
                 <div key={topic} className="space-y-1">
                   <div className="flex justify-between text-xs">

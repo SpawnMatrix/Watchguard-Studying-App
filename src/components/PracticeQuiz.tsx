@@ -11,6 +11,7 @@ import QuizEvaluation from './QuizEvaluation';
 import QuizAnalyticsPanel, { type QuizHistoryItem } from './QuizAnalyticsPanel';
 import DomainBreakdown from './DomainBreakdown';
 import { useQuizEngine, type QuizMode, type QuizLaunch } from '../engine/useQuizEngine';
+import { fullMockLength } from '../engine/mockExam';
 import { studyQuestions, formatLabels, filtersForNewSession, type ContentMode, type QuestionFormat } from '../engine/catalog';
 import { trackLabels } from '../engine/types';
 import { retainedCount, weakestTopics } from '../engine/srs';
@@ -62,7 +63,7 @@ export default function PracticeQuiz({onScoreUpdated,launch,onLaunchConsumed}:Pr
     {s.filters.track!==track && <div className="track-notice" role="status"><span>Your saved {s.filters.track==='all'?'All tracks':trackLabels[s.filters.track]} session is ready to resume. The header track applies when you start a new session.</span><button className="secondary-button" disabled={loading} onClick={()=>engine.configure(s.mode,{...s.filters,track,topic:'All'})}>Start {trackLabels[track]} session</button></div>}
     {s.mode==='weakness-review' && <p className="track-notice">Weakness review includes missed concepts from all tracks and question formats.</p>}
     <details className="quiz-filter-drawer"><summary>Practice settings <span>{s.mode==='mock-exam'?'Mock exam':s.mode==='weakness-review'?'Weakness review':'Practice'} · {s.filters.topic} · {s.filters.content} · {formatLabels[s.filters.format??'all']}</span></summary><div className="quiz-filters">
-      <label>Study mode<select aria-label="Study mode" disabled={loading} value={s.mode} onChange={e=>engine.configure(e.target.value as QuizMode,filtersForNewSession(s.filters,track))}><option value="practice">Practice Mode</option><option value="mock-exam">Mock Exam · up to 50 questions</option><option value="weakness-review">Review Weak Points</option></select></label>
+      <label>Study mode<select aria-label="Study mode" disabled={loading} value={s.mode} onChange={e=>engine.configure(e.target.value as QuizMode,filtersForNewSession(s.filters,track))}><option value="practice">Practice Mode</option><option value="mock-exam">Mock Exam · up to {fullMockLength(s.filters.track)} questions</option><option value="weakness-review">Review Weak Points</option></select></label>
       {s.mode==='mock-exam'&&<label className="quiz-timed"><span><input type="checkbox" disabled={loading} checked={!!s.timing} onChange={e=>engine.configure('mock-exam',s.filters,e.target.checked)}/> Timed exam, {SECONDS_PER_QUESTION/60} minute per question</span><small>Changing this starts a new exam. A practice pace: check your own exam's time limit.</small></label>}
 
       <label>Topic<select aria-label="Topic" disabled={loading||s.mode==='weakness-review'} value={s.filters.topic} onChange={e=>engine.configure(s.mode,{...s.filters,topic:e.target.value})}>{topics.map(topic=><option key={topic}>{topic}</option>)}</select></label>

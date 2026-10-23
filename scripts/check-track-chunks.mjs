@@ -6,6 +6,8 @@ const browser=await chromium.launch();
 try {
  for(const track of ['local','cloud','network-plus']) {
  const page=await browser.newPage({reducedMotion:'reduce'});const requests=[];const errors=[];
+ // A whole-track Local Firebox mock is as long as the real NSE exam; the others are 50.
+ const firstQuestion='Question 1 of '+(track==='local'?70:50);
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().endsWith('.js')) requests.push(r.url())});
  await page.goto(base + '/#quiz');await page.getByPlaceholder('e.g. packet_pilot').fill('reviewer');
  await page.evaluate(t=>localStorage.setItem('watchguard-learning-track:device',t),track);
@@ -15,13 +17,13 @@ try {
  const banks=requests.filter(x=>/\/(local|cloud|network-plus)-/.test(x));
  console.log(track,banks.map(x=>x.split('/').at(-1)),await page.locator('.catalog-count').innerText());
  assert.equal(banks.length,1);assert.ok(banks[0].includes('/'+track+'-'));assert.deepEqual(errors,[]);
- await page.locator('.quiz-filter-drawer summary').click();await page.getByLabel('Study mode',{exact:true}).selectOption('mock-exam');await page.getByText('Question 1 of 50',{exact:true}).waitFor();
+ await page.locator('.quiz-filter-drawer summary').click();await page.getByLabel('Study mode',{exact:true}).selectOption('mock-exam');await page.getByText(firstQuestion,{exact:true}).waitFor();
  const saved = await page.evaluate(()=>JSON.parse(localStorage.getItem('watchguard-quiz-session-v2')));
- await page.reload();await page.getByPlaceholder('e.g. packet_pilot').fill('reviewer');await page.getByRole('button',{name:/this device only/i}).click();await page.getByText('Question 1 of 50',{exact:true}).waitFor();
+ await page.reload();await page.getByPlaceholder('e.g. packet_pilot').fill('reviewer');await page.getByRole('button',{name:/this device only/i}).click();await page.getByText(firstQuestion,{exact:true}).waitFor();
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('watchguard-quiz-session-v2')).current.id),saved.current.id);
  await page.getByLabel('Learning track',{exact:true}).selectOption(track==='local'?'cloud':'local');
  await page.getByText(/Your saved .* session is ready/).waitFor();
- assert.match(await page.locator('.question-meta').innerText(),/Question 1 of 50/);
+ assert.match(await page.locator('.question-meta').innerText(),new RegExp(firstQuestion));
  await page.close();
  }
  // Cross-track weakness review must fetch both ID owners, not silently drop either.
