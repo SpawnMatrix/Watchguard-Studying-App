@@ -1,4 +1,5 @@
 import type { Question } from './questions';
+import { applyTrainingRevisions, trainingQuestions } from './training2026';
 import { CLOUD_SOURCE, NETWORK_SOURCE, localSource, type Track } from '../engine/types';
 
 /** Original practice scenarios. Each row is prompt | answer | three distractors | rationale.
@@ -574,3 +575,6 @@ authoredQuestions.push(...topicChecks.map(([question,correct,wrong,explanation,t
   difficulty:'applied' as const,explanation,
   sources:[topic==='WatchGuard Cloud'?CLOUD_SOURCE:localSource('Applied review across the WatchGuard domains')],
 })));
+
+applyTrainingRevisions(authoredQuestions);
+authoredQuestions.push(...trainingQuestions);

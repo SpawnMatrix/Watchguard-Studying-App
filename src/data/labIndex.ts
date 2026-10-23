@@ -26,6 +26,9 @@ export const LAB_NAMES: Readonly<Record<number, string>> = {
   18: "Lab 18: Dimension Logs and Reports",
   19: "Lab 19: WatchGuard Cloud Logs and Reports",
   20: "Lab 20: Log Notifications and Scheduled Reports",
+  21: "Lab 21: Configuration Migration",
+  22: "Lab 22: NAT Verification",
+  23: "Lab 23: Diagnostic Evidence",
 };
 
 export const LAB_COUNT = Object.keys(LAB_NAMES).length;

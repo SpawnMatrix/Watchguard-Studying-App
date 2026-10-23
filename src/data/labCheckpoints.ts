@@ -1,3 +1,4 @@
+import { trainingCheckpoints } from './trainingLabs2026';
 /**
  * One checkpoint per lab step: a short question about what that step does, what to enter, or what
  * you should see when it worked.
@@ -117,7 +118,7 @@ function parse(rows: string): Record<string, LabCheckpoint> {
   return result;
 }
 
-export const labCheckpoints: Record<string, LabCheckpoint> = parse(ROWS);
+export const labCheckpoints: Record<string, LabCheckpoint> = { ...parse(ROWS), ...trainingCheckpoints };
 
 export const checkpointFor = (labId: number, stepNumber: number): LabCheckpoint | undefined =>
   labCheckpoints[`${labId}.${stepNumber}`];
