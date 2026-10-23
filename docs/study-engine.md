@@ -14,7 +14,7 @@ Both the frontend and `/api/quiz/evaluate` use the same exact-set grader. The se
 
 Question IDs are stable concept identifiers. A weakness entry for a generated question identifies its template; review uses fresh variables and clears the entry after three correct responses. History stores the question, choices, answer set, descriptor, selected answers, explanation, and timestamp as they appeared. A saved session stores the exact mock queue and current question; a reload or tab change does not reshuffle it.
 
-Mock exams contain up to 50 questions. Static questions are unique within an exam; small generated pools can create multiple variants. A small authored-only topic may contain fewer than 50 questions. Exams finish with an explicit result instead of silently resetting statistics. This is a practice distribution, not a claim to reproduce an official exam blueprint or scaled score.
+A Local Firebox mock drawn from the whole track has 70 questions, the length of the real NSE exam. Every other mock (Network+, Cloud, All tracks, or a Local Firebox mock filtered so it cannot cover every category) contains up to 50 questions. Static questions are unique within an exam; small generated pools can create multiple variants. A small authored-only topic may contain fewer than 50 questions. Exams finish with an explicit result instead of silently resetting statistics. This is a practice distribution, not a claim to reproduce an official exam blueprint or scaled score.
 
 ## Network+ exam blueprint
 
@@ -45,7 +45,7 @@ From 1.6.0 a Network+ mock exam also draws to the blueprint rather than uniforml
 | Policies, Proxies, and Security Services | 25% | 27% (113) | 23% (113) |
 | Authentication and VPNs | 15% | 22% (93) | 19% (93) |
 
-`nseBlueprint.test.ts` fails if a Local Firebox question is unclassified, if any category drifts more than five points from its weight, or if a category has fewer than 30 questions. A Local Firebox mock exam draws 5/5/7/13/13/7 questions by category, and the results screen compares the attempt with the 75% pass mark. Network+ results show no percentage pass mark, because CompTIA reports a scaled score.
+`nseBlueprint.test.ts` fails if a Local Firebox question is unclassified, if any category drifts more than five points from its weight, or if a category has fewer than 30 questions. A Local Firebox mock exam draws 7/7/10/18/18/10 questions by category, and the results screen compares the attempt with the 75% pass mark and with the 85% practice target (`PLAN_TARGET` in `examPlan.ts`), so a pass that leaves no margin is shown as one. Network+ results show no percentage pass mark, because CompTIA reports a scaled score.
 
 ## Compatibility
 

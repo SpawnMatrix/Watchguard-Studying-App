@@ -335,6 +335,7 @@ button[data-answer-state]:disabled { opacity: 1; }
 .domain-breakdown p{margin:12px 0 0}
 .domain-breakdown .domain-passmark{margin:0 0 10px;padding:8px 10px;border-radius:8px;border:1px solid var(--color-wg-border);color:var(--color-wg-text)}
 .domain-passmark.is-above{border-color:#16a34a}
+.domain-passmark.is-near{border-color:#d97706}
 .domain-passmark.is-below{border-color:#dc2626}
 /* Progress: exam readiness by published category, and topics to review */
 .exam-readiness,.topic-review{border:1px solid var(--color-wg-border);border-radius:16px;padding:20px 22px;background:var(--color-wg-gray);color:var(--color-wg-text-muted);font-size:.85rem}
@@ -352,7 +353,7 @@ button[data-answer-state]:disabled { opacity: 1; }
 .exam-plan-actions{display:flex;gap:8px;flex-wrap:wrap}
 .home-exam{display:flex;width:fit-content;margin:-4px 0 14px;padding:3px 10px;border:1px solid var(--color-watchguard-orange);border-radius:999px;color:var(--color-watchguard-orange);font-size:.75rem;cursor:pointer;background:transparent}
 :root[data-theme="light"] .exam-plan-today strong,:root[data-theme="light"] .exam-plan-mocks strong,:root[data-theme="light"] .exam-plan-count,:root[data-theme="light"] .home-exam{color:#a63416;border-color:#a63416}
-.readiness-summary.is-above{border-color:#16a34a}.readiness-summary.is-below{border-color:#dc2626}
+.readiness-summary.is-above{border-color:#16a34a}.readiness-summary.is-near{border-color:#d97706}.readiness-summary.is-below{border-color:#dc2626}
 .readiness-table{overflow-x:auto}
 .readiness-table table{width:100%;border-collapse:collapse}
 .readiness-table th,.readiness-table td{padding:9px 8px;border-top:1px solid var(--color-wg-border);text-align:left;vertical-align:middle;font-weight:400}
@@ -367,6 +368,7 @@ button[data-answer-state]:disabled { opacity: 1; }
 .readiness-bar>span{display:block;height:100%;border-radius:3px;background:var(--color-watchguard-orange)}
 .readiness-bar.is-pass>span{background:#16a34a}
 .readiness-bar[style*="--pass"]::after{content:"";position:absolute;top:0;bottom:0;left:var(--pass);width:2px;background:var(--color-wg-text);opacity:.5}
+.readiness-bar[style*="--target"]::before{content:"";position:absolute;top:0;bottom:0;left:var(--target);width:2px;background:#16a34a}
 .readiness-focus{margin:14px 0 0;color:var(--color-wg-text);line-height:1.5}
 .readiness-note{margin:6px 0 0;font-size:.75rem;line-height:1.5}
 .topic-review ul{display:grid;gap:8px;margin:10px 0 0;padding:0;list-style:none}

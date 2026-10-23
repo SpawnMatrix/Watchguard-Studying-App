@@ -60,14 +60,20 @@ describe('exam readiness', () => {
     expect(examReadiness([answer(id, true)], 'network-plus').rows[NETWORK_PLUS_DOMAIN[id] - 1].answered).toBe(1);
   });
 
-  it('tells the learner what is missing, then how far from the pass mark they are', () => {
+  it('tells the learner what is missing, then how far from the pass mark and the target they are', () => {
     expect(renderToStaticMarkup(<ExamReadiness history={[]} />))
       .toContain('Answer at least 5 questions in every category for an overall estimate. 0 of 6 categories have enough so far.');
-    const passing = renderToStaticMarkup(<ExamReadiness history={fiveEach({ 1: 5, 2: 5, 3: 5, 4: 3, 5: 4, 6: 5 })} />);
-    expect(passing).toContain('<strong>85%</strong> weighted by the exam outline. The exam needs 75%, so you are on track.');
-    expect(passing).toContain('Study next: <strong>Networking and NAT</strong>, worth 25% of the exam, where you are at 60%.');
+    const onTarget = renderToStaticMarkup(<ExamReadiness history={fiveEach({ 1: 5, 2: 5, 3: 5, 4: 3, 5: 4, 6: 5 })} />);
+    expect(onTarget).toContain('<p class="readiness-summary is-above"><strong>85%</strong> weighted by the exam outline. The exam needs 75% and your target is 85%, so you are on track.');
+    expect(onTarget).toContain('Study next: <strong>Networking and NAT</strong>, worth 25% of the exam, where you are at 60%.');
+    // The 80% category passes but is under the target, so its bar is not green; the 100% ones are.
+    expect(onTarget).toContain('<span class="readiness-bar" style="--pass:75%;--target:85%" aria-hidden="true"><span style="width:80%">');
+    expect(onTarget).toContain('<span class="readiness-bar is-pass" style="--pass:75%;--target:85%" aria-hidden="true"><span style="width:100%">');
+    // (10+10+15+15)*80 + 25*80 + 25*60, over 100.
+    const passing = renderToStaticMarkup(<ExamReadiness history={fiveEach({ 1: 4, 2: 4, 3: 4, 4: 3, 5: 4, 6: 4 })} />);
+    expect(passing).toContain('<p class="readiness-summary is-near"><strong>75%</strong> weighted by the exam outline. That is enough for the 75% the exam needs, but 10 points short of the 85% target that leaves room for a bad day.');
     const failing = renderToStaticMarkup(<ExamReadiness history={fiveEach({ 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3 })} />);
-    expect(failing).toContain('The exam needs 75%, so you are 15 points short.');
+    expect(failing).toContain('<p class="readiness-summary is-below"><strong>60%</strong> weighted by the exam outline. The exam needs 75%, so you are 15 points short, and 25 short of the 85% target.');
   });
 });
 
