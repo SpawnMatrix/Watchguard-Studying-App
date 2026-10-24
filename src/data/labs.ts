@@ -1,3 +1,4 @@
+import { trainingLabs } from './trainingLabs2026';
 export interface LabStep {
   stepNumber: number;
   title: string;
@@ -315,6 +316,8 @@ export const watchguardLabs: Lab[] = [
     ],
   },
 ];
+
+watchguardLabs.push(...trainingLabs);
 
 export type LabSort = "number" | "category" | "name";
 export interface LabView { sortBy: LabSort; category: "All" | LabCategory; singleFireboxOnly: boolean }

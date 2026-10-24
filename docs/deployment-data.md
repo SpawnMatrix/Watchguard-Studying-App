@@ -128,7 +128,13 @@ After an approved merge, run `sudo systemctl start watchguard-update.service` to
 
 ## What the updater does
 
-Each tick, `update-watchguard` compares `origin/main` with `.deployed-commit` in the checkout. For a new commit it:
+Each tick, `update-watchguard` checks the checkout, Docker data directory, and containerd data directory (when present) for at least **4 GiB free and 50,000 free inodes**, even when the app is already current. It discovers Docker's root from the daemon rather than assuming it shares the checkout's disk. Configure `WATCHGUARD_CONTAINERD_DIR` if containerd stores image layers outside `/var/lib/containerd`.
+
+When capacity is low, it clears only unused Docker build cache older than seven days, then measures again. If capacity is still insufficient, or cannot be measured, it exits with an explicit error before fetching/building/replacing the app. It does not remove volumes, databases, backups, tagged running/rollback images, or mark the application commit as bad. A later tick can recover automatically after space is restored. The check runs again after fetching, before changing the checkout or building.
+
+These thresholds are headroom, not a reservation or a guarantee against another process filling the disk. Capacity errors appear in `systemctl --failed` and `journalctl -u watchguard-update.service`; no external notification destination is configured by this script. Use the existing homelab monitoring system to alert on service failures and filesystem capacity if notifications are needed.
+
+After the capacity check, `update-watchguard` compares `origin/main` with `.deployed-commit`. For a new commit it:
 
 1. Builds the image, tagged with the commit.
 2. Backs up the database with `deploy/docker/backup-watchguard.sh` while the old container is still serving, so a release that changes the schema can be undone. This needs no backup timer; the file lands in the same backup directory as the nightly ones and is verified the same way.
@@ -148,6 +154,9 @@ Tune it with `sudo systemctl edit watchguard-update.service`, under `[Service]` 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `WATCHGUARD_KEEP_IMAGES` | `3` | Commit-tagged images to keep, counting the running one and the rollback target |
+| `WATCHGUARD_MIN_FREE_KB` | `4194304` | Minimum available KiB on each checked filesystem before fetching/building |
+| `WATCHGUARD_MIN_FREE_INODES` | `50000` | Minimum available inodes on each checked filesystem |
+| `WATCHGUARD_CONTAINERD_DIR` | `/var/lib/containerd` | Additional image-store path; checked when present, mandatory if explicitly configured |
 | `WATCHGUARD_PREDEPLOY_BACKUP` | `true` | `true` backs up first and deploys even if the backup fails; `required` refuses to deploy without a verified backup; `false` skips it |
 | `WATCHGUARD_BRANCH` | `main` | Branch to follow |
 | `WATCHGUARD_APP_DIR` | `/opt/watchguard-study-portal` | The updater's checkout |

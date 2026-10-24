@@ -69,6 +69,10 @@ jobs:
         env:
           A11Y_URL: http://127.0.0.1:3000
         run: node scripts/check-track-chunks.mjs
+      - name: Verify training walkthroughs on mobile and desktop
+        env:
+          A11Y_URL: http://127.0.0.1:3000
+        run: node scripts/check-training-content.mjs
   container:
     needs: test
     runs-on: ubuntu-latest

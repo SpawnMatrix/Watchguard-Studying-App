@@ -1,5 +1,9 @@
 # Content sources and reuse audit
 
+## October 23 supplied-source integration
+
+See [content-review-2026.md](content-review-2026.md) for the complete disposition of 276 Anki notes, the 14-exercise lab crosswalk, official verification references, source discrepancies, and additions in v1.32.0. Existing IDs and earlier version labels are preserved; the newer lab book is not treated as proof of a new exam blueprint.
+
 ## September 19 objective audit
 
 See [exam-coverage.md](exam-coverage.md) for source versions, complete objective rows, the question-ID ledger, measured mock draw shares, depth judgments, and unresolved gaps. New original questions are in `src/data/coverageQuestions.ts`, each with its own source reference. CompTIA's retrieved [N10-009 objectives document v6.0](https://lecbyo.files.cmp.optimizely.com/download/35a7403ab73211ef9dcda6f347fbf652) supplements the older link below. The current WatchGuard exam portal was inaccessible; the report explicitly distinguishes the supplied Local baseline and a provisional historical Cloud checklist from verified current criteria.

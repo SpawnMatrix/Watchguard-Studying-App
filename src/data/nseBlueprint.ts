@@ -48,6 +48,8 @@ const range = (from: number, to: number, category: NseCategory) =>
   Object.fromEntries(Array.from({ length: to - from + 1 }, (_, i) => [from + i, category])) as Record<number, NseCategory>;
 
 export const NSE_OVERRIDES: Record<number, NseCategory> = {
+  // Authentication scenarios use Policies as their topic but belong to the VPN/authentication domain.
+  2411: 6, 2412: 6,
   // Basics: generic networking that is not unique to the Firebox.
   109: 1,
 

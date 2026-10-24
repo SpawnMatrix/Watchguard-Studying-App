@@ -28,6 +28,7 @@ const FAKE_DOCKER = `#!/usr/bin/env bash
 echo "docker $*" >> "$FAKE_STATE/log"
 images="$FAKE_STATE/images"
 case "$1" in
+  info) echo "$FAKE_STATE/docker"; exit 0 ;;
   inspect) [[ -f "$FAKE_STATE/healthy" ]] && echo healthy; exit 0 ;;
   compose)
     shift
@@ -45,7 +46,7 @@ case "$1" in
       rm) grep -vx "\${3#*:}" "$images" > "$images.new" || true; mv "$images.new" "$images" ;;
       prune) exit 0 ;;
     esac ;;
-  builder) exit 0 ;;
+  builder) touch "$FAKE_STATE/pruned"; exit 0 ;;
 esac
 `;
 const FAKE_GIT = `#!/usr/bin/env bash
@@ -59,6 +60,20 @@ esac
 const FAKE_BACKUP = `#!/usr/bin/env bash
 echo "backup lock_held=\${WATCHGUARD_UPDATE_LOCK_HELD:-unset}" >> "$FAKE_STATE/log"
 exit "\${FAKE_BACKUP_EXIT:-0}"
+`;
+const FAKE_DF = `#!/usr/bin/env bash
+echo "df $*" >> "$FAKE_STATE/log"
+[[ "\${FAKE_DF_FAIL:-0}" == 1 ]] && exit 1
+available=20000000
+if [[ "$1" == -Pi ]]; then available=1000000; fi
+if [[ ! -f "$FAKE_STATE/pruned" || "\${FAKE_PRUNE_RECOVERS:-0}" != 1 ]]; then
+  if [[ "$1" == -Pk ]]; then available="\${FAKE_FREE_KB:-20000000}"; fi
+  if [[ "$1" == -Pi ]]; then available="\${FAKE_FREE_INODES:-1000000}"; fi
+  if [[ "\${FAKE_DOCKER_LOW:-0}" == 1 && "\${*: -1}" == "$FAKE_STATE/docker" ]]; then available=0; fi
+  if [[ "\${FAKE_CONTAINERD_LOW:-0}" == 1 && "\${*: -1}" == "$FAKE_STATE/containerd" ]]; then available=0; fi
+fi
+echo "Filesystem Blocks Used Available Capacity Mounted"
+echo "fake 30000000 1000000 $available 10% /"
 `;
 
 let dir;
@@ -75,6 +90,7 @@ function run(target, { bad = '', backupExit = 0, env = {} } = {}) {
       FAKE_BIN: posix(path.join(dir, 'bin')),
       FAKE_STATE: slash(path.join(dir, 'state')), FAKE_BAD: bad, FAKE_BACKUP_EXIT: String(backupExit),
       WATCHGUARD_APP_DIR: slash(path.join(dir, 'app')), WATCHGUARD_UPDATE_LOCK: slash(path.join(dir, 'update.lock')),
+      WATCHGUARD_CONTAINERD_DIR: slash(path.join(dir, 'state', 'containerd')),
       ...env,
     },
   });
@@ -84,9 +100,10 @@ function run(target, { bad = '', backupExit = 0, env = {} } = {}) {
 describe.skipIf(!bash)('updater behaviour', () => {
   beforeEach(() => {
     dir = mkdtempSync(path.join(tmpdir(), 'wg-update-'));
-    for (const d of ['bin', 'state', 'app/deploy/docker']) mkdirSync(path.join(dir, d), { recursive: true });
+    for (const d of ['bin', 'state/docker', 'state/containerd', 'app/deploy/docker']) mkdirSync(path.join(dir, d), { recursive: true });
     writeFileSync(path.join(dir, 'bin', 'docker'), FAKE_DOCKER, { mode: 0o755 });
     writeFileSync(path.join(dir, 'bin', 'git'), FAKE_GIT, { mode: 0o755 });
+    writeFileSync(path.join(dir, 'bin', 'df'), FAKE_DF, { mode: 0o755 });
     writeFileSync(path.join(dir, 'bin', 'flock'), '#!/usr/bin/env bash\nexit 0\n', { mode: 0o755 });
     writeFileSync(path.join(dir, 'app', 'deploy', 'docker', 'backup-watchguard.sh'), FAKE_BACKUP, { mode: 0o755 });
     writeFileSync(path.join(dir, 'state', 'images'), '');
@@ -157,6 +174,50 @@ describe.skipIf(!bash)('updater behaviour', () => {
   it('skips the backup entirely when WATCHGUARD_PREDEPLOY_BACKUP=false', () => {
     run('aaa');
     expect(run('bbb', { env: { WATCHGUARD_PREDEPLOY_BACKUP: 'false' } }).log).not.toMatch(/backup/);
+  });
+
+  it('recovers low disk space before fetching or building', () => {
+    const result = run('aaa', { env: { FAKE_FREE_KB: '100', FAKE_PRUNE_RECOVERS: '1' } });
+    expect(result.status).toBe(0);
+    expect(result.log.indexOf('builder prune -af --filter until=168h')).toBeLessThan(result.log.indexOf('git fetch'));
+    expect(state('running')).toBe('aaa');
+  });
+
+  it.each([
+    { FAKE_FREE_KB: '100' }, { FAKE_FREE_INODES: '0' },
+    { FAKE_DOCKER_LOW: '1' }, { FAKE_CONTAINERD_LOW: '1' },
+  ])('refuses unsafe storage without touching running images or data: %j', env => {
+    run('aaa');
+    const images = state('images');
+    const result = run('bbb', { env });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toMatch(/Storage preflight failed/);
+    expect(result.log).not.toMatch(/git (fetch|reset)|compose|image (rm|prune)|volume/);
+    expect(state('running')).toBe('aaa');
+    expect(state('images')).toBe(images);
+    expect(existsSync(path.join(dir, 'app', '.failed-commit'))).toBe(false);
+    expect(run('bbb').status).toBe(0); // Recovered capacity can retry the same commit.
+  });
+
+  it('checks storage even when the current release is already healthy', () => {
+    run('aaa');
+    const result = run('aaa', { env: { FAKE_FREE_KB: '10' } });
+    expect(result.status).not.toBe(0);
+    expect(result.log).not.toMatch(/compose/);
+    expect(state('running')).toBe('aaa');
+  });
+
+  it.each([{ FAKE_DF_FAIL: '1' }, { FAKE_FREE_KB: 'unknown' }, { WATCHGUARD_MIN_FREE_KB: '-1' }])('fails closed on invalid measurements/settings: %j', env => {
+    const result = run('aaa', { env });
+    expect(result.status).not.toBe(0);
+    expect(result.log).not.toMatch(/builder prune|git fetch|compose/);
+  });
+
+  it('supports explicit capacity thresholds and refuses a missing custom store', () => {
+    expect(run('aaa', { env: { WATCHGUARD_MIN_FREE_KB: '50', WATCHGUARD_MIN_FREE_INODES: '10', FAKE_FREE_KB: '100', FAKE_FREE_INODES: '20' } }).status).toBe(0);
+    const result = run('bbb', { env: { WATCHGUARD_CONTAINERD_DIR: slash(path.join(dir, 'missing')) } });
+    expect(result.status).not.toBe(0);
+    expect(result.log).not.toMatch(/builder prune|git fetch|compose/);
   });
 });
 

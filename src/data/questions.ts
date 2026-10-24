@@ -4,6 +4,7 @@ import { legacyRevisions } from './legacyExplanations';
 import { topologyQuestions } from './topologyQuestions';
 import { legacyTopologyScenes } from './legacyTopologyScenes';
 import { coverageQuestions } from './coverageQuestions';
+import { applyTrainingRevisions } from './training2026';
 
 export interface Question extends QuestionMetadata {
   id: number;
@@ -1904,6 +1905,7 @@ for (const question of examQuestions) {
 }
 
 // Additive catalog: historical question identifiers remain unchanged.
+applyTrainingRevisions(examQuestions);
 examQuestions.push(...authoredQuestions);
 // Diagram-driven section, authored against topology contract v1 (src/engine/topology.ts).
 examQuestions.push(...topologyQuestions);

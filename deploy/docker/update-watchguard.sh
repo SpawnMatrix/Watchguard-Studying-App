@@ -24,6 +24,15 @@ KEEP_IMAGES="${WATCHGUARD_KEEP_IMAGES:-3}"
 # true: back up the database before replacing the container, and deploy anyway if that fails.
 # required: refuse to deploy without a verified backup. false: skip it.
 PREDEPLOY_BACKUP="${WATCHGUARD_PREDEPLOY_BACKUP:-true}"
+# Leave build headroom instead of discovering a full filesystem halfway through extraction.
+MIN_FREE_KB="${WATCHGUARD_MIN_FREE_KB:-4194304}"
+MIN_FREE_INODES="${WATCHGUARD_MIN_FREE_INODES:-50000}"
+for value in "${MIN_FREE_KB}" "${MIN_FREE_INODES}" "${KEEP_IMAGES}"; do
+  if [[ ! "${value}" =~ ^[1-9][0-9]{0,8}$ ]]; then
+    echo "Disk thresholds and WATCHGUARD_KEEP_IMAGES must be positive integers (at most nine digits)." >&2
+    exit 1
+  fi
+done
 
 exec 9>"${LOCK_FILE}"
 flock -n 9 || exit 0
@@ -31,6 +40,60 @@ flock -n 9 || exit 0
 cd "${APP_DIR}"
 compose() { docker compose --env-file .env -f "${COMPOSE_FILE}" "$@"; }
 
+# Docker can keep image layers in containerd on another filesystem. Check that store too when
+# present; a custom containerd root can be supplied without changing the Docker daemon settings.
+docker_root="$(docker info --format '{{.DockerRootDir}}')"
+if [[ -z "${docker_root}" || ! -d "${docker_root}" ]]; then
+  echo "Cannot locate Docker storage; refusing to deploy without a capacity check." >&2
+  exit 1
+fi
+storage_paths=("${APP_DIR}" "${docker_root}")
+containerd_root="${WATCHGUARD_CONTAINERD_DIR:-/var/lib/containerd}"
+if [[ -d "${containerd_root}" ]]; then
+  storage_paths+=("${containerd_root}")
+elif [[ -n "${WATCHGUARD_CONTAINERD_DIR:-}" ]]; then
+  echo "Configured containerd storage path does not exist: ${containerd_root}" >&2
+  exit 1
+fi
+
+storage_has_headroom() {
+  local storage_path free_kb free_inodes low=0
+  for storage_path in "${storage_paths[@]}"; do
+    if ! free_kb="$(LC_ALL=C df -Pk -- "${storage_path}" | awk 'NR==2 {print $4}')" ||
+       ! free_inodes="$(LC_ALL=C df -Pi -- "${storage_path}" | awk 'NR==2 {print $4}')"; then
+      echo "Cannot measure storage at ${storage_path}; refusing to deploy." >&2
+      return 2
+    fi
+    if [[ ! "${free_kb}" =~ ^[0-9]+$ || ! "${free_inodes}" =~ ^[0-9]+$ ]]; then
+      echo "Invalid storage measurements at ${storage_path}; refusing to deploy." >&2
+      return 2
+    fi
+    if (( free_kb < MIN_FREE_KB || free_inodes < MIN_FREE_INODES )); then
+      echo "Low storage at ${storage_path}: ${free_kb} KiB and ${free_inodes} inodes available; need ${MIN_FREE_KB} KiB and ${MIN_FREE_INODES} inodes." >&2
+      low=1
+    fi
+  done
+  return "${low}"
+}
+
+ensure_headroom() {
+  local result
+  if storage_has_headroom; then return 0; else result=$?; fi
+  # A failed measurement must not trigger cleanup based on a guess.
+  if (( result != 1 )); then return "${result}"; fi
+  echo "Reclaiming unused Docker build cache older than seven days before deployment." >&2
+  docker builder prune -af --filter 'until=168h' || echo "Build-cache cleanup failed; rechecking actual free space." >&2
+  if storage_has_headroom; then
+    echo "Storage headroom restored."
+  else
+    echo "Storage preflight failed. The running container and data volumes are unchanged. Free space or expand storage, then retry watchguard-update.service." >&2
+    return 1
+  fi
+}
+
+# Run even on an otherwise idle tick, and before Git needs room to fetch objects. Low space is
+# an operational failure, not a bad application commit: never write .failed-commit for this.
+ensure_headroom
 git fetch --quiet origin "${BRANCH}"
 target_commit="$(git rev-parse "origin/${BRANCH}")"
 current_commit="$(cat "${DEPLOYED_FILE}" 2>/dev/null || true)"
@@ -49,6 +112,7 @@ if [[ "${target_commit}" == "${failed_commit}" ]]; then
 fi
 
 previous_commit="${current_commit}"
+ensure_headroom
 git reset --hard "${target_commit}"
 
 export WATCHGUARD_IMAGE_TAG="${target_commit}"

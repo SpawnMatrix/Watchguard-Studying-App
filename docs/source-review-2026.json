@@ -1,0 +1,2579 @@
+{
+  "reviewDate": "2026-10-23",
+  "sources": [
+    {
+      "file": "lab-book 1.pdf",
+      "sha256": "4f2537bad50288145a650e9c3bc51440207eebffdc0c73043a6ef1c2783dd2d1"
+    },
+    {
+      "file": "Watchguard Locally Managed 1.apkg",
+      "sha256": "6b9701fae15f4c92b05022289c960f07a8ab80d3829c824d6f996f924461bac5"
+    }
+  ],
+  "noteCount": 276,
+  "scope": "Disposition of every source note, not a claim that every historical catalog answer has been freshly reverified. Source card text and media are not distributed.",
+  "notes": [
+    {
+      "sourceIndex": 1,
+      "noteId": "1789501438744",
+      "disposition": "new",
+      "questionIds": [
+        2400
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 2,
+      "noteId": "1789510111007",
+      "disposition": "new",
+      "questionIds": [
+        2401
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 3,
+      "noteId": "1789511154246",
+      "disposition": "reuse",
+      "questionIds": [
+        27
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 4,
+      "noteId": "1789511184116",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Historical downgrade advice requires release-specific restore and firmware procedures; retain the existing backup-version lessons instead of publishing this blanket answer."
+    },
+    {
+      "sourceIndex": 5,
+      "noteId": "1789511668399",
+      "disposition": "reuse",
+      "questionIds": [
+        1164
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 6,
+      "noteId": "1789511900434",
+      "disposition": "reuse",
+      "questionIds": [
+        1813
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 7,
+      "noteId": "1789568792040",
+      "disposition": "reuse",
+      "questionIds": [
+        7
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 8,
+      "noteId": "1789568826794",
+      "disposition": "new",
+      "questionIds": [
+        2402
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 9,
+      "noteId": "1789569075742",
+      "disposition": "reuse",
+      "questionIds": [
+        1874
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 10,
+      "noteId": "1789569146775",
+      "disposition": "reuse",
+      "questionIds": [
+        14
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 11,
+      "noteId": "1789569348375",
+      "disposition": "reuse",
+      "questionIds": [
+        1162
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 12,
+      "noteId": "1789569675152",
+      "disposition": "new",
+      "questionIds": [
+        2403
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 13,
+      "noteId": "1789569870301",
+      "disposition": "reuse",
+      "questionIds": [
+        55
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 14,
+      "noteId": "1789570221864",
+      "disposition": "reuse",
+      "questionIds": [
+        63
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 15,
+      "noteId": "1789571366384",
+      "disposition": "reuse",
+      "questionIds": [
+        26
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 16,
+      "noteId": "1789571388050",
+      "disposition": "reuse",
+      "questionIds": [
+        1169
+      ],
+      "reason": "Annotated screenshot changes the apparent SMTP category. Reuse the explicit recipient/relay lesson instead of scoring the edited image.",
+      "imageReview": "Reviewed locally; original media not redistributed. Annotated screenshot changes the apparent SMTP category. Reuse the explicit recipient/relay lesson instead of scoring the edited image."
+    },
+    {
+      "sourceIndex": 17,
+      "noteId": "1789571644565",
+      "disposition": "reuse",
+      "questionIds": [
+        1880
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 18,
+      "noteId": "1789571947211",
+      "disposition": "reuse",
+      "questionIds": [
+        11
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 19,
+      "noteId": "1789572754303",
+      "disposition": "reuse",
+      "questionIds": [
+        12
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 20,
+      "noteId": "1789572896835",
+      "disposition": "reuse",
+      "questionIds": [
+        13
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 21,
+      "noteId": "1789573590444",
+      "disposition": "new",
+      "questionIds": [
+        2407
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 22,
+      "noteId": "1789573661644",
+      "disposition": "reuse",
+      "questionIds": [
+        1805
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 23,
+      "noteId": "1789573691260",
+      "disposition": "reuse",
+      "questionIds": [
+        15
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 24,
+      "noteId": "1789574107856",
+      "disposition": "reuse",
+      "questionIds": [
+        16
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 25,
+      "noteId": "1789574204039",
+      "disposition": "reuse",
+      "questionIds": [
+        17
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 26,
+      "noteId": "1789574259154",
+      "disposition": "reuse",
+      "questionIds": [
+        18
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 27,
+      "noteId": "1789574316320",
+      "disposition": "reuse",
+      "questionIds": [
+        19
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 28,
+      "noteId": "1789574401636",
+      "disposition": "reuse",
+      "questionIds": [
+        19
+      ],
+      "reason": "Screenshot lacks DNS policy; use the explicit HTTP/HTTPS/DNS lesson instead of adding another image-dependent copy.",
+      "imageReview": "Reviewed locally; original media not redistributed. Screenshot lacks DNS policy; use the explicit HTTP/HTTPS/DNS lesson instead of adding another image-dependent copy."
+    },
+    {
+      "sourceIndex": 29,
+      "noteId": "1789574693300",
+      "disposition": "reuse",
+      "questionIds": [
+        20
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 30,
+      "noteId": "1789574896281",
+      "disposition": "reuse",
+      "questionIds": [
+        303
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 31,
+      "noteId": "1789574984447",
+      "disposition": "new",
+      "questionIds": [
+        2411
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 32,
+      "noteId": "1789575030313",
+      "disposition": "new",
+      "questionIds": [
+        2412
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 33,
+      "noteId": "1789575210595",
+      "disposition": "reuse",
+      "questionIds": [
+        21
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 34,
+      "noteId": "1789575355544",
+      "disposition": "reuse",
+      "questionIds": [
+        1111
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 35,
+      "noteId": "1789575459176",
+      "disposition": "reuse",
+      "questionIds": [
+        1100
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 36,
+      "noteId": "1789575564875",
+      "disposition": "reuse",
+      "questionIds": [
+        69
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 37,
+      "noteId": "1789608763708",
+      "disposition": "reuse",
+      "questionIds": [
+        22
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 38,
+      "noteId": "1789609042063",
+      "disposition": "reuse",
+      "questionIds": [
+        1169
+      ],
+      "reason": "Annotations conflict with the visible Mail From heading. Retain the documented Rcpt To relay concept without claiming the image is authoritative.",
+      "imageReview": "Reviewed locally; original media not redistributed. Annotations conflict with the visible Mail From heading. Retain the documented Rcpt To relay concept without claiming the image is authoritative."
+    },
+    {
+      "sourceIndex": 39,
+      "noteId": "1789609261046",
+      "disposition": "new",
+      "questionIds": [
+        2415
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 40,
+      "noteId": "1789610435867",
+      "disposition": "reuse",
+      "questionIds": [
+        1174
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 41,
+      "noteId": "1789610888987",
+      "disposition": "reuse",
+      "questionIds": [
+        50
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 42,
+      "noteId": "1789655692258",
+      "disposition": "reuse",
+      "questionIds": [
+        1141
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 43,
+      "noteId": "1789655827842",
+      "disposition": "reuse",
+      "questionIds": [
+        1050
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 44,
+      "noteId": "1789655847872",
+      "disposition": "new",
+      "questionIds": [
+        2425
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 45,
+      "noteId": "1789655997220",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The wording treats a log server as not a monitoring tool; this is an ambiguous distinction and adds no defensible assessment value."
+    },
+    {
+      "sourceIndex": 46,
+      "noteId": "1789656037469",
+      "disposition": "reuse",
+      "questionIds": [
+        48
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 47,
+      "noteId": "1789656855727",
+      "disposition": "new",
+      "questionIds": [
+        2405
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 48,
+      "noteId": "1789657127425",
+      "disposition": "reuse",
+      "questionIds": [
+        37
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 49,
+      "noteId": "1789657154592",
+      "disposition": "new",
+      "questionIds": [
+        2406
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 50,
+      "noteId": "1789657347223",
+      "disposition": "reuse",
+      "questionIds": [
+        1131
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 51,
+      "noteId": "1789657372221",
+      "disposition": "new",
+      "questionIds": [
+        2411
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 52,
+      "noteId": "1789657383521",
+      "disposition": "new",
+      "questionIds": [
+        2423
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 53,
+      "noteId": "1789657699751",
+      "disposition": "reuse",
+      "questionIds": [
+        1234
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 54,
+      "noteId": "1789661543403",
+      "disposition": "reuse",
+      "questionIds": [
+        1105
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 55,
+      "noteId": "1789661705495",
+      "disposition": "reuse",
+      "questionIds": [
+        1228
+      ],
+      "reason": "Review policies as a complete set; BOVPN-Allow entries may permit traffic beyond the named HTTP rules.",
+      "imageReview": "Reviewed locally; original media not redistributed. Review policies as a complete set; BOVPN-Allow entries may permit traffic beyond the named HTTP rules."
+    },
+    {
+      "sourceIndex": 56,
+      "noteId": "1789835635633",
+      "disposition": "reuse",
+      "questionIds": [
+        1208
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 57,
+      "noteId": "1789835726130",
+      "disposition": "reuse",
+      "questionIds": [
+        1206
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 58,
+      "noteId": "1789835732364",
+      "disposition": "reuse",
+      "questionIds": [
+        10
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 59,
+      "noteId": "1789835768680",
+      "disposition": "reuse",
+      "questionIds": [
+        1046
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 60,
+      "noteId": "1789835790513",
+      "disposition": "reuse",
+      "questionIds": [
+        1047
+      ],
+      "reason": "FSM adds temporary blocked sites; permanent entries belong in configuration. Keep the existing precise distinction."
+    },
+    {
+      "sourceIndex": 61,
+      "noteId": "1789835926245",
+      "disposition": "reuse",
+      "questionIds": [
+        58
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 62,
+      "noteId": "1789835991546",
+      "disposition": "new",
+      "questionIds": [
+        2425
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 63,
+      "noteId": "1789836091778",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Historical Quarantine Server behavior is version dependent and not established for the selected lab baseline."
+    },
+    {
+      "sourceIndex": 64,
+      "noteId": "1789836243194",
+      "disposition": "reuse",
+      "questionIds": [
+        60
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 65,
+      "noteId": "1789836310776",
+      "disposition": "reuse",
+      "questionIds": [
+        41
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 66,
+      "noteId": "1789933130022",
+      "disposition": "reuse",
+      "questionIds": [
+        20
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 67,
+      "noteId": "1789933247437",
+      "disposition": "reuse",
+      "questionIds": [
+        1174
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 68,
+      "noteId": "1789934164685",
+      "disposition": "reuse",
+      "questionIds": [
+        1009
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 69,
+      "noteId": "1789934211893",
+      "disposition": "reuse",
+      "questionIds": [
+        88
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 70,
+      "noteId": "1789935077749",
+      "disposition": "reuse",
+      "questionIds": [
+        27
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 71,
+      "noteId": "1789935119321",
+      "disposition": "reuse",
+      "questionIds": [
+        1021
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 72,
+      "noteId": "1789935176072",
+      "disposition": "reuse",
+      "questionIds": [
+        56
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 73,
+      "noteId": "1789935220830",
+      "disposition": "reuse",
+      "questionIds": [
+        10
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 74,
+      "noteId": "1789935250374",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The fixed list of six authentication servers omits release-dependent options; retain the existing VPN-specific compatibility questions."
+    },
+    {
+      "sourceIndex": 75,
+      "noteId": "1789935362285",
+      "disposition": "reuse",
+      "questionIds": [
+        60
+      ],
+      "reason": "Image From is Any-Trusted, so this is loopback access, not an external publishing rule.",
+      "imageReview": "Reviewed locally; original media not redistributed. Image From is Any-Trusted, so this is loopback access, not an external publishing rule."
+    },
+    {
+      "sourceIndex": 76,
+      "noteId": "1789935402715",
+      "disposition": "reuse",
+      "questionIds": [
+        2
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 77,
+      "noteId": "1789935491244",
+      "disposition": "reuse",
+      "questionIds": [
+        3
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 78,
+      "noteId": "1789935580657",
+      "disposition": "reuse",
+      "questionIds": [
+        4
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 79,
+      "noteId": "1789935755778",
+      "disposition": "reuse",
+      "questionIds": [
+        8
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 80,
+      "noteId": "1790014424932",
+      "disposition": "reuse",
+      "questionIds": [
+        9
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 81,
+      "noteId": "1790014480343",
+      "disposition": "reuse",
+      "questionIds": [
+        10
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 82,
+      "noteId": "1790014875898",
+      "disposition": "reuse",
+      "questionIds": [
+        88
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 83,
+      "noteId": "1790014936128",
+      "disposition": "reuse",
+      "questionIds": [
+        1100
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 84,
+      "noteId": "1790015178402",
+      "disposition": "reuse",
+      "questionIds": [
+        1082
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 85,
+      "noteId": "1790015234195",
+      "disposition": "reuse",
+      "questionIds": [
+        1111
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 86,
+      "noteId": "1790015280009",
+      "disposition": "reuse",
+      "questionIds": [
+        16
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 87,
+      "noteId": "1790015322227",
+      "disposition": "reuse",
+      "questionIds": [
+        1867
+      ],
+      "reason": "Bandwidth Meter is per-interface, while Service Watch is per-policy. Keep existing separate tool questions."
+    },
+    {
+      "sourceIndex": 88,
+      "noteId": "1790015920806",
+      "disposition": "reuse",
+      "questionIds": [
+        109
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 89,
+      "noteId": "1790026643204",
+      "disposition": "reuse",
+      "questionIds": [
+        1830
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 90,
+      "noteId": "1790026662586",
+      "disposition": "new",
+      "questionIds": [
+        2408
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 91,
+      "noteId": "1790026739102",
+      "disposition": "new",
+      "questionIds": [
+        2409
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 92,
+      "noteId": "1790026742838",
+      "disposition": "reuse",
+      "questionIds": [
+        1884
+      ],
+      "reason": "Replace the ambiguous negative benefit statement with existing VLAN segmentation reasoning."
+    },
+    {
+      "sourceIndex": 93,
+      "noteId": "1790026821671",
+      "disposition": "new",
+      "questionIds": [
+        2424
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 94,
+      "noteId": "1790026853202",
+      "disposition": "reuse",
+      "questionIds": [
+        94
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 95,
+      "noteId": "1790026881017",
+      "disposition": "reuse",
+      "questionIds": [
+        1009
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 96,
+      "noteId": "1790026895486",
+      "disposition": "reuse",
+      "questionIds": [
+        67
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 97,
+      "noteId": "1790026913218",
+      "disposition": "reuse",
+      "questionIds": [
+        85
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 98,
+      "noteId": "1790199863966",
+      "disposition": "reuse",
+      "questionIds": [
+        1000
+      ],
+      "reason": "Offline configuration is Policy Manager, not a claim that setup discovery requires no connected device."
+    },
+    {
+      "sourceIndex": 99,
+      "noteId": "1790199882414",
+      "disposition": "reuse",
+      "questionIds": [
+        14
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 100,
+      "noteId": "1790199908647",
+      "disposition": "reuse",
+      "questionIds": [
+        13
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 101,
+      "noteId": "1790199978182",
+      "disposition": "reuse",
+      "questionIds": [
+        1002
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 102,
+      "noteId": "1790200108612",
+      "disposition": "reuse",
+      "questionIds": [
+        11
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 103,
+      "noteId": "1790200177545",
+      "disposition": "reuse",
+      "questionIds": [
+        1005
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 104,
+      "noteId": "1790200250544",
+      "disposition": "reuse",
+      "questionIds": [
+        1011
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 105,
+      "noteId": "1790200541743",
+      "disposition": "reuse",
+      "questionIds": [
+        1012
+      ],
+      "reason": "A feature key is not an unconditional prerequisite to launch every setup flow; retain the existing unlicensed-device question."
+    },
+    {
+      "sourceIndex": 106,
+      "noteId": "1790200561874",
+      "disposition": "reuse",
+      "questionIds": [
+        1032
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 107,
+      "noteId": "1790200598924",
+      "disposition": "reuse",
+      "questionIds": [
+        75
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 108,
+      "noteId": "1790200615010",
+      "disposition": "reuse",
+      "questionIds": [
+        1048
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 109,
+      "noteId": "1790200676242",
+      "disposition": "reuse",
+      "questionIds": [
+        93
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 110,
+      "noteId": "1790203158102",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "ThreatSync is already explained in the Q&A Desk; do not add another local-Firebox quiz item solely from this shorthand."
+    },
+    {
+      "sourceIndex": 111,
+      "noteId": "1790203442551",
+      "disposition": "reuse",
+      "questionIds": [
+        1042
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 112,
+      "noteId": "1790203526369",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "No log destination or storage layer is specified, so a universal proprietary-format answer is unsupported."
+    },
+    {
+      "sourceIndex": 113,
+      "noteId": "1790203542467",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The minimum version depends on the particular Cloud feature; 12.5.2 is not a universal integration requirement."
+    },
+    {
+      "sourceIndex": 114,
+      "noteId": "1790203640333",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "A blocked packet alone does not uniquely distinguish Deny from Drop or imply a reset; use log scenarios with an explicit disposition."
+    },
+    {
+      "sourceIndex": 115,
+      "noteId": "1790203662116",
+      "disposition": "reuse",
+      "questionIds": [
+        16
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 116,
+      "noteId": "1790203680515",
+      "disposition": "reuse",
+      "questionIds": [
+        84
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 117,
+      "noteId": "1790203691848",
+      "disposition": "reuse",
+      "questionIds": [
+        1049
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 118,
+      "noteId": "1790300256782",
+      "disposition": "reuse",
+      "questionIds": [
+        37
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 119,
+      "noteId": "1790300271401",
+      "disposition": "reuse",
+      "questionIds": [
+        1047
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 120,
+      "noteId": "1790300315165",
+      "disposition": "new",
+      "questionIds": [
+        2410
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 121,
+      "noteId": "1790300325999",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "ThreatSync repeats note 110 and the existing Q&A Desk explanation; no extra question needed."
+    },
+    {
+      "sourceIndex": 122,
+      "noteId": "1790300336249",
+      "disposition": "reuse",
+      "questionIds": [
+        1020
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 123,
+      "noteId": "1790300352749",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The named report is underspecified and the expected answer was not verified; retain existing logging/reporting lessons."
+    },
+    {
+      "sourceIndex": 124,
+      "noteId": "1790300374465",
+      "disposition": "reuse",
+      "questionIds": [
+        1042
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 125,
+      "noteId": "1790300436915",
+      "disposition": "reuse",
+      "questionIds": [
+        1048
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 126,
+      "noteId": "1790300456897",
+      "disposition": "reuse",
+      "questionIds": [
+        51
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 127,
+      "noteId": "1790300469163",
+      "disposition": "reuse",
+      "questionIds": [
+        41
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 128,
+      "noteId": "1790300489565",
+      "disposition": "reuse",
+      "questionIds": [
+        1881
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 129,
+      "noteId": "1790300499946",
+      "disposition": "reuse",
+      "questionIds": [
+        1510
+      ],
+      "reason": "An access port can carry untagged VLAN traffic; tagged interfaces are not a universal requirement."
+    },
+    {
+      "sourceIndex": 130,
+      "noteId": "1790300514599",
+      "disposition": "reuse",
+      "questionIds": [
+        1882
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 131,
+      "noteId": "1790300526882",
+      "disposition": "reuse",
+      "questionIds": [
+        1813
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 132,
+      "noteId": "1790300538546",
+      "disposition": "reuse",
+      "questionIds": [
+        1082
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 133,
+      "noteId": "1790300548025",
+      "disposition": "reuse",
+      "questionIds": [
+        1072
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 134,
+      "noteId": "1790300564616",
+      "disposition": "reuse",
+      "questionIds": [
+        94
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 135,
+      "noteId": "1790300676062",
+      "disposition": "reuse",
+      "questionIds": [
+        60
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 136,
+      "noteId": "1790300827211",
+      "disposition": "reuse",
+      "questionIds": [
+        1071
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 137,
+      "noteId": "1790300845194",
+      "disposition": "reuse",
+      "questionIds": [
+        1103
+      ],
+      "reason": "Fireware static NAT can translate destination ports too; avoid the source's mutually exclusive PAT claim."
+    },
+    {
+      "sourceIndex": 138,
+      "noteId": "1790301257866",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "CLI syntax is not tied to a specific version or mode; use the verified routes view rather than import an unverified command."
+    },
+    {
+      "sourceIndex": 139,
+      "noteId": "1790301277700",
+      "disposition": "reuse",
+      "questionIds": [
+        1882
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 140,
+      "noteId": "1790301287666",
+      "disposition": "reuse",
+      "questionIds": [
+        1108
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 141,
+      "noteId": "1790301297549",
+      "disposition": "reuse",
+      "questionIds": [
+        1120
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 142,
+      "noteId": "1790301309299",
+      "disposition": "reuse",
+      "questionIds": [
+        1884
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 143,
+      "noteId": "1790301319666",
+      "disposition": "reuse",
+      "questionIds": [
+        1845
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 144,
+      "noteId": "1790301330849",
+      "disposition": "reuse",
+      "questionIds": [
+        1866
+      ],
+      "reason": "Use the interface-bandwidth tool for interface graphs; Traffic Monitor shows individual log events."
+    },
+    {
+      "sourceIndex": 145,
+      "noteId": "1790301373865",
+      "disposition": "reuse",
+      "questionIds": [
+        51
+      ],
+      "reason": "WatchGuard SNAT means static NAT; the source explanation incorrectly expands it as source NAT."
+    },
+    {
+      "sourceIndex": 146,
+      "noteId": "1790301507547",
+      "disposition": "reuse",
+      "questionIds": [
+        1120
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 147,
+      "noteId": "1790301535564",
+      "disposition": "reuse",
+      "questionIds": [
+        16
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 148,
+      "noteId": "1790301547231",
+      "disposition": "reuse",
+      "questionIds": [
+        49
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 149,
+      "noteId": "1790301579997",
+      "disposition": "reuse",
+      "questionIds": [
+        1161
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 150,
+      "noteId": "1790301598847",
+      "disposition": "reuse",
+      "questionIds": [
+        1127
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 151,
+      "noteId": "1790301614563",
+      "disposition": "reuse",
+      "questionIds": [
+        53
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 152,
+      "noteId": "1790301638530",
+      "disposition": "reuse",
+      "questionIds": [
+        81
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 153,
+      "noteId": "1790301651047",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The Policy Checker concept needs a specific supported tool/version and worked example before adding a scored item."
+    },
+    {
+      "sourceIndex": 154,
+      "noteId": "1790301670447",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Traffic Monitor is a viewer, not a firewall policy; the source question has no coherent keyed option."
+    },
+    {
+      "sourceIndex": 155,
+      "noteId": "1790301696879",
+      "disposition": "reuse",
+      "questionIds": [
+        1848
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 156,
+      "noteId": "1790301710796",
+      "disposition": "reuse",
+      "questionIds": [
+        45
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 157,
+      "noteId": "1790301726129",
+      "disposition": "reuse",
+      "questionIds": [
+        1124
+      ],
+      "reason": "Hidden policies are visible in FSM Service Watch, not the editable Policy Manager list."
+    },
+    {
+      "sourceIndex": 158,
+      "noteId": "1790301749617",
+      "disposition": "reuse",
+      "questionIds": [
+        23
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 159,
+      "noteId": "1790302609311",
+      "disposition": "reuse",
+      "questionIds": [
+        1120
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 160,
+      "noteId": "1790302624227",
+      "disposition": "reuse",
+      "questionIds": [
+        1162
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 161,
+      "noteId": "1790302639426",
+      "disposition": "reuse",
+      "questionIds": [
+        1127
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 162,
+      "noteId": "1790302652516",
+      "disposition": "reuse",
+      "questionIds": [
+        73
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 163,
+      "noteId": "1790302665657",
+      "disposition": "reuse",
+      "questionIds": [
+        83
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 164,
+      "noteId": "1790302695972",
+      "disposition": "reuse",
+      "questionIds": [
+        27
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 165,
+      "noteId": "1790302708672",
+      "disposition": "reuse",
+      "questionIds": [
+        1209
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 166,
+      "noteId": "1790302723855",
+      "disposition": "reuse",
+      "questionIds": [
+        1185
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 167,
+      "noteId": "1790302732864",
+      "disposition": "reuse",
+      "questionIds": [
+        68
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 168,
+      "noteId": "1790302745541",
+      "disposition": "reuse",
+      "questionIds": [
+        1191
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 169,
+      "noteId": "1790302760946",
+      "disposition": "reuse",
+      "questionIds": [
+        309
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 170,
+      "noteId": "1790302780209",
+      "disposition": "reuse",
+      "questionIds": [
+        91
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 171,
+      "noteId": "1790302789431",
+      "disposition": "reuse",
+      "questionIds": [
+        27
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 172,
+      "noteId": "1790302803698",
+      "disposition": "reuse",
+      "questionIds": [
+        83
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 173,
+      "noteId": "1790302817334",
+      "disposition": "reuse",
+      "questionIds": [
+        1191
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 174,
+      "noteId": "1790302832694",
+      "disposition": "reuse",
+      "questionIds": [
+        1227
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 175,
+      "noteId": "1790302840824",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Centralized VPN management depends on management mode and product; no universally best tool is established."
+    },
+    {
+      "sourceIndex": 176,
+      "noteId": "1790302862350",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "MFA method and VPN compatibility depend on the actual integration and release; the source lacks that context."
+    },
+    {
+      "sourceIndex": 177,
+      "noteId": "1790302891240",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Local user database concepts are already exercised by Lab 14; a separate recall item would duplicate the workflow."
+    },
+    {
+      "sourceIndex": 178,
+      "noteId": "1790302923136",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The claimed exhaustive three-component WSM list is version dependent; existing questions already distinguish Policy Manager and FSM."
+    },
+    {
+      "sourceIndex": 179,
+      "noteId": "1790302948579",
+      "disposition": "reuse",
+      "questionIds": [
+        85
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 180,
+      "noteId": "1790302961860",
+      "disposition": "reuse",
+      "questionIds": [
+        1031
+      ],
+      "reason": "status is the read-only built-in account, not the only account allowed to connect."
+    },
+    {
+      "sourceIndex": 181,
+      "noteId": "1790302996069",
+      "disposition": "reuse",
+      "questionIds": [
+        1539
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 182,
+      "noteId": "1790303019512",
+      "disposition": "reuse",
+      "questionIds": [
+        1074
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 183,
+      "noteId": "1790303042707",
+      "disposition": "reuse",
+      "questionIds": [
+        1881
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 184,
+      "noteId": "1790303108100",
+      "disposition": "reuse",
+      "questionIds": [
+        37
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 185,
+      "noteId": "1790303125257",
+      "disposition": "reuse",
+      "questionIds": [
+        1050
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 186,
+      "noteId": "1790356085241",
+      "disposition": "reuse",
+      "questionIds": [
+        6
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 187,
+      "noteId": "1790369095451",
+      "disposition": "reuse",
+      "questionIds": [
+        60
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 188,
+      "noteId": "1790369133034",
+      "disposition": "reuse",
+      "questionIds": [
+        16
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 189,
+      "noteId": "1790369203367",
+      "disposition": "reuse",
+      "questionIds": [
+        53
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 190,
+      "noteId": "1790369510475",
+      "disposition": "reuse",
+      "questionIds": [
+        1048
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 191,
+      "noteId": "1790369540341",
+      "disposition": "reuse",
+      "questionIds": [
+        20
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 192,
+      "noteId": "1790369586264",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The FTP wildcard/case question needs explicit filename-matching semantics; do not confuse it with HTTP body signatures."
+    },
+    {
+      "sourceIndex": 193,
+      "noteId": "1790369620281",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The source pattern has unclear wildcard syntax; no answer can be safely inferred without its actual match type."
+    },
+    {
+      "sourceIndex": 194,
+      "noteId": "1790369766680",
+      "disposition": "reuse",
+      "questionIds": [
+        1164
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 195,
+      "noteId": "1790369788574",
+      "disposition": "reuse",
+      "questionIds": [
+        1183
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 196,
+      "noteId": "1790369859420",
+      "disposition": "reuse",
+      "questionIds": [
+        1042
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 197,
+      "noteId": "1790369875824",
+      "disposition": "reuse",
+      "questionIds": [
+        27
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 198,
+      "noteId": "1790370222177",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The author explicitly doubts the IPSec answer, and the single-select format excludes other needed configuration. Hold instead of guessing."
+    },
+    {
+      "sourceIndex": 199,
+      "noteId": "1790370232471",
+      "disposition": "reuse",
+      "questionIds": [
+        1510
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 200,
+      "noteId": "1790370249566",
+      "disposition": "reuse",
+      "questionIds": [
+        1541
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 201,
+      "noteId": "1790370276753",
+      "disposition": "new",
+      "questionIds": [
+        2414
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 202,
+      "noteId": "1790370324897",
+      "disposition": "reuse",
+      "questionIds": [
+        1094
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 203,
+      "noteId": "1790370380563",
+      "disposition": "reuse",
+      "questionIds": [
+        52
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 204,
+      "noteId": "1790370397569",
+      "disposition": "reuse",
+      "questionIds": [
+        1221
+      ],
+      "reason": "For the same prefix, lower route distance is preferred; the source negative statement must not invert the rule."
+    },
+    {
+      "sourceIndex": 205,
+      "noteId": "1790370421810",
+      "disposition": "reuse",
+      "questionIds": [
+        100
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 206,
+      "noteId": "1790370437187",
+      "disposition": "reuse",
+      "questionIds": [
+        100
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 207,
+      "noteId": "1790370516982",
+      "disposition": "duplicate",
+      "questionIds": [
+        8
+      ],
+      "reason": "Repeated normalized prompt; use the same retained concept instead of another scored copy.",
+      "duplicateOfNoteId": "1789935755778",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 208,
+      "noteId": "1790370527614",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "The TLS statement is too broad about encryption versus authentication/key agreement; preserve existing HTTPS concepts until a protocol-version-specific item is authored."
+    },
+    {
+      "sourceIndex": 209,
+      "noteId": "1790370541344",
+      "disposition": "reuse",
+      "questionIds": [
+        20
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 210,
+      "noteId": "1790370551128",
+      "disposition": "reuse",
+      "questionIds": [
+        1
+      ],
+      "reason": "Historical classful terminology is already covered; do not add another class-mask recall item."
+    },
+    {
+      "sourceIndex": 211,
+      "noteId": "1790370570127",
+      "disposition": "reuse",
+      "questionIds": [
+        1802
+      ],
+      "reason": "Existing subnet-size concepts cover the calculation; /28 yields 14 conventional usable host addresses, not a new concept."
+    },
+    {
+      "sourceIndex": 212,
+      "noteId": "1790370589059",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "HTTPS handshake algorithms vary by TLS version; a generic asymmetric-encryption answer is too imprecise."
+    },
+    {
+      "sourceIndex": 213,
+      "noteId": "1790370653136",
+      "disposition": "reuse",
+      "questionIds": [
+        301
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 214,
+      "noteId": "1790370707917",
+      "disposition": "reuse",
+      "questionIds": [
+        18
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 215,
+      "noteId": "1790370783918",
+      "disposition": "reuse",
+      "questionIds": [
+        1047
+      ],
+      "reason": "Distinguish temporary auto-blocked sources from permanent bidirectional blocks instead of using the permanent-block rule for both."
+    },
+    {
+      "sourceIndex": 216,
+      "noteId": "1790370927067",
+      "disposition": "new",
+      "questionIds": [
+        2411
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 217,
+      "noteId": "1790370951218",
+      "disposition": "new",
+      "questionIds": [
+        2425
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 218,
+      "noteId": "1790371016951",
+      "disposition": "new",
+      "questionIds": [
+        2413
+      ],
+      "reason": "The source omits the process list, which the lab explicitly uses; use a clearly stated runtime-evidence question."
+    },
+    {
+      "sourceIndex": 219,
+      "noteId": "1790371055830",
+      "disposition": "reuse",
+      "questionIds": [
+        1874
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 220,
+      "noteId": "1790371071207",
+      "disposition": "duplicate",
+      "questionIds": [
+        4
+      ],
+      "reason": "Repeated normalized prompt; use the same retained concept instead of another scored copy.",
+      "duplicateOfNoteId": "1789935580657"
+    },
+    {
+      "sourceIndex": 221,
+      "noteId": "1790371158220",
+      "disposition": "reuse",
+      "questionIds": [
+        1510
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 222,
+      "noteId": "1790371200971",
+      "disposition": "reuse",
+      "questionIds": [
+        1111
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 223,
+      "noteId": "1790371285488",
+      "disposition": "duplicate",
+      "questionIds": [
+        3
+      ],
+      "reason": "Repeated normalized prompt; use the same retained concept instead of another scored copy.",
+      "duplicateOfNoteId": "1789935491244",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 224,
+      "noteId": "1790371337775",
+      "disposition": "reuse",
+      "questionIds": [
+        19
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 225,
+      "noteId": "1790371350152",
+      "disposition": "reuse",
+      "questionIds": [
+        1153
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 226,
+      "noteId": "1790371370377",
+      "disposition": "reuse",
+      "questionIds": [
+        1164
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 227,
+      "noteId": "1790371389235",
+      "disposition": "reuse",
+      "questionIds": [
+        1141
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 228,
+      "noteId": "1790371463913",
+      "disposition": "reuse",
+      "questionIds": [
+        22
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 229,
+      "noteId": "1790371480061",
+      "disposition": "reuse",
+      "questionIds": [
+        1133
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 230,
+      "noteId": "1790371510864",
+      "disposition": "reuse",
+      "questionIds": [
+        1143
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 231,
+      "noteId": "1790371564952",
+      "disposition": "duplicate",
+      "questionIds": [
+        7
+      ],
+      "reason": "Repeated normalized prompt; use the same retained concept instead of another scored copy.",
+      "duplicateOfNoteId": "1789568792040"
+    },
+    {
+      "sourceIndex": 232,
+      "noteId": "1790371578032",
+      "disposition": "reuse",
+      "questionIds": [
+        73
+      ],
+      "reason": "Keep the OS-specific native IKEv2 capability; remove unsupported universal fastest/most-secure superlatives."
+    },
+    {
+      "sourceIndex": 233,
+      "noteId": "1790371588857",
+      "disposition": "reuse",
+      "questionIds": [
+        1534
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 234,
+      "noteId": "1790371608724",
+      "disposition": "new",
+      "questionIds": [
+        2422
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 235,
+      "noteId": "1790371629904",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Whether client software must be installed depends on operating system and VPN support; do not import the universal claim."
+    },
+    {
+      "sourceIndex": 236,
+      "noteId": "1790371710568",
+      "disposition": "reuse",
+      "questionIds": [
+        1532
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 237,
+      "noteId": "1790371756639",
+      "disposition": "reuse",
+      "questionIds": [
+        23
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 238,
+      "noteId": "1790378432582",
+      "disposition": "reuse",
+      "questionIds": [
+        50
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 239,
+      "noteId": "1790378445309",
+      "disposition": "reuse",
+      "questionIds": [
+        24
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 240,
+      "noteId": "1790378467023",
+      "disposition": "reuse",
+      "questionIds": [
+        55
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 241,
+      "noteId": "1790378478761",
+      "disposition": "reuse",
+      "questionIds": [
+        11
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 242,
+      "noteId": "1790378494258",
+      "disposition": "reuse",
+      "questionIds": [
+        12
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 243,
+      "noteId": "1790378522728",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Same historical downgrade ambiguity as note 4; keep version-aware backup and migration material."
+    },
+    {
+      "sourceIndex": 244,
+      "noteId": "1790378595883",
+      "disposition": "new",
+      "questionIds": [
+        2407
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 245,
+      "noteId": "1790452023543",
+      "disposition": "reuse",
+      "questionIds": [
+        14
+      ],
+      "reason": "Backup image contents require a Fireware version. Existing question 14 already excludes the OS for standard on-device 12.2.1+ backups."
+    },
+    {
+      "sourceIndex": 246,
+      "noteId": "1790469401347",
+      "disposition": "new",
+      "questionIds": [
+        2402
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 247,
+      "noteId": "1790469421314",
+      "disposition": "new",
+      "questionIds": [
+        2401
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 248,
+      "noteId": "1790469456080",
+      "disposition": "reuse",
+      "questionIds": [
+        1880
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 249,
+      "noteId": "1790469679712",
+      "disposition": "reuse",
+      "questionIds": [
+        1813
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported.",
+      "imageReview": "Reviewed locally; original media not redistributed. Concept expressed in existing diagrams or explicit text."
+    },
+    {
+      "sourceIndex": 250,
+      "noteId": "1790469707031",
+      "disposition": "reuse",
+      "questionIds": [
+        1805
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 251,
+      "noteId": "1790469719911",
+      "disposition": "reuse",
+      "questionIds": [
+        15
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 252,
+      "noteId": "1790898484540",
+      "disposition": "reuse",
+      "questionIds": [
+        17
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 253,
+      "noteId": "1790900230068",
+      "disposition": "reuse",
+      "questionIds": [
+        18
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 254,
+      "noteId": "1790901330878",
+      "disposition": "new",
+      "questionIds": [
+        2411
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 255,
+      "noteId": "1790901404454",
+      "disposition": "reuse",
+      "questionIds": [
+        1100
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 256,
+      "noteId": "1790901504222",
+      "disposition": "reuse",
+      "questionIds": [
+        22
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 257,
+      "noteId": "1790901737301",
+      "disposition": "new",
+      "questionIds": [
+        2404
+      ],
+      "reason": "Original Mail From scenario explicitly states allowed patterns, no rewrite, and unmatched denial; do not rely on an unclear screenshot.",
+      "imageReview": "Reviewed locally; original media not redistributed. Original Mail From scenario explicitly states allowed patterns, no rewrite, and unmatched denial; do not rely on an unclear screenshot."
+    },
+    {
+      "sourceIndex": 258,
+      "noteId": "1790902062749",
+      "disposition": "new",
+      "questionIds": [
+        2403
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 259,
+      "noteId": "1790902288007",
+      "disposition": "reuse",
+      "questionIds": [
+        1174
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 260,
+      "noteId": "1790902813918",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Same TLS handshake ambiguity as note 212; no duplicate generic encryption item."
+    },
+    {
+      "sourceIndex": 261,
+      "noteId": "1790902997367",
+      "disposition": "reuse",
+      "questionIds": [
+        301
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 262,
+      "noteId": "1790903190294",
+      "disposition": "reuse",
+      "questionIds": [
+        1047
+      ],
+      "reason": "Use the existing temporary/permanent blocked-site distinction, not an unqualified all-direction statement."
+    },
+    {
+      "sourceIndex": 263,
+      "noteId": "1790903355400",
+      "disposition": "new",
+      "questionIds": [
+        2411
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 264,
+      "noteId": "1790903699551",
+      "disposition": "reuse",
+      "questionIds": [
+        1874
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 265,
+      "noteId": "1790903764511",
+      "disposition": "duplicate",
+      "questionIds": [
+        4
+      ],
+      "reason": "Repeated normalized prompt; use the same retained concept instead of another scored copy.",
+      "duplicateOfNoteId": "1789935580657"
+    },
+    {
+      "sourceIndex": 266,
+      "noteId": "1790903855681",
+      "disposition": "reuse",
+      "questionIds": [
+        1510
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 267,
+      "noteId": "1790905886554",
+      "disposition": "reuse",
+      "questionIds": [
+        1164
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 268,
+      "noteId": "1790905917664",
+      "disposition": "reuse",
+      "questionIds": [
+        1141
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 269,
+      "noteId": "1790906014805",
+      "disposition": "reuse",
+      "questionIds": [
+        22
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 270,
+      "noteId": "1790906051464",
+      "disposition": "reuse",
+      "questionIds": [
+        1143
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 271,
+      "noteId": "1790906070186",
+      "disposition": "reuse",
+      "questionIds": [
+        2
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 272,
+      "noteId": "1790906115794",
+      "disposition": "reuse",
+      "questionIds": [
+        73
+      ],
+      "reason": "Same native-client concept as note 232; avoid unqualified performance and security rankings."
+    },
+    {
+      "sourceIndex": 273,
+      "noteId": "1790906155655",
+      "disposition": "new",
+      "questionIds": [
+        2422
+      ],
+      "reason": "Gap addressed by an original sourced scenario and its automatically derived flashcard."
+    },
+    {
+      "sourceIndex": 274,
+      "noteId": "1790906166964",
+      "disposition": "held",
+      "questionIds": [],
+      "reason": "Same universal VPN-client claim as note 235; do not duplicate an unqualified assertion."
+    },
+    {
+      "sourceIndex": 275,
+      "noteId": "1790906243833",
+      "disposition": "reuse",
+      "questionIds": [
+        1532
+      ],
+      "reason": "Concept mapped to the existing bank; no separate copy of this source card is imported."
+    },
+    {
+      "sourceIndex": 276,
+      "noteId": "1791670753384",
+      "disposition": "reuse",
+      "questionIds": [
+        109
+      ],
+      "reason": "Use the existing layered-networking questions; the deck's protocol-to-layer shorthand is not a new authoritative taxonomy."
+    }
+  ],
+  "baseline": {
+    "commit": "8239eac",
+    "questionCount": 669,
+    "questionIdsSha256": "d33e7a44bbf9a976ccf695ec13641adc28a4603161b2ce42d0ace404a73486ce",
+    "labs": [
+      [
+        1,
+        "Lab 1: Initial Configuration",
+        5
+      ],
+      [
+        2,
+        "Lab 2: Help",
+        3
+      ],
+      [
+        3,
+        "Lab 3: Backup and Restore",
+        4
+      ],
+      [
+        4,
+        "Lab 4: Connect to the Dimension Server",
+        3
+      ],
+      [
+        5,
+        "Lab 5: Connect to WatchGuard Cloud",
+        3
+      ],
+      [
+        6,
+        "Lab 6: Routing",
+        4
+      ],
+      [
+        7,
+        "Lab 7: Routing to Another Device",
+        4
+      ],
+      [
+        8,
+        "Lab 8: Link Monitor and SD-WAN",
+        5
+      ],
+      [
+        9,
+        "Lab 9: Traffic Management",
+        5
+      ],
+      [
+        10,
+        "Lab 10: Packet Filters",
+        4
+      ],
+      [
+        11,
+        "Lab 11: Proxies",
+        5
+      ],
+      [
+        12,
+        "Lab 12: Subscription Services",
+        5
+      ],
+      [
+        13,
+        "Lab 13: Active Directory",
+        4
+      ],
+      [
+        14,
+        "Lab 14: Authentication",
+        4
+      ],
+      [
+        15,
+        "Lab 15: Mobile VPNs",
+        4
+      ],
+      [
+        16,
+        "Lab 16: BOVPNs",
+        5
+      ],
+      [
+        17,
+        "Lab 17: Fireware Web UI",
+        4
+      ],
+      [
+        18,
+        "Lab 18: Dimension Logs and Reports",
+        3
+      ],
+      [
+        19,
+        "Lab 19: WatchGuard Cloud Logs and Reports",
+        3
+      ],
+      [
+        20,
+        "Lab 20: Log Notifications and Scheduled Reports",
+        4
+      ]
+    ]
+  }
+}

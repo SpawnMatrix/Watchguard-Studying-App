@@ -9,9 +9,10 @@ import { buildStudyReport } from '../engine/progress';
  * progress report recommends has to exist.
  */
 describe('lab catalogue', () => {
-  it('covers all twenty Lab Book exercises, contiguous and in order', () => {
-    expect(watchguardLabs).toHaveLength(20);
-    expect(watchguardLabs.map(l => l.id)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
+  it('preserves the original twenty labs and appends three companion walkthroughs', () => {
+    expect(watchguardLabs).toHaveLength(23);
+    expect(watchguardLabs.slice(0, 20).map(l => l.id)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
+    expect(watchguardLabs.slice(20).map(l => l.id)).toEqual([21, 22, 23]);
   });
 
   it('gives every lab the fields the catalogue browses by', () => {
@@ -68,7 +69,7 @@ describe('catalogue browsing', () => {
   it('sorts by lab number by default, which is the Lab Book order', () => {
     // Shuffled input, because the bug this replaces was the component rendering source order.
     const shuffled = [...watchguardLabs].reverse();
-    expect(orderLabs(shuffled, all).map(l => l.id)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
+    expect(orderLabs(shuffled, all).map(l => l.id)).toEqual(Array.from({ length: 23 }, (_, i) => i + 1));
   });
 
   it('groups by category and keeps lab number as the tiebreak inside each group', () => {
